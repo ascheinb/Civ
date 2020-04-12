@@ -9,8 +9,9 @@ class Relationship{
     int person_id;
     int fondness_to;
     int fondness_of;
+    bool child;
 
-    Relationship(int person_id) : person_id(person_id) {}
+    Relationship(int person_id) : person_id(person_id), child(false) {}
 };
 
 #endif

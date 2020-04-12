@@ -62,6 +62,7 @@ class Population{
     void age() {
         for(int i = 0; i<person.size();i++){
             person[i].age++;
+            if (person[i].watch && person[i].age%40==0) printf("\n%s turned %d.",names[person[i].name].c_str(),person[i].age/4);
         }
     }
 
@@ -81,12 +82,17 @@ class Population{
         int n_died=0;
         int n_starved=0;
         for(int i = person.size()-1; i>=0;i--){
-            if (     person[i].age>person[i].lifespan // Old age
-                  || person[i].will_starve  ){        // Starvation
-                // Count deaths and cause
+            bool died=false;
+            if (person[i].age>person[i].lifespan){ // Old age
+                died=true;
+                if (person[i].watch) printf("\n%s died of old age",names[person[i].name].c_str());
+            } else if (person[i].will_starve){        // Starvation
+                died=true;
+                if (person[i].watch) printf("\n%s died of starvation",names[person[i].name].c_str());
+                n_starved++;
+            }
+            if (died){
                 n_died++;
-                if (person[i].will_starve) n_starved++;
-
                 // Remove from vector
                 person.erase(person.begin() + i);
             }

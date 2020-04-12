@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <cstdlib>
+#include "names.hpp"
 #include "random.hpp"
 #include "person.hpp"
 #include "population.hpp"
@@ -12,14 +13,24 @@ int main(){
     /* initialize random seed: */
     srand (time(NULL));
 
+    // Read in names
+    fill_names();
+
     int initial_n_ppl = 200;
     int n_turns = 10000;
+    bool watch = false;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
     SimVar<int> ndied(n_turns);
     SimVar<int> nppl(n_turns);
 
     Population p(initial_n_ppl);
+
+    if (watch){
+        // Choose who to watch; start with someone middleaged
+        int first_watch=initial_n_ppl/2;
+        p.person[first_watch].watch=true;
+    }
 
     printf("\n ******** SIMULATION BEGINS ******* \n");
     for (int i_turn = 1; i_turn <= n_turns; i_turn++){
@@ -66,7 +77,10 @@ int main(){
         }
 
         // Pause
-//        if (i_turn%960==1) std::cin.get();
+        if (watch && i_turn%4==0){
+            std::cin.get();
+            printf("\nStarting Year %d",1+i_turn/4);
+        }
     }
     printf("\nAverage population: %.0f\n",nppl.avg());
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.avg(), 100*nstarved.avg()/ndied.avg());
