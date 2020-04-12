@@ -14,16 +14,21 @@ class Population{
     public:
 
     std::vector<Person> person; // Public so people can see each other (use friend instead?)
+    std::vector<int> id2ind; // map from id to index
 
     Population(int initial_n_ppl) : n_ids(initial_n_ppl) {
         // Population-wide traits
         lifespan = 240;
         fertility_age = 64;
-        fertility_rate = 2.2/(lifespan-fertility_age);
+        fertility_rate = 4.2/(lifespan-fertility_age);
 
         // Initialize individuals
         for(int i = 0; i<initial_n_ppl;i++)
-            person.push_back(Person(i,i,lifespan,0));
+            person.push_back(Person(i,(i*lifespan)/initial_n_ppl,lifespan,0));
+
+        // Initialize id to index mapping
+        for(int i = 0; i<initial_n_ppl;i++)
+            id2ind.push_back(i);
     }
 
     void do_long_actions(int& food_available) {
@@ -41,10 +46,16 @@ class Population{
         }
     }
 
+    void feed_friends() {
+        for(int i = 0; i<person.size();i++)
+            person[i].feed_friends(person,id2ind);
+    }
+
     void eat() {
         for(int i = 0; i<person.size();i++){
             if (!person[i].will_starve)
-                person[i].wealth--; // Eat 1 wealth
+                //person[i].wealth--; // Eat 1 wealth
+                person[i].wealth=0; // Eat ALL wealth
         }
     }
 
@@ -54,13 +65,33 @@ class Population{
         }
     }
 
-    void die() {
+    std::tuple<int,int> die() {
+        // Check deaths twice, first in forward order to adjust id2ind...
+        int deaths_so_far=0;
+        for(int i = 0; i<person.size();i++){
+            if (     person[i].age>person[i].lifespan // Old age
+                  || person[i].will_starve  ){        // Starvation
+                deaths_so_far++;
+                id2ind[person[i].id] = -1;
+            } else {
+                id2ind[person[i].id] = i-deaths_so_far;
+            }
+        }
+        // ...then backwards to remove
+        int n_died=0;
+        int n_starved=0;
         for(int i = person.size()-1; i>=0;i--){
             if (     person[i].age>person[i].lifespan // Old age
                   || person[i].will_starve  ){        // Starvation
-                person.erase(person.begin() + i); // Remove from vector
+                // Count deaths and cause
+                n_died++;
+                if (person[i].will_starve) n_starved++;
+
+                // Remove from vector
+                person.erase(person.begin() + i);
             }
         }
+        return std::make_tuple(n_died,n_starved);
     }
 
     int breed() {
@@ -68,6 +99,9 @@ class Population{
         for(int i = 0; i<person.size();i++){
             n_kids += person[i].breed(n_ids+n_kids,fertility_age, fertility_rate, person);
         }
+        // Updated id to index mapping
+        for(int i = person.size()-n_kids; i<person.size();i++)
+            id2ind.push_back(i);
         n_ids+=n_kids;
         return n_kids;
     }
@@ -78,8 +112,8 @@ class Population{
             if (person[i].female) n_female++;
             else n_male++;
         }
-        printf("\nTurn %d: live female/male, dead: %d/%d, %d", i_turn, n_female, n_male, n_ids-person.size());
-        snap_age("ages",i_turn);
+        printf("\nTurn %d: live female/male, dead: %d/%d, %lu", i_turn, n_female, n_male, n_ids-person.size());
+//        snap_age("ages",i_turn);
     }
 
     private:

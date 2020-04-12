@@ -13,6 +13,14 @@ struct SimVar{
         var[i]=newvar;
     }
 
+    float avg(){
+        float sum = 0;
+        for (int i=0 ; i<var.size() ; i++) {
+            sum += (float)(var[i]);
+        }
+        return sum/var.size();
+    }
+
     void write(const char* filename){
         FILE * pFile;
         pFile = fopen (filename,"w");
