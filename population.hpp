@@ -58,6 +58,11 @@ class Population{
         }
     }
 
+    void theft() {
+        for(int i = 0; i<person.size();i++)
+            person[i].steal(person, groups);
+    }
+
     void feed_friends() {
         for(int i = 0; i<person.size();i++)
             person[i].feed_friends(person,id2ind);

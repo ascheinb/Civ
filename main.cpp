@@ -13,7 +13,7 @@
 int main(){
     /* initialize random seed: */
     srand (time(NULL));
-
+//srand(1);
     // Read in names
     fill_names();
 
@@ -22,7 +22,7 @@ int main(){
     int n_years = 4000;
     int n_turns = n_years*4; // A turn is one season
     float min_food_gen=600;
-    float max_food_gen=1200;
+    float max_food_gen=600;
     bool watch = false;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
@@ -48,7 +48,8 @@ int main(){
 
         //*** LONG INDIVIDUAL ACTIONS ***//
         p.do_long_actions(nature.food_available);
-
+if (i_turn>240)
+        p.theft();
         //*** SHORT GROUP ACTIONS ***//
 
         //*** SHORT INDIVIDUAL ACTIONS ***//
@@ -70,6 +71,9 @@ int main(){
         nstarved.add(i_turn,n_starved);
         ndied.add(i_turn,n_died);
 
+        // Exit simulation if no people
+        if (p.person.size()==0) {printf("\nPopulation went extinct! :("); break;}
+
         // Clean up relationships
         p.purge_rships();
 
@@ -86,6 +90,10 @@ int main(){
 //            p.report(i_turn);
 //            printf("\nBorn: %d, Died (starved): %d (%d)",n_kids,n_died,n_starved);
 printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
+//printf("\nFood leftover: %.3f", nature.food_available);
+printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
+printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
+
         }
 
         // Pause

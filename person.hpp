@@ -7,6 +7,7 @@
 #include "random.hpp"
 #include "relationship.hpp"
 #include "membership.hpp"
+#include "group.hpp"
 #include "names.hpp"
 
 class Person{
@@ -27,7 +28,8 @@ class Person{
     float contentedness;
 
     // Personality
-    int extroversion;
+    int extroversion; // Controls branch-out socialization
+    int agreeableness; // Controls theft and caretaking
 
     // Relationships
     std::vector<Relationship> rships;
@@ -42,7 +44,8 @@ class Person{
     Person(int id, int age, int lifespan, float wealth) : id(id), age(age), lifespan(lifespan), will_starve(false), wealth(wealth), watch(false) {
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
-        extroversion = 8+ rand_f1()*16;
+        extroversion = 8 + rand_f1()*16;
+        agreeableness = 8 + rand_f1()*16;
         workrate=1.0f;
         old_workrate=1.0f;
         old_contentedness=0.0f;
@@ -50,12 +53,17 @@ class Person{
 
     // Birth
     Person(int id, Person* mom, Person& dad) : id(id), age(0), will_starve(false), wealth(0.0), watch(false) {
-        int mutation_rate = 2;
         lifespan = (mom->lifespan+dad.lifespan)/2;
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
-        int randfix=rand_f1()*2; // prevents bias from rounding down
-        extroversion = (mom->extroversion+dad.extroversion+randfix)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+
+        int mutation_rate = 2; // parents avg +/- 0,1,or 2
+        extroversion =  (mom->extroversion +dad.extroversion +rand_f1()*2)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+//        agreeableness = (mom->agreeableness+dad.agreeableness+rand_f1()*2)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+        int one_parent=rand_f1()*2;
+        agreeableness = (mom->agreeableness*one_parent+dad.agreeableness*(1-one_parent)) + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+
+        // Learn work habits from parents
         workrate=(mom->workrate + dad.workrate)/2.0f;
         old_workrate=workrate;
         old_contentedness=0.0f;
@@ -104,6 +112,33 @@ class Person{
         if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
     }
 
+    void steal(std::vector<Person>& people, std::vector<Group>& groups){
+        if (agreeableness>9) return; // Too agreeable, won't steal 
+        int target_ind = rand_f1()*people.size();
+        if (people[target_ind].id==id) return; // Can't steal from yourself smart guy
+        
+        float defense=0.0f;
+        for (int i=0;i<people[target_ind].mships.size();i++){
+            // Muster defense
+            int group_id=people[target_ind].mships[i].id;
+//            if (groups[group_id].ndeployments>0){
+                defense+=groups[group_id].deployment;
+//                groups[group_id].ndeployments -=1;
+//            } else {
+//                groups[group_id].nundefended +=1;
+//            }
+        }
+        float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
+        if (rand_f1()<success_rate){ // Successful theft
+            float amt_stolen = people[target_ind].wealth; // Steal all, for now
+            wealth += amt_stolen;
+            people[target_ind].wealth -= amt_stolen;
+            if (watch) printf("\n%s successfully stole %.3f from %s %s",names[name].c_str(),amt_stolen,names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
+        } else { // Caught
+            if (watch) printf("\n%s failed to steal from %s %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
+        }
+    }
+
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
         for (int i_rship=0;i_rship<rships.size();i_rship++){
             if (rships[i_rship].fondness_to<5 && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
@@ -119,12 +154,13 @@ class Person{
 
                     // Feel good about it
                     if (rships[i_rship].child){
-                        contentedness+=2*transfer_amt;
+                        contentedness+=2*transfer_amt*(float)agreeableness/32;
                     }else{
-                        contentedness+=transfer_amt;
+                        contentedness+=transfer_amt*(float)agreeableness/32;
                     }
 
-                    if ((watch || people[friend_ind].watch) && !(rships[i_rship].child && people[friend_ind].age<48)) printf("\n%s gave food to %s!",names[name].c_str(),names[people[friend_ind].name].c_str());
+                    if ((watch || people[friend_ind].watch) && !(rships[i_rship].child && people[friend_ind].age<48))
+                        printf("\n%s gave food to %s!",names[name].c_str(),names[people[friend_ind].name].c_str());
                 }
             }else{
                 break; // No need to continue if no wealth to give
@@ -220,8 +256,8 @@ class Person{
                     }
 
                     // Bump workrate: they know kids are expensive.
-                    old_workrate=1.0f; workrate=1.0f;
-                    people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;
+                    if (agreeableness>8) {old_workrate=1.0f; workrate=1.0f;}
+                    if (people[dad_ind].agreeableness>8) {people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;}
 
                     if (watch || people[dad_ind].watch){
                         char him_or_her[3]="";

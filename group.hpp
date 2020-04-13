@@ -13,12 +13,17 @@ class Group{
     int name;
 
     // changing
-    int wealth;
+    float wealth;
     int land;
+    float deployment;
+    int ndeployments;
+    int nundefended;
 
-    Group(int id, int land) : id(id), wealth(0), land(land){
+    Group(int id, int land) : id(id), wealth(0), land(land), deployment(20),ndeployments(0) {
         name = (rand_f1()*NGROUP_NAMES);
     }
+
+    
 };
 
 #endif
