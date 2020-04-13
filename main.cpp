@@ -103,9 +103,12 @@ printf("\nAverage extroversion: %.1f", p.avg([](Person& h){return h.extroversion
     printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
     float avg_extroversion=p.avg([](Person& h){return h.extroversion;});
     printf("\nAverage extroversion at final step: %.1f", avg_extroversion);
-    printf("\nPercent extroverts: %.1f%%", p.frac([](Person& h){return h.extroversion>=16;})*100);
-    printf("\nAverage #rships for intraverts at final step: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion<16);}));
-    printf("\nAverage #rships for extroverts at final step: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion>=16);}));
+    printf("\nPercent intraverts: %.1f%%", p.frac([](Person& h){return h.extroversion<14;})*100);
+    printf("\nPercent extroverts: %.1f%%", p.frac([](Person& h){return h.extroversion>18;})*100);
+    printf("\nAverage #rships for intraverts: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion<14);}));
+    printf("\nAverage fondness for intraverts: %.1f", p.avg_in([](Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion<14);}));
+    printf("\nAverage #rships for extroverts: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion>18);}));
+    printf("\nAverage fondness for extroverts: %.1f", p.avg_in([](Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion>18);}));
     printf("\nAverage population: %.0f",nppl.eq_avg());
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());
     //nkids.write("nkids.txt");

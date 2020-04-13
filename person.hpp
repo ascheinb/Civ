@@ -37,8 +37,7 @@ class Person{
     Person(int id, int age, int lifespan, int wealth) : id(id), age(age), lifespan(lifespan), will_starve(false), wealth(wealth), watch(false) {
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
-        extroversion = 8+rand_f1()*16;
-//        extroversion = 16+rand_f1()*16;
+        extroversion = 8+ rand_f1()*16;
     }
 
     // Birth
@@ -78,13 +77,9 @@ class Person{
     }
 
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
-        // Order by fondness
-        Perm q(rships);
-        for (int i=0;i<rships.size();i++){
-            int i_rship = q.x[i];
+        for (int i_rship=0;i_rship<rships.size();i_rship++){
             if (rships[i_rship].fondness_to<5 && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
 
-//        for (int i_rship=0;i_rship<rships.size();i_rship++){
             if (wealth>1){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
