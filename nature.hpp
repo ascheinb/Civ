@@ -6,12 +6,12 @@
 
 class Nature{
     public:
-    int food_available;
+    float food_available;
 
-    int min_food_gen;
-    int max_food_gen;
+    float min_food_gen;
+    float max_food_gen;
 
-    Nature(int min_food_gen, int max_food_gen) : max_food_gen(max_food_gen), min_food_gen(min_food_gen) {}
+    Nature(float min_food_gen, float max_food_gen) : max_food_gen(max_food_gen), min_food_gen(min_food_gen) {}
 
     void generate_food(){
         food_available = min_food_gen+rand_f1()*(max_food_gen-min_food_gen);

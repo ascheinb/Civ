@@ -20,6 +20,7 @@ class Person{
     // changing
     int age;
     bool will_starve;
+    float workrate;
 
     // Personality
     int extroversion;
@@ -28,20 +29,20 @@ class Person{
     std::vector<Relationship> rships;
     std::vector<Membership> mships;
 
-    int wealth; // temporary
+    float wealth; // temporary
 
     // Simulation
     bool watch;
 
     // Initial generation
-    Person(int id, int age, int lifespan, int wealth) : id(id), age(age), lifespan(lifespan), will_starve(false), wealth(wealth), watch(false) {
+    Person(int id, int age, int lifespan, float wealth) : id(id), age(age), lifespan(lifespan), will_starve(false), wealth(wealth), watch(false) {
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
         extroversion = 8+ rand_f1()*16;
     }
 
     // Birth
-    Person(int id, Person* mom, Person& dad) : id(id), age(0), will_starve(false), wealth(0), watch(false) {
+    Person(int id, Person* mom, Person& dad) : id(id), age(0), will_starve(false), wealth(0.0), watch(false) {
         int mutation_rate = 2;
         lifespan = (mom->lifespan+dad.lifespan)/2;
         female = (rand_f1()<0.5); // 50% chance of being female
@@ -63,30 +64,29 @@ class Person{
     }
 
 
-    void do_long_action(int& food_available){
+    void do_long_action(float& food_available){
         // DO NOTHING (BUT GROW) IF YOUNG
         if (age<48) return;
         if (watch && age==48) printf("\n%s is foraging independently for the first time :)",names[name].c_str());
 
         // FORAGE
-        if (watch && food_available==0) printf("\nUh oh, %s didn't find food!",names[name].c_str());
-        if (food_available>0){
-            wealth+=2;
-            food_available-=2;
-        }
+        float food_haul=std::min(food_available, 2.0f);
+        if (watch && food_available<1.0) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
+        wealth+=food_haul;
+        food_available-=food_haul;
     }
 
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
         for (int i_rship=0;i_rship<rships.size();i_rship++){
             if (rships[i_rship].fondness_to<5 && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
 
-            if (wealth>1){ // If you have extra food
+            if (wealth>1.0){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
                 if (people[friend_ind].will_starve){ // And a friend is hungry
                     // Feed friend
-                    wealth--;
-                    people[friend_ind].wealth++;
+                    wealth-=1.0;
+                    people[friend_ind].wealth+=1.0;
                     people[friend_ind].will_starve=false;
 
                     if ((watch || people[friend_ind].watch) && !(rships[i_rship].child && people[friend_ind].age<48)) printf("\n%s gave food to %s!",names[name].c_str(),names[people[friend_ind].name].c_str());

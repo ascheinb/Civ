@@ -45,7 +45,7 @@ class Population{
             person[i].mships.push_back(Membership(rand_f1()*groups.size()));
     }
 
-    void do_long_actions(int& food_available) {
+    void do_long_actions(float& food_available) {
         RandPerm rp(person.size());
         for(int i = 0; i<person.size();i++){
             int ri = rp.x[i];
@@ -55,7 +55,7 @@ class Population{
 
     void check_starvation() {
         for(int i = 0; i<person.size();i++){
-            if (person[i].wealth==0)
+            if (person[i].wealth<1.0)
                 person[i].will_starve=true;
         }
     }
@@ -73,7 +73,7 @@ class Population{
     void eat() {
         for(int i = 0; i<person.size();i++){
             if (!person[i].will_starve)
-                person[i].wealth--; // Eat 1 wealth
+                person[i].wealth-=1.0; // Eat 1 wealth
                 //person[i].wealth=0; // Eat ALL wealth
         }
     }

@@ -21,8 +21,8 @@ int main(){
     int initial_n_ppl = 200;
     int n_years = 4000;
     int n_turns = n_years*4; // A turn is one season
-    int min_food_gen=200;
-    int max_food_gen=400;
+    float min_food_gen=200;
+    float max_food_gen=400;
     bool watch = false;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
@@ -42,7 +42,7 @@ int main(){
     for (int i_turn = 1; i_turn <= n_turns; i_turn++){
         //*** NATURE ***//
         nature.generate_food();
-        if (watch) printf("\nNature provided %d food this season.",nature.food_available);
+        if (watch) printf("\nNature provided %.0f food this season.",nature.food_available);
 
         //*** LONG INDIVIDUAL ACTIONS ***//
         p.do_long_actions(nature.food_available);
