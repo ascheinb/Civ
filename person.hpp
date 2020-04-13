@@ -20,6 +20,9 @@ class Person{
     int age;
     bool will_starve;
 
+    // Personality
+    int extroversion;
+
     // Relationships
     std::vector<Relationship> rships;
     std::vector<Membership> mships;
@@ -33,13 +36,17 @@ class Person{
     Person(int id, int age, int lifespan, int wealth) : id(id), age(age), lifespan(lifespan), will_starve(false), wealth(wealth), watch(false) {
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
+        extroversion = 8+rand_f1()*16;
     }
 
     // Birth
     Person(int id, Person* mom, Person& dad) : id(id), age(0), will_starve(false), wealth(0), watch(false) {
+        int mutation_rate = 2;
         lifespan = (mom->lifespan+dad.lifespan)/2;
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
+        int randfix=rand_f1()*2; // prevents bias from rounding down
+        extroversion = (mom->extroversion+dad.extroversion+randfix)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
 
         // Create relationships
         rships.push_back(Relationship(mom->id));
@@ -103,6 +110,7 @@ class Person{
 //        people[friend_ind].rships[this_rind].fondness_to += 1;
 //        people[friend_ind].rships[this_rind].fondness_of += 1;
 
+        if (rand_f1()*32>extroversion) return; // Too shy
         // Strategy 2: Branch out
         // Choose one of their friends at random
         int fof_rind = rand_f1()*people[friend_ind].rships.size();

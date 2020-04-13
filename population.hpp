@@ -137,7 +137,7 @@ class Population{
     }
 
     template <typename Proc>
-    float get_avg(Proc p){
+    float avg(Proc p){
         float sum=0.0;
         for(int i = 0; i<person.size();i++){
             sum += p(person[i]);
@@ -146,12 +146,28 @@ class Population{
     }
 
     template <typename Proc>
-    float get_frac(Proc p){
+    float frac(Proc p){
         float sum=0.0;
         for(int i = 0; i<person.size();i++){
             sum += p(person[i]) ? 1.0 : 0.0;
         }
         return sum/person.size();
+    }
+
+    template <typename Proc>
+    float avg_in(Proc p){ 
+        float sum=0.0;
+        float x;
+        bool use;
+        int count=0;
+        for(int i = 0; i<person.size();i++){
+            std::tie(x,use) = p(person[i]);
+            if (use){
+                sum+=x;
+                count+=1;
+            }
+        }
+        return sum/count;
     }
 
     private:

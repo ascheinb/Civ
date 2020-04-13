@@ -19,7 +19,8 @@ int main(){
 
     bool debug=false;
     int initial_n_ppl = 200;
-    int n_turns = 10000;
+    int n_years = 4000;
+    int n_turns = n_years*4; // A turn is one season
     int min_food_gen=200;
     int max_food_gen=400;
     bool watch = false;
@@ -82,9 +83,10 @@ int main(){
 
         //*** SIMULATION ***//
         // Report
-        if (i_turn%240==1 || i_turn==n_turns){
+        if (i_turn%480==1 || i_turn==n_turns){
 //            p.report(i_turn);
 //            printf("\nBorn: %d, Died (starved): %d (%d)",n_kids,n_died,n_starved);
+printf("\nAverage extroversion: %.1f", p.avg([](Person& h){return h.extroversion;}));
         }
 
         // Pause
@@ -97,10 +99,14 @@ int main(){
             
         }
     }
-    printf("\nAverage age at final step: %.1f", p.get_avg([](Person& h){return h.age;})/4);
-    printf("\nGender ratio at final step: %.1f", p.get_frac([](Person& h){return h.female;})*100);
+    printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
+    printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
+    printf("\nAverage #rships at final step: %.1f", p.avg([](Person& h){return h.rships.size();}));
+    printf("\nAverage extroversion at final step: %.1f", p.avg([](Person& h){return h.extroversion;}));
+    printf("\nPercent extroverts: %.1f%%", p.frac([](Person& h){return h.extroversion>=16;})*100);
+    printf("\nAverage #rships for extroverts at final step: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion>=16);}));
     printf("\nAverage population: %.0f",nppl.eq_avg());
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());
-    nkids.write("nkids.txt");
+    //nkids.write("nkids.txt");
 }
 
