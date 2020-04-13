@@ -20,7 +20,11 @@ class Person{
     // changing
     int age;
     bool will_starve;
+
+    float old_contentedness;
+    float old_workrate;
     float workrate;
+    float contentedness;
 
     // Personality
     int extroversion;
@@ -39,6 +43,9 @@ class Person{
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
         extroversion = 8+ rand_f1()*16;
+        workrate=1.0f;
+        old_workrate=1.0f;
+        old_contentedness=0.0f;
     }
 
     // Birth
@@ -49,6 +56,9 @@ class Person{
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
         int randfix=rand_f1()*2; // prevents bias from rounding down
         extroversion = (mom->extroversion+dad.extroversion+randfix)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+        workrate=(mom->workrate + dad.workrate)/2.0f;
+        old_workrate=workrate;
+        old_contentedness=0.0f;
 
         // Create relationships
         rships.push_back(Relationship(mom->id));
@@ -63,31 +73,56 @@ class Person{
         mships.push_back(Membership(dad.mships[0]));
     }
 
+    void evaluate_choices(){
+        if (contentedness > old_contentedness){ // This is better, change workrate!
+            old_workrate=workrate;
+        }
+
+        // Reset contentedness counter
+        old_contentedness = contentedness;
+        contentedness=0.0f;
+    }
 
     void do_long_action(float& food_available){
         // DO NOTHING (BUT GROW) IF YOUNG
         if (age<48) return;
         if (watch && age==48) printf("\n%s is foraging independently for the first time :)",names[name].c_str());
 
+        // Choose workrate
+        workrate = old_workrate+rand_f1()*0.1f-0.05f; // Try a bit more or less work
+        workrate = std::min(1.0f,std::max(0.0f,workrate));
+
         // FORAGE
-        float food_haul=std::min(food_available, 2.0f);
+        float food_haul=std::min(food_available, 3.0f*workrate);
         if (watch && food_available<1.0) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
         wealth+=food_haul;
         food_available-=food_haul;
+
+
+        // ENJOY FREE TIME
+        contentedness+=(1.0f-workrate)*2.0;
+        if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
     }
 
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
         for (int i_rship=0;i_rship<rships.size();i_rship++){
             if (rships[i_rship].fondness_to<5 && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
 
-            if (wealth>1.0){ // If you have extra food
+            if (wealth>1.5){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
-                if (people[friend_ind].will_starve){ // And a friend is hungry
+                if (people[friend_ind].wealth<1.0){ // And a friend is hungry
                     // Feed friend
-                    wealth-=1.0;
-                    people[friend_ind].wealth+=1.0;
-                    people[friend_ind].will_starve=false;
+                    float transfer_amt = std::min(wealth-1.5,1.0-people[friend_ind].wealth);
+                    wealth-=transfer_amt;
+                    people[friend_ind].wealth+=transfer_amt;
+
+                    // Feel good about it
+                    if (rships[i_rship].child){
+                        contentedness+=2*transfer_amt;
+                    }else{
+                        contentedness+=transfer_amt;
+                    }
 
                     if ((watch || people[friend_ind].watch) && !(rships[i_rship].child && people[friend_ind].age<48)) printf("\n%s gave food to %s!",names[name].c_str(),names[people[friend_ind].name].c_str());
                 }
@@ -183,6 +218,10 @@ class Person{
                         rships.push_back(Relationship(people[dad_ind].id));
                         people[dad_ind].rships.push_back(Relationship(id));
                     }
+
+                    // Bump workrate: they know kids are expensive.
+                    old_workrate=1.0f; workrate=1.0f;
+                    people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;
 
                     if (watch || people[dad_ind].watch){
                         char him_or_her[3]="";

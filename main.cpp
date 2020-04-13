@@ -21,8 +21,8 @@ int main(){
     int initial_n_ppl = 200;
     int n_years = 4000;
     int n_turns = n_years*4; // A turn is one season
-    float min_food_gen=200;
-    float max_food_gen=400;
+    float min_food_gen=600;
+    float max_food_gen=1200;
     bool watch = false;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
@@ -44,11 +44,10 @@ int main(){
         nature.generate_food();
         if (watch) printf("\nNature provided %.0f food this season.",nature.food_available);
 
+        p.evaluate_choices();
+
         //*** LONG INDIVIDUAL ACTIONS ***//
         p.do_long_actions(nature.food_available);
-
-        // Check starvation status
-        p.check_starvation();
 
         //*** SHORT GROUP ACTIONS ***//
 
@@ -86,7 +85,7 @@ int main(){
         if (i_turn%480==1 || i_turn==n_turns){
 //            p.report(i_turn);
 //            printf("\nBorn: %d, Died (starved): %d (%d)",n_kids,n_died,n_starved);
-printf("\nAverage extroversion: %.1f", p.avg([](Person& h){return h.extroversion;}));
+printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
         }
 
         // Pause

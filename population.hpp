@@ -45,18 +45,16 @@ class Population{
             person[i].mships.push_back(Membership(rand_f1()*groups.size()));
     }
 
+    void evaluate_choices() {
+        for(int i = 0; i<person.size();i++)
+            person[i].evaluate_choices();
+    }
+
     void do_long_actions(float& food_available) {
         RandPerm rp(person.size());
         for(int i = 0; i<person.size();i++){
             int ri = rp.x[i];
             person[ri].do_long_action(food_available);
-        }
-    }
-
-    void check_starvation() {
-        for(int i = 0; i<person.size();i++){
-            if (person[i].wealth<1.0)
-                person[i].will_starve=true;
         }
     }
 
@@ -72,9 +70,11 @@ class Population{
 
     void eat() {
         for(int i = 0; i<person.size();i++){
-            if (!person[i].will_starve)
-                person[i].wealth-=1.0; // Eat 1 wealth
-                //person[i].wealth=0; // Eat ALL wealth
+            float to_eat = std::min(person[i].wealth,1.5f);
+            person[i].wealth-=to_eat;
+            person[i].contentedness+=(to_eat);
+            if (person[i].watch) printf("\n%s's cness after eating: %.3f", names[person[i].name].c_str(),person[i].contentedness);
+            if (to_eat<1.0f) person[i].will_starve=true;
         }
     }
 
