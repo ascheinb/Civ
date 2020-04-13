@@ -101,9 +101,10 @@ printf("\nAverage extroversion: %.1f", p.avg([](Person& h){return h.extroversion
     }
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
     printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
-    printf("\nAverage #rships at final step: %.1f", p.avg([](Person& h){return h.rships.size();}));
-    printf("\nAverage extroversion at final step: %.1f", p.avg([](Person& h){return h.extroversion;}));
+    float avg_extroversion=p.avg([](Person& h){return h.extroversion;});
+    printf("\nAverage extroversion at final step: %.1f", avg_extroversion);
     printf("\nPercent extroverts: %.1f%%", p.frac([](Person& h){return h.extroversion>=16;})*100);
+    printf("\nAverage #rships for intraverts at final step: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion<16);}));
     printf("\nAverage #rships for extroverts at final step: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion>=16);}));
     printf("\nAverage population: %.0f",nppl.eq_avg());
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());

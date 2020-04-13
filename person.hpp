@@ -3,6 +3,7 @@
 #include <vector>
 #include <stdio.h>
 #include <string.h>
+#include <algorithm>
 #include "random.hpp"
 #include "relationship.hpp"
 #include "membership.hpp"
@@ -37,6 +38,7 @@ class Person{
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
         extroversion = 8+rand_f1()*16;
+//        extroversion = 16+rand_f1()*16;
     }
 
     // Birth
@@ -53,6 +55,7 @@ class Person{
         mom->rships.push_back(Relationship(id));
         rships.push_back(Relationship(dad.id));
         dad.rships.push_back(Relationship(id));
+
         mom->rships[mom->rships.size()-1].child=true;
         dad.rships[dad.rships.size()-1].child=true;
 
@@ -75,7 +78,13 @@ class Person{
     }
 
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
-        for (int i_rship=0;i_rship<rships.size();i_rship++){
+        // Order by fondness
+        Perm q(rships);
+        for (int i=0;i<rships.size();i++){
+            int i_rship = q.x[i];
+            if (rships[i_rship].fondness_to<5 && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
+
+//        for (int i_rship=0;i_rship<rships.size();i_rship++){
             if (wealth>1){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
@@ -105,10 +114,10 @@ class Person{
         }
 
         // Strengthen relationship with friend
-//        rships[friend_rind].fondness_to += 1;
-//        rships[friend_rind].fondness_of += 1;
-//        people[friend_ind].rships[this_rind].fondness_to += 1;
-//        people[friend_ind].rships[this_rind].fondness_of += 1;
+        rships[friend_rind].fondness_to = std::min(rships[friend_rind].fondness_to+1,32);
+        rships[friend_rind].fondness_of = std::min(rships[friend_rind].fondness_of+1,32);
+        people[friend_ind].rships[this_rind].fondness_to = std::min(people[friend_ind].rships[this_rind].fondness_to+1,32);
+        people[friend_ind].rships[this_rind].fondness_of = std::min(people[friend_ind].rships[this_rind].fondness_of+1,32);
 
         if (rand_f1()*32>extroversion) return; // Too shy
         // Strategy 2: Branch out
@@ -123,6 +132,7 @@ class Person{
             if (rships[i_rship].person_id==people[fof_ind].id) return;
         }
         // Otherwise, create the relationship
+        if (rand_f1()*32>people[fof_ind].extroversion) return; // Friend is too shy
         rships.push_back(Relationship(people[fof_ind].id));
         people[fof_ind].rships.push_back(Relationship(id));
 
