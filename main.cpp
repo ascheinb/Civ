@@ -11,14 +11,15 @@
 
 int main(){
     /* initialize random seed: */
-    srand (time(NULL));
+    srand (0);//time(NULL));
 
     // Read in names
     fill_names();
 
+    bool debug=false;
     int initial_n_ppl = 200;
     int n_turns = 10000;
-    bool watch = false;
+    bool watch = true;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
     SimVar<int> ndied(n_turns);
@@ -48,6 +49,8 @@ int main(){
         //*** SHORT INDIVIDUAL ACTIONS ***//
         p.feed_friends();
 
+        p.socialize();
+
         //*** INVOLUNTARY INDIVIDUAL ACTIONS ***//
         // Eat
         p.eat();
@@ -61,6 +64,9 @@ int main(){
         std::tie(n_died,n_starved) = p.die();
         nstarved.add(i_turn,n_starved);
         ndied.add(i_turn,n_died);
+
+        // Clean up relationships
+        p.purge_rships();
 
         // Breed
         int n_kids = p.breed();
@@ -78,12 +84,16 @@ int main(){
 
         // Pause
         if (watch && i_turn%4==0){
-            std::cin.get();
+            if (i_turn>0) std::cin.get();
             printf("\nStarting Year %d",1+i_turn/4);
+            printf("\nFollowing: ");
+            for (int i=0;i<p.person.size();i++)
+                if (p.person[i].watch) printf("%s - ", names[p.person[i].name].c_str());
+            
         }
     }
-    printf("\nAverage population: %.0f\n",nppl.avg());
-    printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.avg(), 100*nstarved.avg()/ndied.avg());
+    printf("\nAverage population: %.0f\n",nppl.eq_avg());
+    printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());
     nkids.write("nkids.txt");
 }
 

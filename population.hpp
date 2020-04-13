@@ -10,6 +10,7 @@ class Population{
     int lifespan;
     int fertility_age;
     float fertility_rate; // births/turn
+    int max_rships;
 
     public:
 
@@ -21,6 +22,7 @@ class Population{
         lifespan = 240;
         fertility_age = 64;
         fertility_rate = 4.2/(lifespan-fertility_age);
+        max_rships=50;
 
         // Initialize individuals
         for(int i = 0; i<initial_n_ppl;i++)
@@ -49,6 +51,11 @@ class Population{
     void feed_friends() {
         for(int i = 0; i<person.size();i++)
             person[i].feed_friends(person,id2ind);
+    }
+
+    void socialize() {
+        for(int i = 0; i<person.size();i++)
+            person[i].socialize(person,id2ind);
     }
 
     void eat() {
@@ -98,6 +105,12 @@ class Population{
             }
         }
         return std::make_tuple(n_died,n_starved);
+    }
+
+    void purge_rships(){
+        for(int i = 0; i<person.size();i++){
+            person[i].purge_rships(max_rships, person, id2ind);
+        }
     }
 
     int breed() {

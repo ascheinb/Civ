@@ -81,6 +81,66 @@ class Person{
         }
     }
 
+    void socialize(std::vector<Person>& people, std::vector<int>& id2ind){
+        // Strategy 1: Spend time with a friend
+        // Choose a pre-existing relationship at random
+        if (rships.size()==0) return;
+        int friend_rind = rand_f1()*rships.size();
+        int friend_ind = id2ind[rships[friend_rind].person_id];
+        if (friend_ind==-1) return; // Friend is dead
+        int this_rind;
+        for (int i_rship=0;i_rship<people[friend_ind].rships.size();i_rship++){
+            if (people[friend_ind].rships[i_rship].person_id==id) {this_rind = i_rship; break;}
+        }
+
+        // Strengthen relationship with friend
+//        rships[friend_rind].fondness_to += 1;
+//        rships[friend_rind].fondness_of += 1;
+//        people[friend_ind].rships[this_rind].fondness_to += 1;
+//        people[friend_ind].rships[this_rind].fondness_of += 1;
+
+        // Strategy 2: Branch out
+        // Choose one of their friends at random
+        int fof_rind = rand_f1()*people[friend_ind].rships.size();
+        if (fof_rind == this_rind) return; // Chose yourself, whatever
+        int fof_ind = id2ind[people[friend_ind].rships[fof_rind].person_id];
+        if (fof_ind==-1) return; // Friend is dead
+
+        // Create relationship with the friend of friend
+        // Check if relationship already exists
+        for (int i_rship=0;i_rship<rships.size();i_rship++){
+            if (rships[i_rship].person_id==people[fof_ind].id) return;
+        }
+        // Otherwise, create the relationship
+        rships.push_back(Relationship(people[fof_ind].id));
+        people[fof_ind].rships.push_back(Relationship(id));
+
+        if (watch) printf("\n%s met %s through %s.",names[name].c_str(),names[people[fof_ind].name].c_str(),names[people[friend_ind].name].c_str());
+        if (!watch && people[fof_ind].watch) printf("\n%s met %s through %s.",names[people[fof_ind].name].c_str(),names[name].c_str(),names[people[friend_ind].name].c_str());
+    }
+
+    void purge_rships(int max_rships, std::vector<Person>& people, std::vector<int>& id2ind){
+        // Remove dead friends
+        int n_rships = rships.size();
+        for(int i_rship = n_rships-1; i_rship>=0;i_rship--){
+            if (id2ind[rships[i_rship].person_id]==-1)
+                rships.erase(rships.begin() + i_rship);
+        }
+
+        // Remove most recent friends until back to <max_rships
+        n_rships = rships.size();
+        for(int i_rship = n_rships-1; i_rship>=max_rships;i_rship--){
+            int friend_ind = id2ind[rships[i_rship].person_id];
+            rships.erase(rships.begin() + i_rship); // Remove rship
+            for (int j_rship = 0; j_rship<people[friend_ind].rships.size();j_rship++){
+                if (people[friend_ind].rships[j_rship].person_id==id){
+                    people[friend_ind].rships.erase(people[friend_ind].rships.begin() + j_rship); // Reciprocate
+                    break;
+                }
+            }
+        }
+    }
+
     int breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people) {
         if (female && age>=fertility_age){ // If female and old enough
             if (rand_f1()<fertility_rate){ // If having children
@@ -98,8 +158,15 @@ class Person{
                     people.push_back(Person(next_id,this,people[dad_ind]));
 
                     // Create relationship with father
-                    rships.push_back(Relationship(people[dad_ind].id));
-                    people[dad_ind].rships.push_back(Relationship(id));
+                    // Check if relationship already exists
+                    bool prev_rel=false;
+                    for (int i_rship=0;i_rship<rships.size();i_rship++){
+                        if (rships[i_rship].person_id==people[dad_ind].id) prev_rel=true;
+                    }
+                    if (!prev_rel){
+                        rships.push_back(Relationship(people[dad_ind].id));
+                        people[dad_ind].rships.push_back(Relationship(id));
+                    }
 
                     if (watch){
                         char him_or_her[3]="";

@@ -6,7 +6,8 @@
 #include <cstdlib>
 
 float rand_f1(){
-    return (float)(rand())/(float)(RAND_MAX);
+    float x = (float)(rand())/(float)(RAND_MAX);
+    return ((x == 1.0) ? (1.0-1.0e-10) : x);
 }
 
 struct RandPerm{

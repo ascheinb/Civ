@@ -21,6 +21,15 @@ struct SimVar{
         return sum/var.size();
     }
 
+    float eq_avg(){
+        float sum = 0;
+        int i_start = var.size()*.9; // Look only at the last 10% of time
+        for (int i=i_start ; i<var.size() ; i++) {
+            sum += (float)(var[i]);
+        }
+        return sum/(var.size()-i_start);
+    }
+
     void write(const char* filename){
         FILE * pFile;
         pFile = fopen (filename,"w");
