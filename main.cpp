@@ -7,11 +7,12 @@
 #include "random.hpp"
 #include "person.hpp"
 #include "population.hpp"
+#include "nature.hpp"
 #include "interface.hpp"
 
 int main(){
     /* initialize random seed: */
-    srand (0);//time(NULL));
+    srand (time(NULL));
 
     // Read in names
     fill_names();
@@ -19,13 +20,16 @@ int main(){
     bool debug=false;
     int initial_n_ppl = 200;
     int n_turns = 10000;
-    bool watch = true;
+    int min_food_gen=200;
+    int max_food_gen=400;
+    bool watch = false;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
     SimVar<int> ndied(n_turns);
     SimVar<int> nppl(n_turns);
 
     Population p(initial_n_ppl);
+    Nature nature(min_food_gen,max_food_gen);
 
     if (watch){
         // Choose who to watch; start with someone middleaged
@@ -36,10 +40,11 @@ int main(){
     printf("\n ******** SIMULATION BEGINS ******* \n");
     for (int i_turn = 1; i_turn <= n_turns; i_turn++){
         //*** NATURE ***//
-        int food_available = 400;
+        nature.generate_food();
+        if (watch) printf("\nNature provided %d food this season.",nature.food_available);
 
         //*** LONG INDIVIDUAL ACTIONS ***//
-        p.do_long_actions(food_available);
+        p.do_long_actions(nature.food_available);
 
         // Check starvation status
         p.check_starvation();
@@ -88,11 +93,13 @@ int main(){
             printf("\nStarting Year %d",1+i_turn/4);
             printf("\nFollowing: ");
             for (int i=0;i<p.person.size();i++)
-                if (p.person[i].watch) printf("%s - ", names[p.person[i].name].c_str());
+                if (p.person[i].watch) printf("%s %s (%d) - ", names[p.person[i].name].c_str(), gnames[p.groups[p.person[i].mships[0].id].name].c_str(), p.person[i].age/4);
             
         }
     }
-    printf("\nAverage population: %.0f\n",nppl.eq_avg());
+    printf("\nAverage age at final step: %.1f", p.get_avg([](Person& h){return h.age;})/4);
+    printf("\nGender ratio at final step: %.1f", p.get_frac([](Person& h){return h.female;})*100);
+    printf("\nAverage population: %.0f",nppl.eq_avg());
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());
     nkids.write("nkids.txt");
 }

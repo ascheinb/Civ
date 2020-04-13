@@ -1,9 +1,11 @@
 #ifndef PERSON_HPP
 #define PERSON_HPP
 #include <vector>
+#include <stdio.h>
 #include <string.h>
 #include "random.hpp"
 #include "relationship.hpp"
+#include "membership.hpp"
 #include "names.hpp"
 
 class Person{
@@ -20,6 +22,7 @@ class Person{
 
     // Relationships
     std::vector<Relationship> rships;
+    std::vector<Membership> mships;
 
     int wealth; // temporary
 
@@ -45,6 +48,9 @@ class Person{
         dad.rships.push_back(Relationship(id));
         mom->rships[mom->rships.size()-1].child=true;
         dad.rships[dad.rships.size()-1].child=true;
+
+        // Set group membership: patrilinear for now
+        mships.push_back(Membership(dad.mships[0]));
     }
 
 
@@ -66,7 +72,6 @@ class Person{
             if (wealth>1){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
-                if (friend_ind==-1) continue; // Friend is dead
                 if (people[friend_ind].will_starve){ // And a friend is hungry
                     // Feed friend
                     wealth--;
@@ -87,7 +92,6 @@ class Person{
         if (rships.size()==0) return;
         int friend_rind = rand_f1()*rships.size();
         int friend_ind = id2ind[rships[friend_rind].person_id];
-        if (friend_ind==-1) return; // Friend is dead
         int this_rind;
         for (int i_rship=0;i_rship<people[friend_ind].rships.size();i_rship++){
             if (people[friend_ind].rships[i_rship].person_id==id) {this_rind = i_rship; break;}
@@ -104,7 +108,6 @@ class Person{
         int fof_rind = rand_f1()*people[friend_ind].rships.size();
         if (fof_rind == this_rind) return; // Chose yourself, whatever
         int fof_ind = id2ind[people[friend_ind].rships[fof_rind].person_id];
-        if (fof_ind==-1) return; // Friend is dead
 
         // Create relationship with the friend of friend
         // Check if relationship already exists
@@ -168,16 +171,17 @@ class Person{
                         people[dad_ind].rships.push_back(Relationship(id));
                     }
 
-                    if (watch){
+                    if (watch || people[dad_ind].watch){
                         char him_or_her[3]="";
                         strcat(him_or_her, people[people.size()-1].female ? "her" : "him");
-                        printf("\n%s had a kid with %s! They named %s %s.", names[name].c_str(), names[people[dad_ind].name].c_str(), him_or_her, names[people[people.size()-1].name].c_str());
-                        people[people.size()-1].watch=true;
-                    } else if (people[dad_ind].watch){
-                        char him_or_her[3]="";
-                        strcat(him_or_her, people[people.size()-1].female ? "her" : "him");
-                        printf("\n%s had a kid with %s! They named %s %s.", names[people[dad_ind].name].c_str(), names[name].c_str(), him_or_her, names[people[people.size()-1].name].c_str());
-                        people[people.size()-1].watch=true;
+                        if (watch)
+                            printf("\n%s had a kid with %s! They named %s %s.", names[name].c_str(), names[people[dad_ind].name].c_str(), him_or_her, names[people[people.size()-1].name].c_str());
+                        else
+                            printf("\n%s had a kid with %s! They named %s %s.", names[people[dad_ind].name].c_str(), names[name].c_str(), him_or_her, names[people[people.size()-1].name].c_str());
+                        char yn[2];
+                        printf("\nFollow %s? (y/n)",names[people[people.size()-1].name].c_str());
+                        std::cin >> yn;
+                        people[people.size()-1].watch=(strcmp(yn,"y")==0);
                     }
                     return 1;
                 }

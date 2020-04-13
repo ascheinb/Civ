@@ -3,6 +3,7 @@
 #include <vector>
 #include <string.h>
 #include "random.hpp"
+#include "group.hpp"
 #include "person.hpp"
 
 class Population{
@@ -17,12 +18,15 @@ class Population{
     std::vector<Person> person; // Public so people can see each other (use friend instead?)
     std::vector<int> id2ind; // map from id to index
 
+    std::vector<Group> groups;
+
     Population(int initial_n_ppl) : n_ids(initial_n_ppl) {
         // Population-wide traits
         lifespan = 240;
         fertility_age = 64;
         fertility_rate = 4.2/(lifespan-fertility_age);
         max_rships=50;
+        int initial_n_groups=10;
 
         // Initialize individuals
         for(int i = 0; i<initial_n_ppl;i++)
@@ -31,6 +35,14 @@ class Population{
         // Initialize id to index mapping
         for(int i = 0; i<initial_n_ppl;i++)
             id2ind.push_back(i);
+
+        // Initialize groups
+        for(int i = 0; i<initial_n_groups;i++)
+            groups.push_back(Group(i,0));
+
+        // Assign people randomly to groups
+        for(int i = 0; i<initial_n_ppl;i++)
+            person[i].mships.push_back(Membership(rand_f1()*groups.size()));
     }
 
     void do_long_actions(int& food_available) {
@@ -61,15 +73,14 @@ class Population{
     void eat() {
         for(int i = 0; i<person.size();i++){
             if (!person[i].will_starve)
-                //person[i].wealth--; // Eat 1 wealth
-                person[i].wealth=0; // Eat ALL wealth
+                person[i].wealth--; // Eat 1 wealth
+                //person[i].wealth=0; // Eat ALL wealth
         }
     }
 
     void age() {
         for(int i = 0; i<person.size();i++){
             person[i].age++;
-            if (person[i].watch && person[i].age%40==0) printf("\n%s turned %d.",names[person[i].name].c_str(),person[i].age/4);
         }
     }
 
@@ -125,14 +136,22 @@ class Population{
         return n_kids;
     }
 
-    void report(int i_turn){
-        int n_male=0; int n_female=0;
+    template <typename Proc>
+    float get_avg(Proc p){
+        float sum=0.0;
         for(int i = 0; i<person.size();i++){
-            if (person[i].female) n_female++;
-            else n_male++;
+            sum += p(person[i]);
         }
-        printf("\nTurn %d: live female/male, dead: %d/%d, %lu", i_turn, n_female, n_male, n_ids-person.size());
-//        snap_age("ages",i_turn);
+        return sum/person.size();
+    }
+
+    template <typename Proc>
+    float get_frac(Proc p){
+        float sum=0.0;
+        for(int i = 0; i<person.size();i++){
+            sum += p(person[i]) ? 1.0 : 0.0;
+        }
+        return sum/person.size();
     }
 
     private:
