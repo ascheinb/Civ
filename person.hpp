@@ -10,6 +10,19 @@
 #include "group.hpp"
 #include "names.hpp"
 
+#define GUARD 0
+#define FORAGE 1
+#define TRAITMAX 32
+
+// Age of adulthood
+#define ADULT 48
+// Agreeableness min to reset workrate when having kids
+#define KIDCARE 8
+// Level of fondness needed to share food (unless your kid)
+#define FONDSHARE 5
+// Agreeableness below which you are ok with stealing
+#define THIEF 9
+
 class Person{
     public:
     // fixed
@@ -22,6 +35,7 @@ class Person{
     int age;
     bool will_starve;
 
+    int worktype;
     float old_contentedness;
     float old_workrate;
     float workrate;
@@ -46,6 +60,7 @@ class Person{
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
         extroversion = 8 + rand_f1()*16;
         agreeableness = 8 + rand_f1()*16;
+        worktype=FORAGE;
         workrate=1.0f;
         old_workrate=1.0f;
         old_contentedness=0.0f;
@@ -59,11 +74,15 @@ class Person{
 
         int mutation_rate = 2; // parents avg +/- 0,1,or 2
         extroversion =  (mom->extroversion +dad.extroversion +rand_f1()*2)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
-//        agreeableness = (mom->agreeableness+dad.agreeableness+rand_f1()*2)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
         int one_parent=rand_f1()*2;
         agreeableness = (mom->agreeableness*one_parent+dad.agreeableness*(1-one_parent)) + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
 
+        // Stay in range
+        extroversion=std::max(std::min(extroversion,TRAITMAX),0);
+        agreeableness=std::max(std::min(agreeableness,TRAITMAX),0);
+
         // Learn work habits from parents
+        worktype=FORAGE;
         workrate=(mom->workrate + dad.workrate)/2.0f;
         old_workrate=workrate;
         old_contentedness=0.0f;
@@ -82,38 +101,44 @@ class Person{
     }
 
     void evaluate_choices(){
-        if (contentedness > old_contentedness){ // This is better, change workrate!
-            old_workrate=workrate;
+        if (worktype==FORAGE){
+            if (contentedness > old_contentedness){ // This is better, change workrate!
+                old_workrate=workrate;
+            }
+            // Try a bit more or less work
+            workrate = old_workrate+rand_f1()*0.1f-0.05f;
+            workrate = std::min(1.0f,std::max(0.0f,workrate));
         }
-
         // Reset contentedness counter
         old_contentedness = contentedness;
         contentedness=0.0f;
+
+        // Return to being a forager
+        worktype=FORAGE;
     }
 
     void do_long_action(float& food_available){
         // DO NOTHING (BUT GROW) IF YOUNG
-        if (age<48) return;
-        if (watch && age==48) printf("\n%s is foraging independently for the first time :)",names[name].c_str());
+        if (age<ADULT) return;
+        if (watch && age==ADULT) printf("\n%s is working independently for the first time :)",names[name].c_str());
 
-        // Choose workrate
-        workrate = old_workrate+rand_f1()*0.1f-0.05f; // Try a bit more or less work
-        workrate = std::min(1.0f,std::max(0.0f,workrate));
+        if (worktype==FORAGE){
+            // FORAGE
+            float food_haul=std::min(food_available, 3.0f*workrate);
+            if (watch && food_available<1.0) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
+            wealth+=food_haul;
+            food_available-=food_haul;
 
-        // FORAGE
-        float food_haul=std::min(food_available, 3.0f*workrate);
-        if (watch && food_available<1.0) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
-        wealth+=food_haul;
-        food_available-=food_haul;
-
-
-        // ENJOY FREE TIME
-        contentedness+=(1.0f-workrate)*2.0;
-        if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
+            // ENJOY FREE TIME
+            contentedness+=(1.0f-workrate)*2.0;
+            if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
+        } else if (worktype==GUARD){
+            // ?
+        }
     }
 
     void take_by_force(std::vector<Person>& people, std::vector<Group>& groups){
-        if (agreeableness>9) return; // Too agreeable, won't steal
+        if (agreeableness>THIEF) return; // Too agreeable, won't steal
         int target_ind = rand_f1()*people.size();
         if (people[target_ind].id==id) return; // Can't steal from yourself smart guy
         
@@ -141,7 +166,7 @@ class Person{
 
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
         for (int i_rship=0;i_rship<rships.size();i_rship++){
-            if (rships[i_rship].fondness_to<5 && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
+            if (rships[i_rship].fondness_to<FONDSHARE && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
 
             if (wealth>1.5){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
@@ -154,12 +179,12 @@ class Person{
 
                     // Feel good about it
                     if (rships[i_rship].child){
-                        contentedness+=2*transfer_amt*(float)agreeableness/32;
+                        contentedness+=2*transfer_amt*(float)agreeableness/TRAITMAX;
                     }else{
-                        contentedness+=transfer_amt*(float)agreeableness/32;
+                        contentedness+=transfer_amt*(float)agreeableness/TRAITMAX;
                     }
 
-                    if ((watch || people[friend_ind].watch) && !(rships[i_rship].child && people[friend_ind].age<48))
+                    if ((watch || people[friend_ind].watch) && !(rships[i_rship].child && people[friend_ind].age<ADULT))
                         printf("\n%s gave food to %s!",names[name].c_str(),names[people[friend_ind].name].c_str());
                 }
             }else{
@@ -180,12 +205,12 @@ class Person{
         }
 
         // Strengthen relationship with friend
-        rships[friend_rind].fondness_to = std::min(rships[friend_rind].fondness_to+1,32);
-        rships[friend_rind].fondness_of = std::min(rships[friend_rind].fondness_of+1,32);
-        people[friend_ind].rships[this_rind].fondness_to = std::min(people[friend_ind].rships[this_rind].fondness_to+1,32);
-        people[friend_ind].rships[this_rind].fondness_of = std::min(people[friend_ind].rships[this_rind].fondness_of+1,32);
+        rships[friend_rind].fondness_to = std::min(rships[friend_rind].fondness_to+1,TRAITMAX);
+        rships[friend_rind].fondness_of = std::min(rships[friend_rind].fondness_of+1,TRAITMAX);
+        people[friend_ind].rships[this_rind].fondness_to = std::min(people[friend_ind].rships[this_rind].fondness_to+1,TRAITMAX);
+        people[friend_ind].rships[this_rind].fondness_of = std::min(people[friend_ind].rships[this_rind].fondness_of+1,TRAITMAX);
 
-        if (rand_f1()*32>extroversion) return; // Too shy
+        if (rand_f1()*TRAITMAX>extroversion) return; // Too shy
         // Strategy 2: Branch out
         // Choose one of their friends at random
         int fof_rind = rand_f1()*people[friend_ind].rships.size();
@@ -198,7 +223,7 @@ class Person{
             if (rships[i_rship].person_id==people[fof_ind].id) return;
         }
         // Otherwise, create the relationship
-        if (rand_f1()*32>people[fof_ind].extroversion) return; // Friend is too shy
+        if (rand_f1()*TRAITMAX>people[fof_ind].extroversion) return; // Friend is too shy
         rships.push_back(Relationship(people[fof_ind].id));
         people[fof_ind].rships.push_back(Relationship(id));
 
@@ -214,6 +239,19 @@ class Person{
             wealth-=transfer_amt;
             groups[mships[i].id].received+=transfer_amt;
             groups[mships[i].id].npaying+=1;
+        }
+    }
+
+    void respond_to_task_requests(std::vector<Group>& groups){
+        if (age<ADULT) return; // Only adults
+        for (int i=0;i<mships.size();i++){
+            if (groups[mships[i].id].nguards<groups[mships[i].id].guard_request){ // need more guards
+                // Accept automatically, for now
+                worktype = GUARD;
+                groups[mships[i].id].nguards++;
+                groups[mships[i].id].wealth-=groups[mships[i].id].guard_cost;
+                wealth+=groups[mships[i].id].guard_cost;
+            }
         }
     }
 
@@ -267,8 +305,8 @@ class Person{
                     }
 
                     // Bump workrate: they know kids are expensive.
-                    if (agreeableness>8) {old_workrate=1.0f; workrate=1.0f;}
-                    if (people[dad_ind].agreeableness>8) {people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;}
+                    if (agreeableness>KIDCARE) {old_workrate=1.0f; workrate=1.0f;}
+                    if (people[dad_ind].agreeableness>KIDCARE) {people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;}
 
                     if (watch || people[dad_ind].watch){
                         char him_or_her[3]="";

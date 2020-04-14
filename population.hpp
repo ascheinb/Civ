@@ -48,6 +48,8 @@ class Population{
     void task_requests() {
         for(int i = 0; i<groups.size();i++)
             groups[i].set_task_request();
+        for(int i = 0; i<person.size();i++)
+            person[i].respond_to_task_requests(groups);
     }
 
     void evaluate_choices() {

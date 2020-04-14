@@ -43,10 +43,11 @@ int main(){
         //*** NATURE ***//
         nature.generate_food();
         if (watch) printf("\nNature provided %.0f food this season.",nature.food_available);
-if (i_turn>230)
-        p.task_requests();
 
         p.evaluate_choices();
+
+if (i_turn>230)
+        p.task_requests();
 
         p.do_long_actions(nature.food_available);
 if (i_turn>240)

@@ -27,8 +27,11 @@ class Group{
     float wealth_request;
     float received;
 
+    int guard_request;
+
     Group(int id, int land, int npaying) : id(id), wealth(0), land(land), npaying(npaying),
-        guard_strength(20),guard_cost(2),nguards(0),nused(0),nundefended(0),req_to_rec(0.0f),received(0.0f)
+        guard_strength(20),guard_cost(2),nguards(0),nused(0),nundefended(0),req_to_rec(0.0f),received(0.0f),
+        guard_request(0)
     {
         name = (rand_f1()*NGROUP_NAMES);
     }
@@ -55,9 +58,15 @@ class Group{
         wealth += received;
         received = 0.0f;
 
-        // Assume mercenary labor for now: Buy guards
-        nguards = wealth/guard_cost; // floor
-        wealth -= nguards*guard_cost;
+        nguards=0; // Assume have to rehire all guards each turn
+        if (true){ // INFINITE MERCENARY LABOR
+            // Assume mercenary labor for now: Buy guards
+            nguards = wealth/guard_cost; // floor
+            wealth -= nguards*guard_cost;
+        } else {
+            guard_request = wealth/guard_cost; // Find this many people to hire
+        }
+
         nused=0;
         nundefended=0;
 //if (id==0) printf("and bought %d guards",nguards);
