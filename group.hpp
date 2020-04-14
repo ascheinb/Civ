@@ -59,7 +59,7 @@ class Group{
         received = 0.0f;
 
         nguards=0; // Assume have to rehire all guards each turn
-        if (true){ // INFINITE MERCENARY LABOR
+        if (false){ // INFINITE MERCENARY LABOR
             // Assume mercenary labor for now: Buy guards
             nguards = wealth/guard_cost; // floor
             wealth -= nguards*guard_cost;
@@ -70,6 +70,10 @@ class Group{
         nused=0;
         nundefended=0;
 //if (id==0) printf("and bought %d guards",nguards);
+    }
+
+    void set_tasks(){
+//if (id==0) printf("\n%s hired %d guards, wanted %d",gnames[name].c_str(),nguards,guard_request);
     }
 };
 

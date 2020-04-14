@@ -62,7 +62,11 @@ if (i_turn>230)
         p.wealth_requests();
 
         p.age();
-
+        if (i_turn%480==1 || i_turn==n_turns){
+printf("\nPercent growing: %.1f%%", p.frac([](Person& h){return h.worktype==0;})*100);
+printf("\nPercent foraging: %.1f%%", p.frac([](Person& h){return h.worktype==1;})*100);
+printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==2;})*100);
+        }
         // Deaths
         int n_died;
         int n_starved;
@@ -86,10 +90,7 @@ if (i_turn>230)
         //*** SIMULATION ***//
         // Report
         if (i_turn%480==1 || i_turn==n_turns){
-//            p.report(i_turn);
-//            printf("\nBorn: %d, Died (starved): %d (%d)",n_kids,n_died,n_starved);
 printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
-//printf("\nFood leftover: %.3f", nature.food_available);
 printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
 //nature.map_by_population(p);

@@ -10,8 +10,9 @@
 #include "group.hpp"
 #include "names.hpp"
 
-#define GUARD 0
+#define GROW 0
 #define FORAGE 1
+#define GUARD 2
 #define TRAITMAX 32
 
 // Age of adulthood
@@ -82,7 +83,7 @@ class Person{
         agreeableness=std::max(std::min(agreeableness,TRAITMAX),0);
 
         // Learn work habits from parents
-        worktype=FORAGE;
+        worktype=GROW;
         workrate=(mom->workrate + dad.workrate)/2.0f;
         old_workrate=workrate;
         old_contentedness=0.0f;
@@ -115,15 +116,16 @@ class Person{
 
         // Return to being a forager
         worktype=FORAGE;
+
+        if (age<ADULT) worktype=GROW;
+        if (watch && age==ADULT) printf("\n%s is working independently for the first time :)",names[name].c_str());
     }
 
     void do_long_action(float& food_available){
-        // DO NOTHING (BUT GROW) IF YOUNG
-        if (age<ADULT) return;
-        if (watch && age==ADULT) printf("\n%s is working independently for the first time :)",names[name].c_str());
-
-        if (worktype==FORAGE){
-            // FORAGE
+        if (worktype==GROW){
+            // Do nothing, you're growing!
+        } else if (worktype==FORAGE){
+            // Find food
             float food_haul=std::min(food_available, 3.0f*workrate);
             if (watch && food_available<1.0) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
             wealth+=food_haul;
@@ -133,7 +135,7 @@ class Person{
             contentedness+=(1.0f-workrate)*2.0;
             if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
         } else if (worktype==GUARD){
-            // ?
+            // Nothing in here yet, just responds to take_by_force
         }
     }
 
