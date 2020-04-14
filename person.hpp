@@ -154,12 +154,19 @@ class Person{
             }
         }
         float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
+        // Rational thieving decisions:
+        float amt_to_steal = people[target_ind].wealth; // Steal all, for now
+        float amt_to_lose = wealth; // Group rule: If you're caught, they take all your money
+        float expected_value = amt_to_steal*success_rate - (1-success_rate)*wealth;
+        if (expected_value<0) return; // Not worth the risk!
         if (rand_f1()<success_rate){ // Successful theft
-            float amt_stolen = people[target_ind].wealth; // Steal all, for now
-            wealth += amt_stolen;
-            people[target_ind].wealth -= amt_stolen;
-            if (watch) printf("\n%s successfully stole %.3f from %s %s",names[name].c_str(),amt_stolen,names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
+            float amt_to_steal = people[target_ind].wealth; // Steal all, for now
+            wealth += amt_to_steal;
+            people[target_ind].wealth -= amt_to_steal;
+            if (watch) printf("\n%s successfully stole %.3f from %s %s",names[name].c_str(),amt_to_steal,names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
         } else { // Caught
+            groups[people[target_ind].mships[0].id].wealth += wealth; // First group gets all, for now
+            wealth=0.0f;
             if (watch) printf("\n%s failed to steal from %s %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
         }
     }
