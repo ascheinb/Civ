@@ -98,6 +98,9 @@ class Population{
 
         for(int i = 0; i<person.size();i++)
             person[i].respond_to_wealth_requests(groups);
+
+        for(int i = 0; i<groups.size();i++)
+            groups[i].assess_wealth_request();
     }
 
     void age() {

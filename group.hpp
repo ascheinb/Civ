@@ -39,7 +39,7 @@ class Group{
     void set_wealth_request(){
         // Adjust request based on what would have been nice last turn
         int adjustment= (nguards>nused) ? -1 : 0;
-        adjustment = (nundefended>0) ? 10 : adjustment;
+        adjustment = (nundefended>0) ? 10 : adjustment; // Aggressively pessimistic
         float nneeded = nguards + adjustment;
         wealth_request=req_to_rec*guard_cost*nneeded/npaying; // Requests going out to each member
 //if (id==0) printf("\n%s had %d used and %d undef, requests %.3f to %d members",gnames[name].c_str(),nused,nundefended,wealth_request,npaying);
@@ -47,9 +47,7 @@ class Group{
 //        wealth_request=0.0f;
     }
 
-    void set_task_request(){
-//if (id==0) printf("\n%s raised %.3f ",gnames[name].c_str(),received);
-        // Process income
+    void assess_wealth_request(){
         if (received == 0.0f){
             req_to_rec = 1.0f;
         }else{
@@ -57,7 +55,10 @@ class Group{
         }
         wealth += received;
         received = 0.0f;
+    }
 
+    void set_task_request(){
+//if (id==0) printf("\n%s raised %.3f ",gnames[name].c_str(),received);
         nguards=0; // Assume have to rehire all guards each turn
         if (false){ // INFINITE MERCENARY LABOR
             // Assume mercenary labor for now: Buy guards
