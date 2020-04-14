@@ -63,9 +63,9 @@ class Population{
         }
     }
 
-    void theft() {
+    void take_by_force() {
         for(int i = 0; i<person.size();i++)
-            person[i].steal(person, groups);
+            person[i].take_by_force(person, groups);
     }
 
     void feed_friends() {

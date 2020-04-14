@@ -112,8 +112,8 @@ class Person{
         if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
     }
 
-    void steal(std::vector<Person>& people, std::vector<Group>& groups){
-        if (agreeableness>9) return; // Too agreeable, won't steal 
+    void take_by_force(std::vector<Person>& people, std::vector<Group>& groups){
+        if (agreeableness>9) return; // Too agreeable, won't steal
         int target_ind = rand_f1()*people.size();
         if (people[target_ind].id==id) return; // Can't steal from yourself smart guy
         
@@ -121,8 +121,8 @@ class Person{
         for (int i=0;i<people[target_ind].mships.size();i++){
             // Muster defense
             int group_id=people[target_ind].mships[i].id;
-            if (groups[group_id].nused<groups[group_id].ndeployments){
-                defense+=groups[group_id].deployment_strength;
+            if (groups[group_id].nused<groups[group_id].nguards){
+                defense+=groups[group_id].guard_strength;
                 groups[group_id].nused +=1;
             } else {
                 groups[group_id].nundefended +=1;
