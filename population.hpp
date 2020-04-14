@@ -82,13 +82,22 @@ class Population{
             person[i].socialize(person,id2ind);
     }
 
-    void eat() {
+    void survive() {
         for(int i = 0; i<person.size();i++){
-            float to_eat = std::min(person[i].wealth,1.5f);
+            if (person[i].wealth<1.0f) person[i].will_starve=true;
+            float to_eat = std::min(person[i].wealth,1.0f);
             person[i].wealth-=to_eat;
-            person[i].contentedness+=(to_eat);
-            if (person[i].watch) printf("\n%s's cness after eating: %.3f", names[person[i].name].c_str(),person[i].contentedness);
-            if (to_eat<1.0f) person[i].will_starve=true;
+            person[i].contentedness+=to_eat;
+            if (person[i].watch) printf("\n%s's cness after surviving: %.3f", names[person[i].name].c_str(),person[i].contentedness);
+        }
+    }
+
+    void luxury() {
+        for(int i = 0; i<person.size();i++){
+            float to_enjoy = std::min(person[i].wealth,0.5f);
+            person[i].wealth-=to_enjoy;
+            person[i].contentedness+=to_enjoy;
+            if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
         }
     }
 

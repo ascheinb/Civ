@@ -57,7 +57,9 @@ if (i_turn>240)
 
         p.socialize();
 
-        p.eat();
+        p.survive();
+        p.luxury();
+
 if (i_turn>230)
         p.wealth_requests();
 
