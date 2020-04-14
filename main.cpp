@@ -8,12 +8,13 @@
 #include "person.hpp"
 #include "population.hpp"
 #include "nature.hpp"
+#include "graphics.hpp"
 #include "interface.hpp"
 
 int main(){
     /* initialize random seed: */
-    srand (time(NULL));
-//srand(1);
+//    srand (time(NULL));
+srand(0);
     // Read in names
     fill_names();
 
@@ -23,14 +24,17 @@ int main(){
     int n_turns = n_years*4; // A turn is one season
     float min_food_gen=600;
     float max_food_gen=600;
+    int climate_type = 1; // 0 is uniform; 1 has cold poles
+    int mapsize=72; // Must be divisible by mapwidth
+    int mapwidth=8;
     bool watch = false;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
     SimVar<int> ndied(n_turns);
     SimVar<int> nppl(n_turns);
 
-    Population p(initial_n_ppl);
-    Nature nature(min_food_gen,max_food_gen);
+    Nature nature(min_food_gen,max_food_gen,climate_type,mapsize,mapwidth);
+    Population p(initial_n_ppl,mapsize);
 
     if (watch){
         // Choose who to watch; start with someone middleaged
@@ -42,6 +46,7 @@ int main(){
     for (int i_turn = 1; i_turn <= n_turns; i_turn++){
         //*** NATURE ***//
         nature.generate_food();
+
         if (watch) printf("\nNature provided %.0f food this season.",nature.food_available);
 
         p.evaluate_choices();
@@ -49,9 +54,10 @@ int main(){
 if (i_turn>230)
         p.task_requests();
 
-        p.do_long_actions(nature.food_available);
+        p.do_long_actions(nature);
+
 if (i_turn>240)
-        p.take_by_force();
+        p.take_by_force(i_turn);
 
         p.feed_friends();
 
@@ -95,7 +101,7 @@ printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==2;}
 printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
 printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
-//nature.map_by_population(p);
+map_by_population(p,nature);
         }
 
         // Pause

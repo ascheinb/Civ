@@ -20,7 +20,7 @@ class Population{
 
     std::vector<Group> groups;
 
-    Population(int initial_n_ppl) : n_ids(initial_n_ppl) {
+    Population(int initial_n_ppl, int map_size) : n_ids(initial_n_ppl) {
         // Population-wide traits
         lifespan = 240;
         fertility_age = 64;
@@ -30,7 +30,7 @@ class Population{
 
         // Initialize individuals
         for(int i = 0; i<initial_n_ppl;i++)
-            person.push_back(Person(i,(i*lifespan)/initial_n_ppl,lifespan,0));
+            person.push_back(Person(i,(i*lifespan)/initial_n_ppl,lifespan,i%map_size));
 
         // Initialize id to index mapping
         for(int i = 0; i<initial_n_ppl;i++)
@@ -59,17 +59,22 @@ class Population{
             person[i].evaluate_choices();
     }
 
-    void do_long_actions(float& food_available) {
+    void do_long_actions(Nature &nature) {
         RandPerm rp(person.size());
         for(int i = 0; i<person.size();i++){
             int ri = rp.x[i];
-            person[ri].do_long_action(food_available);
+            person[ri].do_long_action(nature);
         }
     }
 
-    void take_by_force() {
-        for(int i = 0; i<person.size();i++)
-            person[i].take_by_force(person, groups);
+    void take_by_force(int i_turn) {
+        RandPerm rp(person.size());
+        int ramp = person.size()*((i_turn-240.0f)/4000.0f);
+        ramp = std::min((int)(person.size()),std::max(0,ramp));
+        for(int i = 0; i<ramp;i++){
+            int ri = rp.x[i];
+            person[ri].take_by_force(person, groups);
+        }
     }
 
     void feed_friends() {

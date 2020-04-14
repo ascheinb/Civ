@@ -8,6 +8,7 @@
 #include "relationship.hpp"
 #include "membership.hpp"
 #include "group.hpp"
+#include "nature.hpp"
 #include "names.hpp"
 
 #define GROW 0
@@ -36,6 +37,7 @@ class Person{
     int age;
     bool will_starve;
 
+    int home;
     int worktype;
     float old_contentedness;
     float old_workrate;
@@ -56,7 +58,7 @@ class Person{
     bool watch;
 
     // Initial generation
-    Person(int id, int age, int lifespan, float wealth) : id(id), age(age), lifespan(lifespan), will_starve(false), wealth(wealth), watch(false) {
+    Person(int id, int age, int lifespan, int home ) : id(id), age(age), lifespan(lifespan), will_starve(false), home(home), wealth(0), watch(false) {
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
         extroversion = 8 + rand_f1()*16;
@@ -81,6 +83,9 @@ class Person{
         // Stay in range
         extroversion=std::max(std::min(extroversion,TRAITMAX),0);
         agreeableness=std::max(std::min(agreeableness,TRAITMAX),0);
+
+        // Home
+        home = dad.home; // Patrilineal home for now
 
         // Learn work habits from parents
         worktype=GROW;
@@ -110,6 +115,7 @@ class Person{
             workrate = old_workrate+rand_f1()*0.1f-0.05f;
             workrate = std::min(1.0f,std::max(0.0f,workrate));
         }
+
         // Reset contentedness counter
         old_contentedness = contentedness;
         contentedness=0.0f;
@@ -121,15 +127,22 @@ class Person{
         if (watch && age==ADULT) printf("\n%s is working independently for the first time :)",names[name].c_str());
     }
 
-    void do_long_action(float& food_available){
+    void do_long_action(Nature& nature){
         if (worktype==GROW){
             // Do nothing, you're growing!
         } else if (worktype==FORAGE){
             // Find food
-            float food_haul=std::min(food_available, 3.0f*workrate);
-            if (watch && food_available<1.0) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
+            float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
+            if (nature.map[home].food_available<1.0) {
+                if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
+                // Change home to an adjacent tile
+                int adj_tile = nature.neighbor(home,(int)(rand_f1()*6.0f));
+                int oldhome=home;
+                if (adj_tile!=-1) home = adj_tile;
+                if (watch) printf("\nThey moved from Tile %d to Tile %d",oldhome,home);
+            }
             wealth+=food_haul;
-            food_available-=food_haul;
+            nature.map[home].food_available-=food_haul;
 
             // ENJOY FREE TIME
             contentedness+=(1.0f-workrate)*2.0;
