@@ -91,7 +91,7 @@ printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
 //printf("\nFood leftover: %.3f", nature.food_available);
 printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
-
+nature.map_by_population(p);
         }
 
         // Pause

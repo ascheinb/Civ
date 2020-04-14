@@ -58,7 +58,6 @@ class Group{
         // Assume mercenary labor for now: Buy deployments
         ndeployments = wealth/deployment_cost; // floor
         wealth -= ndeployments*deployment_cost;
-//        ndeployments = 1000;//nused + nundefended;
         nused=0;
         nundefended=0;
 //if (id==0) printf("and bought %d deployments",ndeployments);

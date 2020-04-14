@@ -173,6 +173,15 @@ class Population{
     }
 
     template <typename Proc>
+    float frac(int x, Proc p){
+        float sum=0.0;
+        for(int i = 0; i<person.size();i++){
+            sum += p(x, person[i]) ? 1.0 : 0.0;
+        }
+        return sum/person.size();
+    }
+
+    template <typename Proc>
     float avg_in(Proc p){ 
         float sum=0.0;
         float x;
