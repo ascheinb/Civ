@@ -121,12 +121,12 @@ class Person{
         for (int i=0;i<people[target_ind].mships.size();i++){
             // Muster defense
             int group_id=people[target_ind].mships[i].id;
-//            if (groups[group_id].ndeployments>0){
-                defense+=groups[group_id].deployment;
-//                groups[group_id].ndeployments -=1;
-//            } else {
-//                groups[group_id].nundefended +=1;
-//            }
+            if (groups[group_id].nused<groups[group_id].ndeployments){
+                defense+=groups[group_id].deployment_strength;
+                groups[group_id].nused +=1;
+            } else {
+                groups[group_id].nundefended +=1;
+            }
         }
         float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
         if (rand_f1()<success_rate){ // Successful theft
@@ -204,6 +204,17 @@ class Person{
 
         if (watch) printf("\n%s met %s through %s.",names[name].c_str(),names[people[fof_ind].name].c_str(),names[people[friend_ind].name].c_str());
         if (!watch && people[fof_ind].watch) printf("\n%s met %s through %s.",names[people[fof_ind].name].c_str(),names[name].c_str(),names[people[friend_ind].name].c_str());
+    }
+
+    void respond_to_wealth_requests(std::vector<Group>& groups){
+        for (int i=0;i<mships.size();i++){
+            float req = groups[mships[i].id].wealth_request;
+            // Accept automatically, for now
+            float transfer_amt = std::min(wealth,req);
+            wealth-=transfer_amt;
+            groups[mships[i].id].received+=transfer_amt;
+            groups[mships[i].id].npaying+=1;
+        }
     }
 
     void purge_rships(int max_rships, std::vector<Person>& people, std::vector<int>& id2ind){

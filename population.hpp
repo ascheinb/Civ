@@ -38,11 +38,16 @@ class Population{
 
         // Initialize groups
         for(int i = 0; i<initial_n_groups;i++)
-            groups.push_back(Group(i,0));
+            groups.push_back(Group(i,0,initial_n_ppl/10));
 
         // Assign people randomly to groups
         for(int i = 0; i<initial_n_ppl;i++)
             person[i].mships.push_back(Membership(rand_f1()*groups.size()));
+    }
+
+    void task_requests() {
+        for(int i = 0; i<groups.size();i++)
+            groups[i].set_task_request();
     }
 
     void evaluate_choices() {
@@ -81,6 +86,14 @@ class Population{
             if (person[i].watch) printf("\n%s's cness after eating: %.3f", names[person[i].name].c_str(),person[i].contentedness);
             if (to_eat<1.0f) person[i].will_starve=true;
         }
+    }
+
+    void wealth_requests(){
+        for(int i = 0; i<groups.size();i++)
+            groups[i].set_wealth_request();
+
+        for(int i = 0; i<person.size();i++)
+            person[i].respond_to_wealth_requests(groups);
     }
 
     void age() {

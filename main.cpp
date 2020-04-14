@@ -35,7 +35,7 @@ int main(){
     if (watch){
         // Choose who to watch; start with someone middleaged
         int first_watch=initial_n_ppl/2;
-        p.person[first_watch].watch=true;
+//        p.person[first_watch].watch=true;
     }
 
     printf("\n ******** SIMULATION BEGINS ******* \n");
@@ -43,25 +43,23 @@ int main(){
         //*** NATURE ***//
         nature.generate_food();
         if (watch) printf("\nNature provided %.0f food this season.",nature.food_available);
+if (i_turn>230)
+        p.task_requests();
 
         p.evaluate_choices();
 
-        //*** LONG INDIVIDUAL ACTIONS ***//
         p.do_long_actions(nature.food_available);
 if (i_turn>240)
         p.theft();
-        //*** SHORT GROUP ACTIONS ***//
 
-        //*** SHORT INDIVIDUAL ACTIONS ***//
         p.feed_friends();
 
         p.socialize();
 
-        //*** INVOLUNTARY INDIVIDUAL ACTIONS ***//
-        // Eat
         p.eat();
+if (i_turn>230)
+        p.wealth_requests();
 
-        // Age
         p.age();
 
         // Deaths
@@ -97,7 +95,7 @@ printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<
         }
 
         // Pause
-        if (watch && i_turn%4==0){
+        if (watch && i_turn%4==0 && i_turn>230){
             if (i_turn>0) std::cin.get();
             printf("\nStarting Year %d",1+i_turn/4);
             printf("\nFollowing: ");
