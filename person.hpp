@@ -285,15 +285,17 @@ class Person{
         if (watch) printf("\n%s met %s through %s.",names[name].c_str(),names[people[fof_ind].name].c_str(),names[people[friend_ind].name].c_str());
         if (!watch && people[fof_ind].watch) printf("\n%s met %s through %s.",names[people[fof_ind].name].c_str(),names[name].c_str(),names[people[friend_ind].name].c_str());
 
-        // Join a random group of your friends but at 0 loyalty
-        int rand_ind = rand_f1()*people[friend_ind].mships.size();
-        int rand_id = people[friend_ind].mships[rand_ind].id;
-        bool not_yet_member=true;
-        for (int i=0;i<mships.size();i++){
-            if (mships[i].id==rand_id)
-                {not_yet_member=false; break;}
+        // Join a random group of your friends but at low loyalty
+        if (people[friend_ind].mships.size()>0){
+            int rand_ind = rand_f1()*people[friend_ind].mships.size();
+            int rand_id = people[friend_ind].mships[rand_ind].id;
+            bool not_yet_member=true;
+            for (int i=0;i<mships.size();i++){
+                if (mships[i].id==rand_id)
+                    {not_yet_member=false; break;}
+            }
+            if (not_yet_member) mships.push_back(Membership(rand_id,1));
         }
-        if (not_yet_member) mships.push_back(Membership(rand_id,1));
         // Adjust loyalty to groups
         for (int i=mships.size()-1;i>=0;i--){
             mships[i].loyalty_to-=2; // Reduce loyalty to all groups as time passes
