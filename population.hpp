@@ -223,11 +223,20 @@ class Population{
     }
 
     void new_groups(){ // O(N*R^3 + N*R*G^2*M^2)
-        for(int i = 0; i<person.size();i++){
-            for(int j = 0; j<person[i].rships.size();j++){
-                if (person[i].rships[j].fondness_to>=FONDFORMGROUP){ // P1 has a close friend (P2)
+        // Have a random 10% of the population look for groups to cut down on run time
+        int n_group_checkers = person.size()/10;
+        RandPerm rp(person.size());
+        for(int i = 0; i<n_group_checkers;i++){
+            int ri = rp.x[i];
+            // P1 doesn't have enough friends
+            if (person[ri].rships.size()+1<SIZEFORMGROUP) continue;
+            for(int j = 0; j<person[ri].rships.size();j++){
+                if (person[ri].rships[j].fondness_to>=FONDFORMGROUP){ // P1 has a close friend (P2)
+                    // P2 doesn't have enough friends
+                    //if (person[id2ind[person[ri].rships[j].person_id]].rships.size()+1<SIZEFORMGROUP) continue;
+
                     std::vector<int> new_group;
-                    find_potential_group(new_group,person[i],i,j);
+                    find_potential_group(new_group,person[ri],ri,j);
                     int groupsize = new_group.size();
                     if (groupsize>=SIZEFORMGROUP) {
                         // Check if group already exists
@@ -243,7 +252,6 @@ class Population{
                 }
             }
         }
-        printf("\nNgroups: %lu",groups.size());
     }
 
     template <typename Proc>

@@ -20,7 +20,7 @@ int main(){
 
     bool debug=false;
     int initial_n_ppl = 200;
-    int n_years = 1000;
+    int n_years = 2000;
     int n_turns = n_years*4; // A turn is one season
     float min_food_gen=600;
     float max_food_gen=600;
@@ -67,10 +67,11 @@ if (i_turn>240)
 
         p.wealth_requests();
 
-//        p.new_groups();
+        p.new_groups();
 
         p.age();
         if (i_turn%480==1 || i_turn==n_turns){
+printf("\n\nYear: %d, Population: %lu",i_turn/4,p.person.size());
 printf("\nPercent growing: %.1f%%", p.frac([](Person& h){return h.worktype==0;})*100);
 printf("\nPercent foraging: %.1f%%", p.frac([](Person& h){return h.worktype==1;})*100);
 printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==2;})*100);
@@ -98,15 +99,24 @@ printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==2;}
         //*** SIMULATION ***//
         // Report
         if (i_turn%480==1 || i_turn==n_turns){
+            int extant_groups=0;
+            std::vector<int>n_each_group(p.groups.size(),0);
+            for (int i=0;i<p.person.size();i++)
+                for (int j=0;j<p.person[i].mships.size();j++)
+                    n_each_group[p.person[i].mships[j].id]++;
+            for (int i=0;i<p.groups.size();i++)
+                if (n_each_group[i]>0) extant_groups++;
+
+printf("\nNumber of groups: %lu (%d extant)",p.groups.size(),extant_groups);
 printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
 printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
 //map_by_groups(p,nature);
-map_by_population(p,nature);
+//map_by_population(p,nature);
         }
 
         // Pause
-        if (watch && i_turn%4==0 && i_turn>230){
+        if (watch && i_turn%4==0){
             if (i_turn>0) std::cin.get();
             printf("\nStarting Year %d",1+i_turn/4);
             printf("\nFollowing: ");
@@ -115,7 +125,6 @@ map_by_population(p,nature);
             
         }
     }
-    p.new_groups();
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
     printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
     float avg_ex=p.avg([](Person& h){return h.extroversion;});

@@ -162,7 +162,8 @@ class Person{
         if (people[target_ind].id==id) return; // Can't steal from yourself smart guy
         
         float defense=0.0f;
-        for (int i=0;i<people[target_ind].mships.size();i++){
+        for (int i=0;i<1;i++){ // Only top group defends right now
+//        for (int i=0;i<people[target_ind].mships.size();i++){
             // Muster defense
             int group_id=people[target_ind].mships[i].id;
             if (groups[group_id].nused<groups[group_id].nguards){
