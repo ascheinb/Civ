@@ -42,7 +42,7 @@ class Population{
 
         // Assign people randomly to groups
         for(int i = 0; i<initial_n_ppl;i++)
-            person[i].mships.push_back(Membership(rand_f1()*groups.size()));
+            person[i].mships.push_back(Membership(rand_f1()*groups.size(),INITLOYALTY));
     }
 
     void task_requests() {
@@ -245,7 +245,7 @@ class Population{
                             int newgroup_id=groups.size();
                             groups.push_back(Group(newgroup_id,0,groupsize));
                             for (int g=0;g<groupsize;g++){ // Loop over new group members
-                                person[new_group[g]].mships.push_back(Membership(newgroup_id));
+                                person[new_group[g]].mships.push_back(Membership(newgroup_id,INITLOYALTY));
                                 if (person[new_group[g]].watch) printf("\n%s joined a new group called %s", names[person[new_group[g]].name].c_str(),gnames[groups[newgroup_id].name].c_str());
                             }
                         }

@@ -13,8 +13,8 @@
 
 int main(){
     /* initialize random seed: */
-    srand (time(NULL));
-//srand(0);
+//    srand (time(NULL));
+srand(2);
     // Read in names
     fill_names();
 
@@ -27,7 +27,7 @@ int main(){
     int climate_type = 1; // 0 is uniform; 1 has cold poles
     int mapsize=100; // Must be divisible by mapwidth
     int mapwidth=10; // Keep even for map_by_groups to work
-    bool watch = true;
+    bool watch = false;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
@@ -121,6 +121,7 @@ printf("\nNumber of groups: %lu (%d extant)",p.groups.size(),extant_groups);
 printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
 printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
+printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}));
 //map_by_groups(p,nature);
 //map_by_population(p,nature);
         }
@@ -129,6 +130,12 @@ printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<
         if (watch && i_turn>=(watch_start_year*4-3) && i_turn%4==0){
             printf("\n");
             std::cin.get();
+        }
+    }
+    for (int i=0;i<p.person.size();i+=20){
+        printf("\nP%d memberships:",i);
+        for (int j=0;j<p.person[i].mships.size();j++){
+            printf("\n  id %s, loyalty: %d",gnames[p.groups[p.person[i].mships[j].id].name].c_str(),p.person[i].mships[j].loyalty_to);
         }
     }
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
