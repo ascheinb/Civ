@@ -61,7 +61,7 @@ class Person{
     Person(int id, int age, int lifespan, int home ) : id(id), age(age), lifespan(lifespan), will_starve(false), home(home), wealth(0), watch(false) {
         female = (rand_f1()<0.5); // 50% chance of being female
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
-        extroversion = 8 + rand_f1()*16;
+        extroversion = 8+8 + rand_f1()*16;
         agreeableness = 8 + rand_f1()*16;
         worktype=FORAGE;
         workrate=1.0f;
@@ -299,18 +299,31 @@ class Person{
         }
     }
 
-    int breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people) {
+    int breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people, std::vector<int>& id2ind) {
         if (female && age>=fertility_age){ // If female and old enough
             if (rand_f1()<fertility_rate){ // If having children
                 if (watch) printf("\n%s wants a kid.", names[name].c_str());
-                // Find father at random
-                RandPerm rp(people.size());
+                // Find father
                 int dad_ind = -1;
-                for (int idad = 0; idad<people.size(); idad++){
-                    int ri = rp.x[idad];
-                    if(people[ri].age>=fertility_age && !people[ri].female) // adult male, good enough
-                        {dad_ind=ri; break;}
+                if (true){ // Method 2: Choose randomly among pre-existing relationships
+                    if (rships.size()>0){
+                        RandPerm rp(rships.size());
+                        for (int ridad = 0; ridad<rships.size(); ridad++){
+                            int ri = id2ind[rships[rp.x[ridad]].person_id];
+                            if(people[ri].age>=fertility_age && !people[ri].female) // known adult male, good enough
+                                {dad_ind=ri; break;}
+                        }
+                    }
                 }
+                if (dad_ind==-1){ // If Method 2 failed, revert to Method 1: Random 
+                    RandPerm rp(people.size());
+                    for (int idad = 0; idad<people.size(); idad++){
+                        int ri = rp.x[idad];
+                        if(people[ri].age>=fertility_age && !people[ri].female) // adult male, good enough
+                            {dad_ind=ri; break;}
+                    }
+                }
+
                 if (dad_ind>=0) { // found a father
                     // Create kid
                     people.push_back(Person(next_id,this,people[dad_ind]));

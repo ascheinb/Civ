@@ -166,7 +166,7 @@ class Population{
     int breed() {
         int n_kids = 0;
         for(int i = 0; i<person.size();i++){
-            n_kids += person[i].breed(n_ids+n_kids,fertility_age, fertility_rate, person);
+            n_kids += person[i].breed(n_ids+n_kids,fertility_age, fertility_rate, person,id2ind);
         }
         // Updated id to index mapping
         for(int i = person.size()-n_kids; i<person.size();i++)
@@ -212,6 +212,22 @@ class Population{
             std::tie(x,use) = p(person[i]);
             if (use){
                 sum+=x;
+                count+=1;
+            }
+        }
+        return sum/count;
+    }
+
+    template <typename Proc>
+    float avg_in(int x, Proc p){
+        float sum=0.0;
+        float tmp;
+        bool use;
+        int count=0;
+        for(int i = 0; i<person.size();i++){
+            std::tie(tmp,use) = p(x,person[i]);
+            if (use){
+                sum+=tmp;
                 count+=1;
             }
         }

@@ -13,8 +13,8 @@
 
 int main(){
     /* initialize random seed: */
-//    srand (time(NULL));
-srand(0);
+    srand (time(NULL));
+//srand(0);
     // Read in names
     fill_names();
 
@@ -25,8 +25,8 @@ srand(0);
     float min_food_gen=600;
     float max_food_gen=600;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=72; // Must be divisible by mapwidth
-    int mapwidth=8;
+    int mapsize=100; // Must be divisible by mapwidth
+    int mapwidth=10; // Keep even for map_by_groups to work
     bool watch = false;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
@@ -51,7 +51,6 @@ srand(0);
 
         p.evaluate_choices();
 
-if (i_turn>230)
         p.task_requests();
 
         p.do_long_actions(nature);
@@ -66,7 +65,6 @@ if (i_turn>240)
         p.survive();
         p.luxury();
 
-if (i_turn>230)
         p.wealth_requests();
 
         p.age();
@@ -101,6 +99,7 @@ printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==2;}
 printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
 printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
+//map_by_groups(p,nature);
 map_by_population(p,nature);
         }
 
@@ -116,14 +115,14 @@ map_by_population(p,nature);
     }
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
     printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
-    float avg_extroversion=p.avg([](Person& h){return h.extroversion;});
-    printf("\nAverage extroversion at final step: %.1f", avg_extroversion);
-    printf("\nPercent intraverts: %.1f%%", p.frac([](Person& h){return h.extroversion<14;})*100);
-    printf("\nPercent extroverts: %.1f%%", p.frac([](Person& h){return h.extroversion>18;})*100);
-    printf("\nAverage #rships for intraverts: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion<14);}));
-    printf("\nAverage fondness for intraverts: %.1f", p.avg_in([](Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion<14);}));
-    printf("\nAverage #rships for extroverts: %.1f", p.avg_in([](Person& h){return std::make_tuple(h.rships.size(),h.extroversion>18);}));
-    printf("\nAverage fondness for extroverts: %.1f", p.avg_in([](Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion>18);}));
+    float avg_ex=p.avg([](Person& h){return h.extroversion;});
+    printf("\nAverage extroversion at final step: %.1f", avg_ex);
+    printf("\nPercent intraverts: %.1f%%", p.frac(avg_ex-2,[](int x,Person& h){return h.extroversion<x;})*100);
+    printf("\nPercent extroverts: %.1f%%", p.frac(avg_ex+2,[](int x,Person& h){return h.extroversion>x;})*100);
+    printf("\nAverage #rships for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){return std::make_tuple(h.rships.size(),h.extroversion<x);}));
+    printf("\nAverage fondness for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion<x);}));
+    printf("\nAverage #rships for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){return std::make_tuple(h.rships.size(),h.extroversion>x);}));
+    printf("\nAverage fondness for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion>x);}));
     printf("\nAverage population: %.0f",nppl.eq_avg());
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());
     //nkids.write("nkids.txt");
