@@ -150,7 +150,7 @@ class Person{
 
             // ENJOY FREE TIME
             contentedness+=(1.0f-workrate)*2.0;
-            if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
+            //if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
         } else if (worktype==GUARD){
             // Nothing in here yet, just responds to take_by_force
         }
@@ -162,17 +162,24 @@ class Person{
         if (people[target_ind].id==id) return; // Can't steal from yourself smart guy
         
         float defense=0.0f;
-        for (int i=0;i<1;i++){ // Only top group defends right now
-//        for (int i=0;i<people[target_ind].mships.size();i++){
+        int defender=-1;
+        for (int i=0;i<people[target_ind].mships.size();i++){
             // Muster defense
             int group_id=people[target_ind].mships[i].id;
             if (groups[group_id].nused<groups[group_id].nguards){
                 defense+=groups[group_id].guard_strength;
                 groups[group_id].nused +=1;
-            } else {
+                defender=i;
+                break;
+            }
+        }
+        if (defender==-1){ // Every group notes failure
+            for (int i=0;i<people[target_ind].mships.size();i++){
+                int group_id=people[target_ind].mships[i].id;
                 groups[group_id].nundefended +=1;
             }
         }
+
         float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
         // Rational thieving decisions:
         float amt_to_steal = people[target_ind].wealth; // Steal all, for now
@@ -185,9 +192,9 @@ class Person{
             people[target_ind].wealth -= amt_to_steal;
             if (watch) printf("\n%s successfully stole %.3f from %s %s",names[name].c_str(),amt_to_steal,names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
         } else { // Caught
-            groups[people[target_ind].mships[0].id].wealth += wealth; // First group gets all, for now
+            groups[people[target_ind].mships[defender].id].wealth += wealth; // Defending group gets all, for now
             wealth=0.0f;
-            if (watch) printf("\n%s failed to steal from %s %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
+            if (watch || people[target_ind].watch) printf("\n%s was caught stealing from %s %s by %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str(),gnames[groups[people[target_ind].mships[defender].id].name].c_str());
         }
     }
 

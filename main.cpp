@@ -27,7 +27,8 @@ int main(){
     int climate_type = 1; // 0 is uniform; 1 has cold poles
     int mapsize=100; // Must be divisible by mapwidth
     int mapwidth=10; // Keep even for map_by_groups to work
-    bool watch = false;
+    bool watch = true;
+    int watch_start_year=500;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
     SimVar<int> ndied(n_turns);
@@ -36,18 +37,27 @@ int main(){
     Nature nature(min_food_gen,max_food_gen,climate_type,mapsize,mapwidth);
     Population p(initial_n_ppl,mapsize);
 
-    if (watch){
-        // Choose who to watch; start with someone middleaged
-        int first_watch=initial_n_ppl/2;
-//        p.person[first_watch].watch=true;
-    }
-
     printf("\n ******** SIMULATION BEGINS ******* \n");
     for (int i_turn = 1; i_turn <= n_turns; i_turn++){
+        // Check watch
+        if (watch && i_turn==(watch_start_year*4-3)){
+            // Choose who to watch; start with someone middleaged
+            int first_watch=p.person.size()/2;
+            p.person[first_watch].watch=true;
+        }
+
         //*** NATURE ***//
         nature.generate_food();
 
-        if (watch) printf("\nNature provided %.0f food this season.",nature.food_available);
+        if (watch && i_turn>=(watch_start_year*4-3)){
+            if(i_turn%4==1){
+                printf("\nYear %d begins",1+(i_turn-1)/4);
+                printf("\nFollowing:");
+                for (int i=0;i<p.person.size();i++)
+                    if (p.person[i].watch) printf(" -%s %s (%d)", names[p.person[i].name].c_str(), gnames[p.groups[p.person[i].mships[0].id].name].c_str(), p.person[i].age/4);
+            }
+            printf("\n      (%.0f food this season)",nature.food_available);
+        }
 
         p.evaluate_choices();
 
@@ -116,13 +126,9 @@ printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<
         }
 
         // Pause
-        if (watch && i_turn%4==0){
-            if (i_turn>0) std::cin.get();
-            printf("\nStarting Year %d",1+i_turn/4);
-            printf("\nFollowing: ");
-            for (int i=0;i<p.person.size();i++)
-                if (p.person[i].watch) printf("%s %s (%d) - ", names[p.person[i].name].c_str(), gnames[p.groups[p.person[i].mships[0].id].name].c_str(), p.person[i].age/4);
-            
+        if (watch && i_turn>=(watch_start_year*4-3) && i_turn%4==0){
+            printf("\n");
+            std::cin.get();
         }
     }
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);

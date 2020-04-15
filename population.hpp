@@ -93,7 +93,7 @@ class Population{
             float to_eat = std::min(person[i].wealth,1.0f);
             person[i].wealth-=to_eat;
             person[i].contentedness+=to_eat;
-            if (person[i].watch) printf("\n%s's cness after surviving: %.3f", names[person[i].name].c_str(),person[i].contentedness);
+            //if (person[i].watch) printf("\n%s's cness after surviving: %.3f", names[person[i].name].c_str(),person[i].contentedness);
         }
     }
 
@@ -102,7 +102,7 @@ class Population{
             float to_enjoy = std::min(person[i].wealth,0.5f);
             person[i].wealth-=to_enjoy;
             person[i].contentedness+=to_enjoy;
-            if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
+            //if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
         }
     }
 
@@ -246,6 +246,7 @@ class Population{
                             groups.push_back(Group(newgroup_id,0,groupsize));
                             for (int g=0;g<groupsize;g++){ // Loop over new group members
                                 person[new_group[g]].mships.push_back(Membership(newgroup_id));
+                                if (person[new_group[g]].watch) printf("\n%s joined a new group called %s", names[person[new_group[g]].name].c_str(),gnames[groups[newgroup_id].name].c_str());
                             }
                         }
                     }
