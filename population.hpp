@@ -175,6 +175,77 @@ class Population{
         return n_kids;
     }
 
+    void find_potential_group(std::vector<int>& new_group, Person& p1, int ip1, int j){
+        int ip2=id2ind[p1.rships[j].person_id]; // ind of P2
+        new_group.push_back(ip1);
+        new_group.push_back(ip2);
+        // If this rship is strong, run through P1's friend list for mutual friends
+        for(int k = 0; k<p1.rships.size();k++){
+            if (k!=j && p1.rships[k].fondness_to>3){ // Another close friend of P1, P3
+                int friend2_id = p1.rships[k].person_id;
+                for(int l = 0; l<person[ip2].rships.size();l++){ // Look for P3 in P2's list
+                    if (person[ip2].rships[l].person_id==friend2_id && // P3 is friends with P2
+                        person[ip2].rships[l].fondness_to>3){ // Is also a close friend!
+                        new_group.push_back(id2ind[friend2_id]);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    bool group_already_exists(std::vector<int>& new_group){
+        int groupsize = new_group.size();
+        for (int g=0;g<groupsize;g++){ // Loop over new group members
+            int ind = new_group[g];
+            for (int k=0;k<person[ind].mships.size();k++){ // Loop over their group affiliations
+                int xgroupsize = groups[person[ind].mships[k].id].npaying; // Size of preexisting group
+                int xgroupid = person[ind].mships[k].id;
+                if (groupsize>2*xgroupsize || xgroupsize>2*groupsize) // If one is more than double the other's size
+                    continue; // Clearly not the same group
+                // But if they're in the same size range, examine further
+                int n_common_members=0;
+                for (int gc=0;gc<groupsize;gc++){
+                    int indc = new_group[gc];
+                    for (int kc=0;kc<person[indc].mships.size();kc++){
+                        if (xgroupid == person[indc].mships[kc].id)
+                            {n_common_members++; break;}
+                    }
+                }
+                if (n_common_members*2>groupsize || n_common_members*2>xgroupsize){
+                    // More than half the members in common
+                    // Is the same group
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    void new_groups(){ // O(N*R^3 + N*R*G^2*M^2)
+        for(int i = 0; i<person.size();i++){
+            for(int j = 0; j<person[i].rships.size();j++){
+                if (person[i].rships[j].fondness_to>=FONDFORMGROUP){ // P1 has a close friend (P2)
+                    std::vector<int> new_group;
+                    find_potential_group(new_group,person[i],i,j);
+                    int groupsize = new_group.size();
+                    if (groupsize>=SIZEFORMGROUP) {
+                        // Check if group already exists
+                        bool found_similar = group_already_exists(new_group);
+                        if (!found_similar){
+                            int newgroup_id=groups.size();
+                            groups.push_back(Group(newgroup_id,0,groupsize));
+                            for (int g=0;g<groupsize;g++){ // Loop over new group members
+                                person[new_group[g]].mships.push_back(Membership(newgroup_id));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        printf("\nNgroups: %lu",groups.size());
+    }
+
     template <typename Proc>
     float avg(Proc p){
         float sum=0.0;

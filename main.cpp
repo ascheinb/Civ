@@ -20,7 +20,7 @@ int main(){
 
     bool debug=false;
     int initial_n_ppl = 200;
-    int n_years = 4000;
+    int n_years = 1000;
     int n_turns = n_years*4; // A turn is one season
     float min_food_gen=600;
     float max_food_gen=600;
@@ -66,6 +66,8 @@ if (i_turn>240)
         p.luxury();
 
         p.wealth_requests();
+
+//        p.new_groups();
 
         p.age();
         if (i_turn%480==1 || i_turn==n_turns){
@@ -113,6 +115,7 @@ map_by_population(p,nature);
             
         }
     }
+    p.new_groups();
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
     printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
     float avg_ex=p.avg([](Person& h){return h.extroversion;});

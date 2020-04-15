@@ -24,6 +24,10 @@
 #define FONDSHARE 5
 // Agreeableness below which you are ok with stealing
 #define THIEF 9
+// Size of friend group required to form an official group
+#define SIZEFORMGROUP 15
+// Level of fondness required to qualify as friend group
+#define FONDFORMGROUP 4
 
 class Person{
     public:
