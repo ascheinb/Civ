@@ -130,6 +130,7 @@ void map_by_groups(Population &p, Nature &n){
             printf("\nToo small to appear: %s",gnames[p.groups[extant_groups[i]].name].c_str());
         }
 
+    std::string abbrev;
     // Fill map
     int half_ncol = n.ncol/2;
     char letts[4] = " A ";
@@ -138,6 +139,8 @@ void map_by_groups(Population &p, Nature &n){
     bool is_full[2];
     is_full[0]=false; is_full[1]=false;
     for (int i=0;i<ngroups;i++){
+        abbrev=gnames[p.groups[extant_groups[i]].name].substr(0,3);
+        strcpy(letts,abbrev.c_str());
         int l_or_r=(i%2==0 ? 0 : 1);
         if (l_or_r==0 && is_full[0]) l_or_r=1;
         if (l_or_r==1 && is_full[1]) l_or_r=0;
@@ -169,7 +172,6 @@ void map_by_groups(Population &p, Nature &n){
                 }
             }
         }
-        letts[1]++;
     }
 
     // Print map

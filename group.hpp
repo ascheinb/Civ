@@ -41,33 +41,7 @@ class Group{
     {
         name = id;
         if (id>=NGROUP_NAMES){
-            // Better create a new name
-            char ucons[21] = "QWRTPSDFGHJKLZXCVBNM";
-            char lcons[21] = "qwrtpsdfghjklzxcvbnm";
-            char uvows[7] = "EYUIOA";
-            char lvows[7] = "eyuioa";
-            std::string new_gname;
-            int namelength=5+rand_f1()*3;
-            bool wasvow=true;
-            bool isvow=false;
-            for (int i=0;i<namelength;i++){
-                if (!wasvow && !isvow) // CC
-                    {wasvow=isvow;isvow=true;}
-                else if (!wasvow && isvow) // CA
-                    {wasvow=isvow;isvow=false;}
-                else if (i==namelength-1) // AC (dont end in ACC)
-                    {wasvow=isvow;isvow=true;}
-                else // AC
-                    {wasvow=isvow;isvow=((int)(rand_f1()*6)==0);}
-
-                if (i==0){
-                    if (isvow) new_gname += uvows[(int)(rand_f1()*6)];
-                    else new_gname += ucons [(int)(rand_f1()*20)];
-                } else {
-                    if (isvow) new_gname += lvows[(int)(rand_f1()*6)];
-                    else new_gname += lcons [(int)(rand_f1()*20)];
-                }
-            }
+            std::string new_gname = generate_name();
             gnames.push_back(new_gname);
         }
     }
