@@ -4,8 +4,12 @@
 #include <string.h>
 #include "random.hpp"
 
+#define GRASS 0
+#define WATER 1
+
 struct HexTile{
     int id;
+    int terrain;
     float food_min;
     float food_max;
     float food_available;
@@ -45,10 +49,23 @@ class Nature{
         for (int i=0;i<map.size();i++){
             strcpy(map[i].letter, "   ");
             map[i].id=i;
+            map[i].terrain=GRASS;
         }
         ncol=mapwidth;
         nrow=mapsize/mapwidth;
         if(nrow*ncol!=mapsize) printf("ERROR: mapsize must be divisible by mapwidth");
+
+        // Add water
+        int nwater=map.size();
+        int wtile=map.size()-1;
+        for (int i=0;i<nwater;i++){
+            map[wtile].terrain=WATER;
+            int cand=-1;
+            while (cand==-1)
+                cand = map[wtile].neighbor(ncol,nrow,rand_f1()*6);
+            wtile = cand;
+        }
+
 
         // "CLIMATE": Available food distribution
         // OPTION 1: Evenly distribute food among tiles
@@ -62,14 +79,19 @@ class Nature{
         }else if (climate_type==1){
             // OPTION 2: Icy poles have less food
             for (int i=0;i<map.size();i++){
-                float sunniness;
-                int row = i/ncol;
-                bool evenshift = (nrow%2==0) ? 1 : 0;
-                int latitude = row-nrow/2;
-                if (latitude<0) latitude=-latitude-evenshift;
-                sunniness = nrow/2-latitude-evenshift;
-                map[i].food_min=sunniness;
-                map[i].food_max=sunniness;
+                if (map[i].terrain==WATER){ // water has no food
+                    map[i].food_min=0;
+                    map[i].food_max=0;
+                }else{
+                    float sunniness;
+                    int row = i/ncol;
+                    bool evenshift = (nrow%2==0) ? 1 : 0;
+                    int latitude = row-nrow/2;
+                    if (latitude<0) latitude=-latitude-evenshift;
+                    sunniness = nrow/2-latitude-evenshift;
+                    map[i].food_min=sunniness;
+                    map[i].food_max=sunniness;
+                }
             }
             // Normalize:
             float tfoodcount = 0.0f;

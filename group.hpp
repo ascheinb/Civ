@@ -29,6 +29,9 @@ class Group{
     // Tentative: member list
     std::vector<int> memberlist;
 
+    // Guard list
+    std::vector<int> guards;
+
     // Will be a function later
     float wealth_request;
     float received;
@@ -69,15 +72,11 @@ class Group{
 
     void set_task_request(){
 //if (id==0) printf("\n%s raised %.3f ",gnames[name].c_str(),received);
-        nguards=0; // Assume have to rehire all guards each turn
-        if (false){ // INFINITE MERCENARY LABOR
-            // Assume mercenary labor for now: Buy guards
-            nguards = wealth/guard_cost; // floor
-            wealth -= nguards*guard_cost;
-        } else {
-            guard_request = wealth/guard_cost; // Find this many people to hire
-        }
 
+        guard_request = wealth/guard_cost; // Find this many people to hire
+
+        nguards=0; // Assume have to rehire all guards each turn
+        guards.resize(0);
         nused=0;
         nundefended=0;
 //if (id==0) printf("and bought %d guards",nguards);

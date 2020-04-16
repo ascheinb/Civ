@@ -14,19 +14,19 @@
 int main(){
     /* initialize random seed: */
     srand (time(NULL));
-srand(1);
+//srand(5);
     // Read in names
     fill_names();
 
     bool debug=false;
-    int initial_n_ppl = 600;
+    int initial_n_ppl = 1200;
     int n_years = 2000;
     int n_turns = n_years*4; // A turn is one season
-    float min_food_gen=1200;
-    float max_food_gen=1200;
+    float min_food_gen=4800;
+    float max_food_gen=4800;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=144; // Must be divisible by mapwidth
-    int mapwidth=12; // Keep even for map_by_groups to work
+    int mapsize=16; // Must be divisible by mapwidth
+    int mapwidth=4; // Keep even for map_by_groups to work
     bool watch = false;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);
@@ -67,7 +67,7 @@ int ncreated=0; int nextant=0; int nmerged=0; p.sum_nage=0; p.sum_dage=0;
         p.update_residents(nature);
 
 if (i_turn>240)
-        p.take_by_force(i_turn);
+        p.take_by_force(i_turn,nature);
 
         p.feed_friends();
 
@@ -125,7 +125,9 @@ printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeablene
 printf("\nAverage conscientiousness: %.1f", p.avg([](Person& h){return h.conscientiousness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
 printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}));
-map_by_groups(p,nature);
+map_by_geogroup(p,nature);
+
+//map_by_groups(p,nature);
 //map_by_population(p,nature);
 
         }
@@ -144,7 +146,9 @@ map_by_groups(p,nature);
         }
     }
     */
+    map_by_geogroup(p,nature);
     map_by_groups(p,nature);
+    map_by_population(p,nature);
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
     printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
     float avg_ex=p.avg([](Person& h){return h.extroversion;});

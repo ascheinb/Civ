@@ -117,7 +117,16 @@ void map_by_groups(Population &p, Nature &n){
     int filled_frac = 0;
     for (int i=0;i<ngroups;i++){
         int gi = extant_groups[i];
-        frac[i]=p.frac(gi,[](int gi, Person& h){return h.mships.size()>0 ? h.mships[0].id==gi : false;})*n.map.size();
+        // Frac by first name
+        // frac[i]=p.frac(gi,[](int gi, Person& h){return h.mships.size()>0 ? h.mships[0].id==gi : false;})*n.map.size();
+        // Frac by loyalty
+        frac[i]=p.frac(gi,[](int gi, Person& h){
+                float max_loyalty=0.0;
+                int ml_id=-1;
+                for (int i=0;i<h.mships.size();i++)
+                    if (h.mships[i].loyalty_to>max_loyalty)
+                        {ml_id=h.mships[i].id; max_loyalty=h.mships[i].loyalty_to;}
+                return (ml_id==gi);})*n.map.size();
         intfrac[i]=(int)(frac[i]);
         filled_frac+=intfrac[i];
     }
@@ -134,6 +143,17 @@ void map_by_groups(Population &p, Nature &n){
             printf("\nToo small to appear: %s",gnames[p.groups[extant_groups[i]].name].c_str());
         }
 
+    // Fill rest (for those with no loyalty)
+    bool nl_group=false;
+    if (filled_frac<filled){
+        nl_group=true;
+        ngroups+=1;
+        intfrac.push_back(0);
+        for (int i=filled_frac;i<filled;i++){
+            intfrac[ngroups-1]++;
+        }
+    }
+
     std::string abbrev;
     // Fill map
     int half_ncol = n.ncol/2;
@@ -143,7 +163,11 @@ void map_by_groups(Population &p, Nature &n){
     bool is_full[2];
     is_full[0]=false; is_full[1]=false;
     for (int i=0;i<ngroups;i++){
-        abbrev=gnames[p.groups[extant_groups[i]].name].substr(0,3);
+        if (i==ngroups-1 && nl_group){
+            abbrev="NLo";
+        }else{
+            abbrev=gnames[p.groups[extant_groups[i]].name].substr(0,3);
+        }
         strcpy(letts,abbrev.c_str());
         int l_or_r=(i%2==0 ? 0 : 1);
         if (l_or_r==0 && is_full[0]) l_or_r=1;
@@ -200,6 +224,76 @@ void map_by_population(Population &p, Nature &n){
         if (lpop==0) letts="   ";
         strcpy(n.map[i].letter,letts.c_str());
         n.map[i].owner=i;
+    }
+
+    // Print map
+    print_map(n);
+}
+
+void map_by_geogroup(Population &p, Nature &n){
+    for (int itile=0;itile<n.map.size();itile++){
+        // Determine dominant group in each tile 
+        std::vector<int> groups;
+        std::vector<int> group_pop;
+        for(int ires = 0; ires<n.map[itile].residents.size();ires++){
+            // Loop over residents in tile, determine their top loyalty
+            int res_id=n.map[itile].residents[ires];
+            float max_loyalty=0.0;
+            int ml_id=-1;
+            for (int i=0;i<p.person[res_id].mships.size();i++){
+                if (p.person[res_id].mships[i].loyalty_to>max_loyalty) {
+                    ml_id=p.person[res_id].mships[i].id;
+                    max_loyalty=p.person[res_id].mships[i].loyalty_to;
+                }
+            }
+            int this_id;
+            if (ml_id>=0){
+                this_id=ml_id;
+            } else {
+                this_id=-1;
+            }
+
+            // Check to see if group already listed
+            int which_group=-1;
+            for (int i=0;i<groups.size();i++)
+                if (groups[i]==this_id)
+                    {which_group=i;break;}
+            if (which_group==-1){
+                which_group=groups.size();
+                groups.push_back(this_id);
+                group_pop.push_back(0);
+            }
+
+            // Count resident towards this group
+            group_pop[which_group]+=1;
+        }
+        // Finally, determine which group is dominant in this tile
+        int max_nres=0;
+        int gid=-2;
+        for (int i = 0; i<groups.size();i++){
+            if (group_pop[i]>max_nres) {
+                max_nres=group_pop[i];
+                gid=groups[i];
+            }
+        }
+
+        std::string abbrev;
+        if (gid==-1){ // If most have no loyalty
+            abbrev = "NLo";
+            gid=-3; // since -1 is used for the map edge
+        } else if (gid==-2){ // If no people
+            if (n.map[itile].terrain==GRASS){
+                abbrev="  '";
+            }else{ // water
+                abbrev=" ~~";
+                gid=-4;
+            }
+        } else if (gid>=0) { // If group gid has most loyalty
+            abbrev=gnames[p.groups[gid].name].substr(0,3);
+        }
+
+        strcpy(n.map[itile].letter,abbrev.c_str());
+        n.map[itile].owner=gid;
     }
 
     // Print map
