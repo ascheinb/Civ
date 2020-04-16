@@ -157,14 +157,17 @@ class Person{
             float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
             if (nature.map[home].food_available<1.0) {
                 if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
-                // Change home to an adjacent tile
-                int adj_tile = nature.neighbor(home,(int)(rand_f1()*6.0f));
-                int oldhome=home;
-                if (adj_tile!=-1){
-                    home = adj_tile;
-                    if (watch){
-                        char him_or_her[3]=""; strcpy(him_or_her, female ? "She" : "He");
-                        printf("\n%s moved from Tile %d to Tile %d",him_or_her,oldhome,home);
+                bool move_tiles = (rand_f1()<0.05);
+                if (move_tiles){
+                    // Change home to an adjacent tile
+                    int adj_tile = nature.neighbor(home,(int)(rand_f1()*6.0f));
+                    int oldhome=home;
+                    if (adj_tile!=-1){
+                        home = adj_tile;
+                        if (watch){
+                            char him_or_her[3]=""; strcpy(him_or_her, female ? "She" : "He");
+                            printf("\n%s moved from Tile %d to Tile %d",him_or_her,oldhome,home);
+                        }
                     }
                 }
             }
@@ -255,12 +258,29 @@ class Person{
         }
     }
 
+    int choose_local_friend(std::vector<Person>& people, std::vector<int>& id2ind){
+        RandPerm rp(rships.size());
+        for (int i=0;i<rships.size();i++){
+            int ri=rp.x[i];
+            int friend_ind = id2ind[rships[ri].person_id];
+            if (people[friend_ind].home==home) return ri;
+        }
+        return -1;
+    }
+
     void socialize(std::vector<Person>& people, std::vector<int>& id2ind, std::vector<Group>& groups){
         // Strategy 1: Spend time with a friend
         // Choose a pre-existing relationship at random
         if (rships.size()==0) return;
-        int friend_rind = rand_f1()*rships.size();
+        int friend_rind;
+        if (false){ // Doesn't matter where friend is
+            friend_rind = rand_f1()*rships.size();
+        }else{ // Only socialize with locals
+            friend_rind = choose_local_friend(people,id2ind);
+            if (friend_rind==-1) return; // No local friends, can't socialize
+        }
         int friend_ind = id2ind[rships[friend_rind].person_id];
+
         int this_rind;
         for (int i_rship=0;i_rship<people[friend_ind].rships.size();i_rship++){
             if (people[friend_ind].rships[i_rship].person_id==id) {this_rind = i_rship; break;}

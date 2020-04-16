@@ -14,7 +14,7 @@
 int main(){
     /* initialize random seed: */
     srand (time(NULL));
-//srand(2);
+srand(1);
     // Read in names
     fill_names();
 
@@ -25,8 +25,8 @@ int main(){
     float min_food_gen=1200;
     float max_food_gen=1200;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=400; // Must be divisible by mapwidth
-    int mapwidth=20; // Keep even for map_by_groups to work
+    int mapsize=144; // Must be divisible by mapwidth
+    int mapwidth=12; // Keep even for map_by_groups to work
     bool watch = false;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);

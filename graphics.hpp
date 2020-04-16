@@ -89,7 +89,10 @@ void map_by_groups(Population &p, Nature &n){
     // Determine # tiles per group
     std::vector<int> extant_groups;
     printf("\nGroups: ");
+    int nameless=0;
     for (int i=0;i<p.person.size();i++){
+        if (p.person[i].mships.size()==0)
+            {nameless++;continue;}
         int lastname = p.person[i].mships[0].id;
         bool already_present = false;
         // Check if name already appears
@@ -103,6 +106,7 @@ void map_by_groups(Population &p, Nature &n){
             extant_groups.push_back(lastname);
         }
     }
+    if (nameless>0) printf(" (%d people belonged to no group.)",nameless);
     int ngroups=extant_groups.size();
     if (ngroups==0){
         printf("\nNo groups, skipping map");
@@ -113,7 +117,7 @@ void map_by_groups(Population &p, Nature &n){
     int filled_frac = 0;
     for (int i=0;i<ngroups;i++){
         int gi = extant_groups[i];
-        frac[i]=p.frac(gi,[](int gi, Person& h){return h.mships[0].id==gi;})*n.map.size();
+        frac[i]=p.frac(gi,[](int gi, Person& h){return h.mships.size()>0 ? h.mships[0].id==gi : false;})*n.map.size();
         intfrac[i]=(int)(frac[i]);
         filled_frac+=intfrac[i];
     }
