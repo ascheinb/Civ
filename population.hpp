@@ -84,7 +84,50 @@ class Population{
 
     void socialize() {
         for(int i = 0; i<person.size();i++)
-            person[i].socialize(person,id2ind);
+            person[i].socialize(person,id2ind,groups);
+    }
+
+    void merge_groups(){
+        for(int i = 0; i<groups.size();i++){
+            if (groups[i].npaying==0) continue; // Don't check empty groups
+            // Get member IDs.
+            std::vector<int> group_inds;
+            for(int j = 0; j<person.size();j++){
+                for (int k = 0; k<person[j].mships.size();k++){
+                    if (person[j].mships[k].id==groups[i].id) // Person is in group
+                        {group_inds.push_back(j); break;}
+                }
+            }
+            int similar_group = find_similar_group(group_inds,groups[i].id);
+            if (similar_group>=0){
+                bool firstwatch=true; // Only announce once (for when watch is on)
+                // merge smaller group into bigger one
+                int id_bigger = (groups[i].npaying > groups[similar_group].npaying ? i : similar_group);
+                int id_smaller = (groups[i].npaying <= groups[similar_group].npaying ? i : similar_group);
+                for(int j = 0; j<person.size();j++){ // Loop over all people
+                    for (int k = 0; k<person[j].mships.size();k++){
+                        if (person[j].mships[k].id==id_smaller){ // Person is in smaller group
+                            // If person is in big group too, delete the small group
+                            // (LOSS OF INFO (e.g. loyalty) - could MERGE instead)
+                            bool in_both=false;
+                            for (int kc = 0; kc<person[j].mships.size();kc++)
+                                if (person[j].mships[kc].id==id_bigger)
+                                    {in_both=true;break;}
+                            if (in_both){
+                                person[j].mships.erase(person[j].mships.begin() + k);
+                            } else {
+                                person[j].mships[k].id=id_bigger; // Just change the ID
+                            }
+                            if (person[j].watch && firstwatch){
+                                printf("\nGroup %s merged into %s.",gnames[groups[id_smaller].name].c_str(),gnames[groups[id_bigger].name].c_str());
+                                firstwatch=false;
+                            }
+                            break; // On to next person
+                        }
+                    }
+                }
+            }
+        }
     }
 
     void survive() {
@@ -194,13 +237,14 @@ class Population{
         }
     }
 
-    bool group_already_exists(std::vector<int>& new_group){
+    int find_similar_group(std::vector<int>& new_group, int thisgroupid){
         int groupsize = new_group.size();
         for (int g=0;g<groupsize;g++){ // Loop over new group members
             int ind = new_group[g];
             for (int k=0;k<person[ind].mships.size();k++){ // Loop over their group affiliations
-                int xgroupsize = groups[person[ind].mships[k].id].npaying; // Size of preexisting group
                 int xgroupid = person[ind].mships[k].id;
+                if (xgroupid == thisgroupid) continue; // If checking for uniqueness (for merge_groups), don't examine own group
+                int xgroupsize = groups[person[ind].mships[k].id].npaying; // Size of preexisting group
                 if (groupsize>2*xgroupsize || xgroupsize>2*groupsize) // If one is more than double the other's size
                     continue; // Clearly not the same group
                 // But if they're in the same size range, examine further
@@ -215,11 +259,11 @@ class Population{
                 if (n_common_members*2>groupsize || n_common_members*2>xgroupsize){
                     // More than half the members in common
                     // Is the same group
-                    return true;
+                    return xgroupid;
                 }
             }
         }
-        return false;
+        return -1;
     }
 
     void new_groups(){ // O(N*R^3 + N*R*G^2*M^2)
@@ -240,7 +284,7 @@ class Population{
                     int groupsize = new_group.size();
                     if (groupsize>=SIZEFORMGROUP) {
                         // Check if group already exists
-                        bool found_similar = group_already_exists(new_group);
+                        bool found_similar = (find_similar_group(new_group,-1)>=0);
                         if (!found_similar){
                             int newgroup_id=groups.size();
                             groups.push_back(Group(newgroup_id,0,groupsize));

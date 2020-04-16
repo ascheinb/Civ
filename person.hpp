@@ -29,7 +29,7 @@
 // Level of fondness required to qualify as friend group
 #define FONDFORMGROUP 4
 // Initial level of loyalty for a group (1-32) (Expires after 6 years)
-#define INITLOYALTY 24
+#define INITLOYALTY 24.0f
 
 
 class Person{
@@ -54,6 +54,7 @@ class Person{
     // Personality
     int extroversion; // Controls branch-out socialization
     int agreeableness; // Controls theft and caretaking
+    int conscientiousness; // Controls group loyalty degradation rate
 
     // Relationships
     std::vector<Relationship> rships;
@@ -70,6 +71,7 @@ class Person{
         name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
         extroversion = 8+8 + rand_f1()*16;
         agreeableness = 8 + rand_f1()*16;
+        conscientiousness = 8 + rand_f1()*16;
         worktype=FORAGE;
         workrate=1.0f;
         old_workrate=1.0f;
@@ -87,9 +89,12 @@ class Person{
         int one_parent=rand_f1()*2;
         agreeableness = (mom->agreeableness*one_parent+dad.agreeableness*(1-one_parent)) + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
 
+        conscientiousness =  (mom->conscientiousness+dad.conscientiousness+rand_f1()*2)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+
         // Stay in range
         extroversion=std::max(std::min(extroversion,TRAITMAX),0);
         agreeableness=std::max(std::min(agreeableness,TRAITMAX),0);
+        conscientiousness=std::max(std::min(conscientiousness,TRAITMAX),0);
 
         // Home
         home = dad.home; // Patrilineal home for now
@@ -155,10 +160,12 @@ class Person{
                 // Change home to an adjacent tile
                 int adj_tile = nature.neighbor(home,(int)(rand_f1()*6.0f));
                 int oldhome=home;
-                if (adj_tile!=-1) home = adj_tile;
-                if (watch){
-                    char him_or_her[3]=""; strcpy(him_or_her, female ? "She" : "He");
-                    printf("\n%s moved from Tile %d to Tile %d",him_or_her,oldhome,home);
+                if (adj_tile!=-1){
+                    home = adj_tile;
+                    if (watch){
+                        char him_or_her[3]=""; strcpy(him_or_her, female ? "She" : "He");
+                        printf("\n%s moved from Tile %d to Tile %d",him_or_her,oldhome,home);
+                    }
                 }
             }
             wealth+=food_haul;
@@ -212,7 +219,7 @@ class Person{
                 people[target_ind].wealth += wealth; // If no defenders, target gets the cash
             } else {
                 groups[people[target_ind].mships[defender].id].wealth += wealth; // Defending group gets all, for now
-                people[target_ind].mships[defender].loyalty_to+=4; // Person is more loyal to group!
+                people[target_ind].mships[defender].loyalty_to+=4.0f; // Person is more loyal to group!
             }
             wealth=0.0f;
             if (watch || people[target_ind].watch) printf("\n%s was caught stealing from %s %s by %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str(),gnames[groups[people[target_ind].mships[defender].id].name].c_str());
@@ -248,7 +255,7 @@ class Person{
         }
     }
 
-    void socialize(std::vector<Person>& people, std::vector<int>& id2ind){
+    void socialize(std::vector<Person>& people, std::vector<int>& id2ind, std::vector<Group>& groups){
         // Strategy 1: Spend time with a friend
         // Choose a pre-existing relationship at random
         if (rships.size()==0) return;
@@ -294,19 +301,25 @@ class Person{
                 if (mships[i].id==rand_id)
                     {not_yet_member=false; break;}
             }
-            if (not_yet_member) mships.push_back(Membership(rand_id,1));
+            if (not_yet_member){
+                if (watch) printf("\n%s joined %s", names[name].c_str(),gnames[groups[rand_id].name].c_str());
+                mships.push_back(Membership(rand_id,1));
+            }
         }
         // Adjust loyalty to groups
         for (int i=mships.size()-1;i>=0;i--){
-            mships[i].loyalty_to-=2; // Reduce loyalty to all groups as time passes
+            mships[i].loyalty_to-=3.0f*(float)(TRAITMAX-conscientiousness)/TRAITMAX; // Reduce loyalty to all groups as time passes
             for (int j=0;j<people[friend_ind].mships.size();j++){
                 if (mships[i].id==people[friend_ind].mships[j].id){ // group is common
-                    mships[i].loyalty_to+=1; // So socializing increases loyalty to the group
-                    people[friend_ind].mships[j].loyalty_to+=1;
+                    mships[i].loyalty_to+=1.0f; // So socializing increases loyalty to the group
+                    people[friend_ind].mships[j].loyalty_to+=1.0f;
                     break;
                 }
             }
-            if (mships[i].loyalty_to<=0) mships.erase(mships.begin() + i); // Remove membership if no loyalty
+            if (mships[i].loyalty_to<=0.0f){
+                if (watch) printf("\n%s left %s", names[name].c_str(),gnames[groups[mships[i].id].name].c_str());
+                mships.erase(mships.begin() + i); // Remove membership if no loyalty
+            }
         }
     }
 

@@ -8,9 +8,9 @@
 class Membership{
     public:
     int id;
-    int loyalty_to;
+    float loyalty_to;
 
-    Membership(int id,int loyalty_to) : id(id), loyalty_to(loyalty_to) {}
+    Membership(int id,float loyalty_to) : id(id), loyalty_to(loyalty_to) {}
 };
 
 #endif

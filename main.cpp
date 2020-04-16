@@ -13,8 +13,8 @@
 
 int main(){
     /* initialize random seed: */
-//    srand (time(NULL));
-srand(2);
+    srand (time(NULL));
+//srand(2);
     // Read in names
     fill_names();
 
@@ -72,6 +72,8 @@ if (i_turn>240)
 
         p.socialize();
 
+        p.merge_groups();
+
         p.survive();
         p.luxury();
 
@@ -120,10 +122,12 @@ printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==2;}
 printf("\nNumber of groups: %lu (%d extant)",p.groups.size(),extant_groups);
 printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
 printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
+printf("\nAverage conscientiousness: %.1f", p.avg([](Person& h){return h.conscientiousness;}));
 printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
 printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}));
 //map_by_groups(p,nature);
 //map_by_population(p,nature);
+
         }
 
         // Pause
@@ -135,7 +139,7 @@ printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}))
     for (int i=0;i<p.person.size();i+=20){
         printf("\nP%d memberships:",i);
         for (int j=0;j<p.person[i].mships.size();j++){
-            printf("\n  id %s, loyalty: %d",gnames[p.groups[p.person[i].mships[j].id].name].c_str(),p.person[i].mships[j].loyalty_to);
+            printf("\n  id %s, loyalty: %.3f",gnames[p.groups[p.person[i].mships[j].id].name].c_str(),p.person[i].mships[j].loyalty_to);
         }
     }
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
