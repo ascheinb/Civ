@@ -25,8 +25,8 @@ int main(){
     float min_food_gen=1200;
     float max_food_gen=1200;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=100; // Must be divisible by mapwidth
-    int mapwidth=10; // Keep even for map_by_groups to work
+    int mapsize=400; // Must be divisible by mapwidth
+    int mapwidth=20; // Keep even for map_by_groups to work
     bool watch = false;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);
@@ -64,6 +64,7 @@ int ncreated=0; int nextant=0; int nmerged=0; p.sum_nage=0; p.sum_dage=0;
         p.task_requests();
 
         p.do_long_actions(nature);
+        p.update_residents(nature);
 
 if (i_turn>240)
         p.take_by_force(i_turn);
@@ -72,7 +73,8 @@ if (i_turn>240)
 
         p.socialize();
 int nexb=p.get_nextant();
-        p.merge_groups(); // Memberlists updated here
+        p.update_memberlists();
+        p.merge_groups();
 nmerged=nexb-p.get_nextant();
         p.survive();
         p.luxury();
@@ -102,8 +104,10 @@ printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==GUA
         // Exit simulation if no people
         if (p.person.size()==0) {printf("\nPopulation went extinct! :("); break;}
 
-        // Clean up relationships
+        // Clean up relationships, memberlists, residence lists
         p.purge_rships();
+        p.update_residents(nature);
+        p.update_memberlists();
 
         // Breed
         int n_kids = p.breed();

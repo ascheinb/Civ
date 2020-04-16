@@ -13,6 +13,8 @@ struct HexTile{
     int owner;
     char letter[4]="";
 
+    std::vector<int> residents;
+
     int neighbor (int ncol, int nrow, int w){
         int row = id/ncol;
         int col = id-row*ncol;

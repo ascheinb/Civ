@@ -116,6 +116,29 @@ class Population{
         }
     }
 
+    void update_residents(Nature& nature){
+        std::vector<int> old_nresidents(nature.map.size());
+        std::vector<int> nresidents(nature.map.size(),0);
+        // Get old #residents
+        for(int i = 0; i<nature.map.size();i++){
+            old_nresidents[i]=nature.map[i].residents.size();
+        }
+        // Get new resident list
+        for (int i=0;i<person.size();i++){
+            int h = person[i].home;
+            if (nresidents[h]<old_nresidents[h]){ // If not larger than before, overwrite
+                nature.map[h].residents[nresidents[h]]=i;
+            }else{ // If larger, allocate more
+                nature.map[h].residents.push_back(i);
+            }
+            nresidents[h]++;
+        }
+        // If smaller, free up remaining memory
+        for(int i = 0; i<nature.map.size();i++){
+            nature.map[i].residents.resize(nresidents[i]);
+        }
+    }
+
     bool is_member(Person& p, int group_id){
         for (int k = 0; k<p.mships.size();k++)
             if (p.mships[k].id==group_id)
@@ -138,7 +161,6 @@ class Population{
     }
 
     void merge_groups(){
-        update_memberlists();
         for(int i = 0; i<groups.size();i++){
             if (groups[i].memberlist.size()==0) continue; // Don't check empty groups
             int similar_group = find_similar_group(groups[i].memberlist,groups[i].id);
