@@ -23,13 +23,19 @@ class Group{
     int npaying;
     float req_to_rec; // ratio of requested/received
 
+    int age;
+    int prevsize;
+
+    // Tentative: member list
+    std::vector<int> memberlist;
+
     // Will be a function later
     float wealth_request;
     float received;
 
     int guard_request;
 
-    Group(int id, int land, int npaying) : id(id), wealth(0), land(land), npaying(npaying),
+    Group(int id, int land, int npaying) : age(0), id(id), wealth(0), land(land), npaying(npaying),
         guard_strength(20),guard_cost(2),nguards(0),nused(0),nundefended(0),req_to_rec(0.0f),received(0.0f),
         guard_request(0)
     {

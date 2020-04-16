@@ -27,7 +27,7 @@
 // Size of friend group required to form an official group
 #define SIZEFORMGROUP 15
 // Level of fondness required to qualify as friend group
-#define FONDFORMGROUP 4
+#define FONDFORMGROUP 6 //4
 // Initial level of loyalty for a group (1-32) (Expires after 6 years)
 #define INITLOYALTY 24.0f
 

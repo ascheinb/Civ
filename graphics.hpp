@@ -87,12 +87,33 @@ void print_map(Nature &n){
 // Assumes even number of columns
 void map_by_groups(Population &p, Nature &n){
     // Determine # tiles per group
-    int ngroups=10;
+    std::vector<int> extant_groups;
+    printf("\nGroups: ");
+    for (int i=0;i<p.person.size();i++){
+        int lastname = p.person[i].mships[0].id;
+        bool already_present = false;
+        // Check if name already appears
+        for (int j=0;j<extant_groups.size();j++){
+            if (extant_groups[j]==lastname)
+                {already_present=true; break;}
+        }
+        if (!already_present){
+            if (i>0) printf(", ");
+            printf("%s",gnames[p.groups[lastname].name].c_str());
+            extant_groups.push_back(lastname);
+        }
+    }
+    int ngroups=extant_groups.size();
+    if (ngroups==0){
+        printf("\nNo groups, skipping map");
+        return;
+    }
     std::vector<float> frac(ngroups);
     std::vector<int> intfrac(ngroups);
     int filled_frac = 0;
     for (int i=0;i<ngroups;i++){
-        frac[i]=p.frac(i,[](int i, Person& h){return h.mships[0].id==i;})*n.map.size();
+        int gi = extant_groups[i];
+        frac[i]=p.frac(gi,[](int gi, Person& h){return h.mships[0].id==gi;})*n.map.size();
         intfrac[i]=(int)(frac[i]);
         filled_frac+=intfrac[i];
     }
@@ -103,6 +124,11 @@ void map_by_groups(Population &p, Nature &n){
     for (int i=0;i<ngroups;i++)
         if (filled_frac<filled)
             {intfrac[i]++; filled_frac++;}
+    // Comment if group too small for representation
+    for (int i=0;i<ngroups;i++)
+        if(intfrac[i]==0){
+            printf("\nToo small to appear: %s",gnames[p.groups[extant_groups[i]].name].c_str());
+        }
 
     // Fill map
     int half_ncol = n.ncol/2;

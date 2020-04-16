@@ -15,6 +15,10 @@ class Population{
 
     public:
 
+    // Diag
+    int sum_dage;
+    int sum_nage;
+
     std::vector<Person> person; // Public so people can see each other (use friend instead?)
     std::vector<int> id2ind; // map from id to index
 
@@ -87,45 +91,85 @@ class Population{
             person[i].socialize(person,id2ind,groups);
     }
 
-    void merge_groups(){
+    void update_memberlists(){
+        std::vector<int> old_nmembers(groups.size());
+        std::vector<int> nmembers(groups.size(),0);
+        // Get old group size
         for(int i = 0; i<groups.size();i++){
-            if (groups[i].npaying==0) continue; // Don't check empty groups
-            // Get member IDs.
-            std::vector<int> group_inds;
-            for(int j = 0; j<person.size();j++){
-                for (int k = 0; k<person[j].mships.size();k++){
-                    if (person[j].mships[k].id==groups[i].id) // Person is in group
-                        {group_inds.push_back(j); break;}
+            old_nmembers[i]=groups[i].memberlist.size();
+        }
+        // Get new group list
+        for (int i=0;i<person.size();i++){
+            for (int j=0;j<person[i].mships.size();j++){
+                int g = person[i].mships[j].id;
+                if (nmembers[g]<old_nmembers[g]){ // If not larger than before, overwrite
+                    groups[g].memberlist[nmembers[g]]=i;
+                }else{ // If larger, allocate more
+                    groups[g].memberlist.push_back(i);
                 }
+                nmembers[g]++;
             }
-            int similar_group = find_similar_group(group_inds,groups[i].id);
+        }
+        // If smaller, free up remaining memory
+        for(int i = 0; i<groups.size();i++){
+            groups[i].memberlist.resize(nmembers[i]);
+        }
+    }
+
+    bool is_member(Person& p, int group_id){
+        for (int k = 0; k<p.mships.size();k++)
+            if (p.mships[k].id==group_id)
+                return true;
+        return false;
+    }
+
+    int mship_index(Person& p, int group_id){
+        for (int k = 0; k<p.mships.size();k++)
+            if (p.mships[k].id==group_id)
+                return k;
+        return -1;
+    }
+
+    int get_nextant(){
+        int extant_groups=0;
+        for (int i=0;i<groups.size();i++)
+            if (groups[i].memberlist.size()>0) extant_groups++;
+        return extant_groups;
+    }
+
+    void merge_groups(){
+        update_memberlists();
+        for(int i = 0; i<groups.size();i++){
+            if (groups[i].memberlist.size()==0) continue; // Don't check empty groups
+            int similar_group = find_similar_group(groups[i].memberlist,groups[i].id);
             if (similar_group>=0){
                 bool firstwatch=true; // Only announce once (for when watch is on)
                 // merge smaller group into bigger one
                 int id_bigger = (groups[i].npaying > groups[similar_group].npaying ? i : similar_group);
                 int id_smaller = (groups[i].npaying <= groups[similar_group].npaying ? i : similar_group);
-                for(int j = 0; j<person.size();j++){ // Loop over all people
-                    for (int k = 0; k<person[j].mships.size();k++){
-                        if (person[j].mships[k].id==id_smaller){ // Person is in smaller group
-                            // If person is in big group too, delete the small group
-                            // (LOSS OF INFO (e.g. loyalty) - could MERGE instead)
-                            bool in_both=false;
-                            for (int kc = 0; kc<person[j].mships.size();kc++)
-                                if (person[j].mships[kc].id==id_bigger)
-                                    {in_both=true;break;}
-                            if (in_both){
-                                person[j].mships.erase(person[j].mships.begin() + k);
-                            } else {
-                                person[j].mships[k].id=id_bigger; // Just change the ID
-                            }
-                            if (person[j].watch && firstwatch){
-                                printf("\nGroup %s merged into %s.",gnames[groups[id_smaller].name].c_str(),gnames[groups[id_bigger].name].c_str());
-                                firstwatch=false;
-                            }
-                            break; // On to next person
-                        }
+                for(int j = 0; j<groups[id_smaller].memberlist.size();j++){ // Loop over members of smaller group
+                    int pind = groups[id_smaller].memberlist[j];
+                    int k = mship_index(person[pind],id_smaller);
+                    // If person is in big group too, delete the small group
+                    // (LOSS OF INFO (e.g. loyalty) - could MERGE instead)
+                    bool in_both=is_member(person[pind],id_bigger);
+                    if (in_both){
+                        person[pind].mships.erase(person[pind].mships.begin() + k);
+                    } else { // Join bigger group
+                        person[pind].mships[k].id=id_bigger; // Just change the ID
+                        groups[id_bigger].memberlist.push_back(pind);
+                    }
+                    if (person[pind].watch && firstwatch){
+                        printf("\nGroup %s merged into %s.",gnames[groups[id_smaller].name].c_str(),gnames[groups[id_bigger].name].c_str());
+                        firstwatch=false;
                     }
                 }
+                // Resources/obligations from smaller group go to larger group
+                groups[id_bigger].wealth += groups[id_smaller].wealth;
+                groups[id_bigger].nguards+= groups[id_smaller].nguards;
+                groups[id_bigger].nundefended+= groups[id_smaller].nundefended;
+                groups[id_bigger].nused+= groups[id_smaller].nused;
+                groups[id_smaller].memberlist.resize(0);
             }
         }
     }
@@ -163,6 +207,14 @@ class Population{
     void age() {
         for(int i = 0; i<person.size();i++){
             person[i].age++;
+        }
+        for(int i = 0; i<groups.size();i++){
+            groups[i].age++;
+            if (groups[i].memberlist.size()==0 && groups[i].prevsize !=0){
+                sum_dage += groups[i].age;
+                sum_nage +=1;
+            }
+            groups[i].prevsize = groups[i].memberlist.size();
         }
     }
 
@@ -244,17 +296,15 @@ class Population{
             for (int k=0;k<person[ind].mships.size();k++){ // Loop over their group affiliations
                 int xgroupid = person[ind].mships[k].id;
                 if (xgroupid == thisgroupid) continue; // If checking for uniqueness (for merge_groups), don't examine own group
-                int xgroupsize = groups[person[ind].mships[k].id].npaying; // Size of preexisting group
+                int xgroupsize = groups[person[ind].mships[k].id].memberlist.size(); // Size of preexisting group
                 if (groupsize>2*xgroupsize || xgroupsize>2*groupsize) // If one is more than double the other's size
                     continue; // Clearly not the same group
                 // But if they're in the same size range, examine further
                 int n_common_members=0;
                 for (int gc=0;gc<groupsize;gc++){
                     int indc = new_group[gc];
-                    for (int kc=0;kc<person[indc].mships.size();kc++){
-                        if (xgroupid == person[indc].mships[kc].id)
-                            {n_common_members++; break;}
-                    }
+                    if (is_member(person[indc],xgroupid))
+                        n_common_members++;
                 }
                 if (n_common_members*2>groupsize || n_common_members*2>xgroupsize){
                     // More than half the members in common
@@ -266,7 +316,8 @@ class Population{
         return -1;
     }
 
-    void new_groups(){ // O(N*R^3 + N*R*G^2*M^2)
+    int new_groups(){ // O(N*R^3 + N*R*G^2*M^2)
+        int nstart = groups.size();
         // Have a random 10% of the population look for groups to cut down on run time
         int n_group_checkers = person.size()/10;
         RandPerm rp(person.size());
@@ -290,6 +341,7 @@ class Population{
                             groups.push_back(Group(newgroup_id,0,groupsize));
                             for (int g=0;g<groupsize;g++){ // Loop over new group members
                                 person[new_group[g]].mships.push_back(Membership(newgroup_id,INITLOYALTY));
+                                groups[newgroup_id].memberlist.push_back(new_group[g]);
                                 if (person[new_group[g]].watch) printf("\n%s joined a new group called %s", names[person[new_group[g]].name].c_str(),gnames[groups[newgroup_id].name].c_str());
                             }
                         }
@@ -297,6 +349,7 @@ class Population{
                 }
             }
         }
+        return groups.size()-nstart;
     }
 
     template <typename Proc>
