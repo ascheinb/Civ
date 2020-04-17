@@ -22,12 +22,12 @@ int main(){
     int initial_n_ppl = 800;
     int n_years = 2000;
     int n_turns = n_years*4; // A turn is one season
-    float min_food_gen=1800;
-    float max_food_gen=1800;
+    float min_food_gen=5000;
+    float max_food_gen=5000;
     float carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=200; // Must be divisible by mapwidth
-    int mapwidth=20; // Keep even for map_by_groups to work
+    int mapsize=120; // Must be divisible by mapwidth
+    int mapwidth=12; // Keep even for map_by_groups to work
     bool watch = false;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);
@@ -133,7 +133,7 @@ map_by_geogroup(p,nature);
 
 //map_by_groups(p,nature);
 //map_by_population(p,nature);
-
+histograms(p);
         }
 
         // Pause
@@ -142,7 +142,7 @@ map_by_geogroup(p,nature);
             std::cin.get();
         }
     }
-
+//histograms(p);
     map_by_geogroup(p,nature);
     map_by_groups(p,nature);
     map_by_population(p,nature);

@@ -126,7 +126,7 @@ class Population{
                     adjustment= -1; // Reduce guard request by one
                 } else { // All guards were used
                     if (lundefended[j]>0) { // not enough guards
-                        adjustment=8; // Not enough guards->aggressively hire guards
+                        adjustment=4; // Not enough guards->aggressively hire guards
                     }
                 }
                 groups[i].nguards_desired.push_back(guards_left[j]+lused[j] + adjustment);

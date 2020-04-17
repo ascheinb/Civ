@@ -290,8 +290,13 @@ void map_by_geogroup(Population &p, Nature &n){
             }
         } else if (gid>=0) { // If group gid has most loyalty
             abbrev=gnames[p.groups[gid].name].substr(0,3);
+            // Make map cleaner: don't print name if adjacent tile is same group
+            for (int i_neigh=0;i_neigh<3;i_neigh++){
+                int neighbor_tile = n.neighbor(itile,i_neigh);
+                if (neighbor_tile>=0 && n.map[neighbor_tile].owner==gid) abbrev="   "; // Make a little cleaner
+            }
         }
-
+        
         strcpy(n.map[itile].letter,abbrev.c_str());
         n.map[itile].owner=gid;
     }
@@ -317,6 +322,63 @@ void map_resources(Nature &n){
 
     // Print map
     print_map(n);
+}
+
+void print_histogram(std::vector<float> fracs){
+    int hist_height=10;
+    std::vector<int> heights(fracs.size());
+    float maxheight=0.0f;
+    for (int i=0;i<fracs.size();i++){
+        if (fracs[i]>maxheight) maxheight=fracs[i];
+    }
+    for (int i=0;i<fracs.size();i++){
+        heights[i]=(fracs[i]/maxheight) * hist_height;
+    }
+    for (int i=hist_height;i>0;i--){
+        printf("\n ");
+        for (int j=0;j<fracs.size();j++){
+            if (heights[j]>i || (j>0 && heights[j-1]>i)){
+                printf("|");
+            } else if (i==1){
+                printf("_");
+            } else {
+                printf(" ");
+            }
+            if (heights[j]==i || i==1){
+                printf("_");
+            } else {
+                printf(" ");
+            }
+        }
+        if (heights[fracs.size()-1]>i){
+            printf("|");
+        }
+    }
+}
+
+void histograms(Population& p){
+    // Extroversion
+    std::vector<float> fracs(33);
+    for (int i=0;i<fracs.size();i++){
+        fracs[i] = p.frac(i,[](int i,Person& h){return h.extroversion==i;});
+    }
+    printf("\nExtroversion:");
+    print_histogram(fracs);
+
+    // Agreeableness
+    for (int i=0;i<fracs.size();i++){
+        fracs[i] = p.frac(i,[](int i,Person& h){return h.agreeableness==i;});
+    }
+    printf("\nAgreeableness:");
+    print_histogram(fracs);
+
+    // Conscientiousness
+    for (int i=0;i<fracs.size();i++){
+        fracs[i] = p.frac(i,[](int i,Person& h){return h.conscientiousness==i;});
+    }
+    printf("\nConscientiousness:");
+    print_histogram(fracs);
+
 }
 
 #endif
