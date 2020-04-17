@@ -56,9 +56,11 @@ class Nature{
         if(nrow*ncol!=mapsize) printf("ERROR: mapsize must be divisible by mapwidth");
 
         // Add water
-        int nwater=map.size();
+        int nwater=map.size()/5;
+        int iwater=0;
         int wtile=map.size()-1;
-        for (int i=0;i<nwater;i++){
+        while (iwater<nwater){
+            if (map[wtile].terrain!=WATER) iwater++;
             map[wtile].terrain=WATER;
             int cand=-1;
             while (cand==-1)

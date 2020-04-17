@@ -30,6 +30,10 @@
 #define FONDFORMGROUP 6 //4
 // Initial level of loyalty for a group (1-32) (Expires after 6 years)
 #define INITLOYALTY 24.0f
+//  Buggy, must be 1 for now:
+#define ACTIONS_PER_GUARD 1
+// Food to survive
+#define FOOD_TO_SURVIVE 1.0f
 
 
 class Person{
@@ -155,7 +159,7 @@ class Person{
         } else if (worktype==FORAGE){
             // Find food
             float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
-            if (nature.map[home].food_available<1.0) {
+            if (nature.map[home].food_available<FOOD_TO_SURVIVE) {
                 if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
                 bool move_tiles = (rand_f1()<0.05);
                 if (move_tiles){
@@ -210,8 +214,14 @@ class Person{
                 if (local_guard>=0){ // If local defender is available, have them defend
                     defense+=groups[group_id].guard_strength;
                     groups[group_id].nused +=1;
-                    groups[group_id].guards.erase(groups[group_id].guards.begin() + local_guard);
+                    groups[group_id].used.push_back(target_ind);
+                    groups[group_id].guard_actions[local_guard]--;
+                    if (groups[group_id].guard_actions[local_guard]==0){
+                        groups[group_id].guards.erase(groups[group_id].guards.begin() + local_guard);
+                        groups[group_id].guard_actions.erase(groups[group_id].guard_actions.begin() + local_guard);
+                    }
                     defender=i;
+//                    printf("\nFound defender on tile %d, group %d",home, group_id);
                     break;
                 }
             }
@@ -220,6 +230,8 @@ class Person{
             for (int i=0;i<people[target_ind].mships.size();i++){
                 int group_id=people[target_ind].mships[i].id;
                 groups[group_id].nundefended +=1;
+                groups[group_id].undefended.push_back(target_ind);
+//                printf("\nNo defender on tile %d, group %d",home, group_id);
             }
         }
 
@@ -372,16 +384,31 @@ class Person{
         }
     }
 
-    void respond_to_task_requests(std::vector<Group>& groups){
+    void respond_to_task_requests(std::vector<Group>& groups,int this_ind){
         if (age<ADULT) return; // Only adults
         for (int i=0;i<mships.size();i++){
-            if (groups[mships[i].id].nguards<groups[mships[i].id].guard_request){ // need more guards
+            int gid = mships[i].id;
+            if (groups[gid].nguards<groups[gid].guard_request){ // need more guards
+                // Check if guards needed in your area
+                int area_gid=-1;
+                for (int j=0;j<groups[gid].guards_desired_loc.size();j++){
+                    if (groups[gid].guards_desired_loc[j]==home)
+                        {area_gid=j; break;}
+                }
+                if (area_gid==-1) continue;
                 // Accept automatically, for now
                 worktype = GUARD;
-                groups[mships[i].id].nguards++;
-                groups[mships[i].id].guards.push_back(i);
-                groups[mships[i].id].wealth-=groups[mships[i].id].guard_cost;
-                wealth+=groups[mships[i].id].guard_cost;
+                groups[gid].nguards++;
+                groups[gid].guards.push_back(this_ind);
+                groups[gid].guard_actions.push_back(ACTIONS_PER_GUARD);
+                groups[gid].wealth-=groups[gid].guard_cost;
+                wealth+=groups[gid].guard_cost;
+
+                // Localality info
+                groups[gid].nguards_desired[area_gid]--;
+
+//                printf("\nPerson %d joined the guard of group %d on Tile %d",id,gid,home);
+//                printf("\nGroup %d now has %.2f money",gid,groups[gid].wealth);
             }
         }
     }

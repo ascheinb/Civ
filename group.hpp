@@ -20,6 +20,10 @@ class Group{
     int nguards;
     int nused;
     int nundefended;
+    std::vector<int> used;
+    std::vector<int> undefended;
+    std::vector<int> nguards_desired;
+    std::vector<int> guards_desired_loc;
     int npaying;
     float req_to_rec; // ratio of requested/received
 
@@ -31,6 +35,7 @@ class Group{
 
     // Guard list
     std::vector<int> guards;
+    std::vector<int> guard_actions;
 
     // Will be a function later
     float wealth_request;
@@ -50,11 +55,13 @@ class Group{
     }
 
     void set_wealth_request(){
-        // Adjust request based on what would have been nice last turn
-        int adjustment= (nguards>nused) ? -1 : 0;
-        adjustment = (nundefended>0) ? 10 : adjustment; // Aggressively pessimistic
-        float nneeded = nguards + adjustment;
-        wealth_request=req_to_rec*guard_cost*nneeded/npaying; // Requests going out to each member
+        int nguards_desired_total=0;
+        for (int i=0;i<nguards_desired.size();i++){
+            nguards_desired_total+=nguards_desired[i];
+        }
+        float desired_expenditure=guard_cost*nguards_desired_total;
+        float amt_to_raise = std::max(desired_expenditure-wealth,0.0f);
+        wealth_request=req_to_rec*amt_to_raise/npaying; // Requests going out to each member
 //if (id==0) printf("\n%s had %d used and %d undef, requests %.3f to %d members",gnames[name].c_str(),nused,nundefended,wealth_request,npaying);
         npaying=0; // Set this to zero to get an accurate count next time
 //        wealth_request=0.0f;
@@ -74,15 +81,18 @@ class Group{
 //if (id==0) printf("\n%s raised %.3f ",gnames[name].c_str(),received);
 
         guard_request = wealth/guard_cost; // Find this many people to hire
-
+//if (guard_request!=0) printf("\nGuard request of %d: %d",id,guard_request);
         nguards=0; // Assume have to rehire all guards each turn
         guards.resize(0);
-        nused=0;
-        nundefended=0;
+        guard_actions.resize(0);
 //if (id==0) printf("and bought %d guards",nguards);
     }
 
     void set_tasks(){
+        nused=0;
+        nundefended=0;
+        used.resize(0);
+        undefended.resize(0);
 //if (id==0) printf("\n%s hired %d guards, wanted %d",gnames[name].c_str(),nguards,guard_request);
     }
 };

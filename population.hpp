@@ -49,13 +49,92 @@ class Population{
             person[i].mships.push_back(Membership(rand_f1()*groups.size(),INITLOYALTY));
     }
 
-    void task_requests() {
+    void task_requests(int i_turn) {
         for(int i = 0; i<groups.size();i++)
             groups[i].set_task_request();
-        for(int i = 0; i<person.size();i++)
-            person[i].respond_to_task_requests(groups);
+
+        // Reply from members: randomized
+        RandPerm rp(person.size());
+        for(int i = 0; i<person.size();i++){
+            int ri = rp.x[i];
+            person[ri].respond_to_task_requests(groups,ri);
+        }
+
         for(int i = 0; i<groups.size();i++)
             groups[i].set_tasks();
+    }
+
+    void assess_defence() {
+        for(int i = 0; i<groups.size();i++){
+            // Convert from people to tiles
+            std::vector<int> victim_homes;
+            std::vector<int> lused;
+            std::vector<int> lundefended;
+            for (int j=0;j<groups[i].used.size();j++){
+                int victim_home=person[groups[i].used[j]].home;
+                int vhome_ind = -1;
+                for (int k=0;k<victim_homes.size();k++)
+                    if (victim_home==victim_homes[k])
+                        {vhome_ind=k;break;}
+                if (vhome_ind==-1){ // Add to list of tiles
+                    vhome_ind=victim_homes.size();
+                    victim_homes.push_back(victim_home);
+                    lused.push_back(0);
+                    lundefended.push_back(0);
+                }
+                lused[vhome_ind]++;
+            }
+            for (int j=0;j<groups[i].undefended.size();j++){
+                int victim_home=person[groups[i].undefended[j]].home;
+                int vhome_ind = -1;
+                for (int k=0;k<victim_homes.size();k++)
+                    if (victim_home==victim_homes[k])
+                        {vhome_ind=k;break;}
+                if (vhome_ind==-1){ // Add to list of tiles
+                    vhome_ind=victim_homes.size();
+                    victim_homes.push_back(victim_home);
+                    lused.push_back(0);
+                    lundefended.push_back(0);
+                }
+                lundefended[vhome_ind]++;
+            }
+            std::vector<int> guards_left(victim_homes.size(),0);
+            for (int j=0;j<groups[i].guards.size();j++){
+                int guard_home=person[groups[i].guards[j]].home;
+                int ghome_ind = -1;
+                for (int k=0;k<victim_homes.size();k++)
+                    if (guard_home==victim_homes[k])
+                        {ghome_ind=k;break;}
+                if (ghome_ind==-1){ // Add to list of tiles
+                    ghome_ind=victim_homes.size();
+                    victim_homes.push_back(guard_home);
+                    lused.push_back(0);
+                    lundefended.push_back(0);
+                    guards_left.push_back(0);
+                }
+                guards_left[ghome_ind]++;
+//                printf("\n guard %d, guard_home: %d", person[groups[i].guards[j]].id,guard_home);
+            }
+//if (victim_homes.size()>0) printf("\nResults:");
+            groups[i].nguards_desired.resize(0);
+            groups[i].guards_desired_loc.resize(0);
+            // Great, now have a list of used/defended, by tile
+            for (int j=0;j<victim_homes.size();j++){
+                // Apply the adjustments to decide how many guards to request in each location
+                int adjustment = 0;
+                if (guards_left[j]>0){ // Not all guards were used
+                    adjustment= -1; // Reduce guard request by one
+                } else { // All guards were used
+                    if (lundefended[j]>0) { // not enough guards
+                        adjustment=8; // Not enough guards->aggressively hire guards
+                    }
+                }
+                groups[i].nguards_desired.push_back(guards_left[j]+lused[j] + adjustment);
+                groups[i].guards_desired_loc.push_back(victim_homes[j]);
+//                printf("\nOn Tile %d: %d left, %d used, %d undef; Requesting %d",
+//                        victim_homes[j],guards_left[j],lused[j],lundefended[j],groups[i].nguards_desired[j]);
+            }
+        }
     }
 
     void evaluate_choices() {
@@ -198,8 +277,8 @@ class Population{
 
     void survive() {
         for(int i = 0; i<person.size();i++){
-            if (person[i].wealth<1.0f) person[i].will_starve=true;
-            float to_eat = std::min(person[i].wealth,1.0f);
+            if (person[i].wealth<FOOD_TO_SURVIVE) person[i].will_starve=true;
+            float to_eat = std::min(person[i].wealth,FOOD_TO_SURVIVE);
             person[i].wealth-=to_eat;
             person[i].contentedness+=to_eat;
             //if (person[i].watch) printf("\n%s's cness after surviving: %.3f", names[person[i].name].c_str(),person[i].contentedness);

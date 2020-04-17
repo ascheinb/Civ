@@ -19,14 +19,15 @@ int main(){
     fill_names();
 
     bool debug=false;
-    int initial_n_ppl = 1200;
+    int initial_n_ppl = 800;
     int n_years = 2000;
     int n_turns = n_years*4; // A turn is one season
-    float min_food_gen=4800;
-    float max_food_gen=4800;
+    float min_food_gen=1800;
+    float max_food_gen=1800;
+    float carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=16; // Must be divisible by mapwidth
-    int mapwidth=4; // Keep even for map_by_groups to work
+    int mapsize=200; // Must be divisible by mapwidth
+    int mapwidth=20; // Keep even for map_by_groups to work
     bool watch = false;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);
@@ -48,7 +49,7 @@ int ncreated=0; int nextant=0; int nmerged=0; p.sum_nage=0; p.sum_dage=0;
 
         //*** NATURE ***//
         nature.generate_food();
-
+//if (i_turn>240) printf("\nTurn %d",i_turn);
         if (watch && i_turn>=(watch_start_year*4-3)){
             if(i_turn%4==1){
                 printf("\nYear %d begins",1+(i_turn-1)/4);
@@ -60,15 +61,18 @@ int ncreated=0; int nextant=0; int nmerged=0; p.sum_nage=0; p.sum_dage=0;
         }
 
         p.evaluate_choices();
-
-        p.task_requests();
-
+//if (i_turn>254){return 0;}
+        p.task_requests(i_turn);
+//if (i_turn>254){return 0;}
         p.do_long_actions(nature);
         p.update_residents(nature);
-
-if (i_turn>240)
-        p.take_by_force(i_turn,nature);
-
+//if (i_turn>254){return 0;}
+        if (i_turn>240){
+            p.take_by_force(i_turn,nature);
+        }
+//if (i_turn>254){return 0;}
+        p.assess_defence();
+//if (i_turn>253){return 0;}
         p.feed_friends();
 
         p.socialize();
@@ -138,14 +142,7 @@ map_by_geogroup(p,nature);
             std::cin.get();
         }
     }
-    /*
-    for (int i=0;i<p.person.size();i+=20){
-        printf("\nP%d memberships:",i);
-        for (int j=0;j<p.person[i].mships.size();j++){
-            printf("\n  id %s, loyalty: %.3f",gnames[p.groups[p.person[i].mships[j].id].name].c_str(),p.person[i].mships[j].loyalty_to);
-        }
-    }
-    */
+
     map_by_geogroup(p,nature);
     map_by_groups(p,nature);
     map_by_population(p,nature);
@@ -159,7 +156,7 @@ map_by_geogroup(p,nature);
     printf("\nAverage fondness for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion<x);}));
     printf("\nAverage #rships for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){return std::make_tuple(h.rships.size(),h.extroversion>x);}));
     printf("\nAverage fondness for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion>x);}));
-    printf("\nAverage population: %.0f",nppl.eq_avg());
+    printf("\nAverage population: %.0f (%.1f%% of carrying capacity)",nppl.eq_avg(),100*nppl.eq_avg()/carrying_capacity);
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());
     //nkids.write("nkids.txt");
 }
