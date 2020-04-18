@@ -339,7 +339,7 @@ class Population{
         // ...then backwards to remove
         int n_died=0;
         int n_starved=0;
-        for(int i = person.size()-1; i>=0;i--){
+        for(int i = (int)(person.size())-1; i>=0;i--){
             bool died=false;
             if (person[i].age>person[i].lifespan){ // Old age
                 died=true;

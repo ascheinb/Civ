@@ -13,21 +13,21 @@
 
 int main(){
     /* initialize random seed: */
-//    srand (time(NULL));
-srand(5);
+    srand (time(NULL));
+//srand(5);
     // Read in names
     fill_names();
 
     bool debug=false;
-    int initial_n_ppl = 300;
+    int initial_n_ppl = 3000;
     int n_years = 2000;
     int n_turns = n_years*4; // A turn is one season
-    float min_food_gen=600;
-    float max_food_gen=600;
+    float min_food_gen=6000;
+    float max_food_gen=6000;
     float carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=64; // Must be divisible by mapwidth
-    int mapwidth=8; // Keep even for map_by_groups to work
+    int mapsize=200; // Must be divisible by mapwidth
+    int mapwidth=20; // Keep even for map_by_groups to work
     bool watch = false;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);

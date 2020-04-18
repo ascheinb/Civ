@@ -397,7 +397,7 @@ class Person{
             }
         }
         // Adjust loyalty to groups
-        for (int i=mships.size()-1;i>=0;i--){
+        for (int i=(int)(mships.size())-1;i>=0;i--){
             mships[i].loyalty_to-=3.0f*(float)(TRAITMAX-conscientiousness)/TRAITMAX; // Reduce loyalty to all groups as time passes
             for (int j=0;j<people[friend_ind].mships.size();j++){
                 if (mships[i].id==people[friend_ind].mships[j].id){ // group is common
