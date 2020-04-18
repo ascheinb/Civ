@@ -107,25 +107,8 @@ class Population{
                 }
                 guards_left[ghome_ind]++;
             }
-//if (victim_homes.size()>0) printf("\nResults:");
-            groups[i].nguards_desired.resize(0);
-            groups[i].guards_desired_loc.resize(0);
-            // Great, now have a list of used/defended, by tile
-            for (int j=0;j<victim_homes.size();j++){
-                // Apply the adjustments to decide how many guards to request in each location
-                int adjustment = 0;
-                if (guards_left[j]>0){ // Not all guards were used
-                    adjustment= -1; // Reduce guard request by one
-                } else { // All guards were used
-                    if (lundefended[j]>0) { // not enough guards
-                        adjustment=4; // Not enough guards->aggressively hire guards
-                    }
-                }
-                groups[i].nguards_desired.push_back(guards_left[j]+lused[j] + adjustment);
-                groups[i].guards_desired_loc.push_back(victim_homes[j]);
-//                printf("\nOn Tile %d: %d left, %d used, %d undef; Requesting %d",
-//                        victim_homes[j],guards_left[j],lused[j],lundefended[j],groups[i].nguards_desired[j]);
-            }
+
+            groups[i].assess_defence(victim_homes,lused,lundefended,guards_left);
         }
     }
 

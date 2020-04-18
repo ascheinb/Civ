@@ -221,9 +221,19 @@ void map_by_population(Population &p, Nature &n){
         if (lpop>99) letts="";
         letts+=std::to_string(lpop);
         if (lpop<=9) letts+=" ";
-        if (lpop==0) letts="   ";
+        int gid=i;
+
+        if (lpop==0){
+            if (n.map[i].terrain==GRASS){
+                letts="  '";
+                gid=-2;
+            }else{ // water
+                letts=" ~~";
+                gid=-3;
+            }
+        }
         strcpy(n.map[i].letter,letts.c_str());
-        n.map[i].owner=i;
+        n.map[i].owner=gid;
     }
 
     // Print map

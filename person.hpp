@@ -264,20 +264,17 @@ class Person{
             if (local_guard>=0){ // If local defender is available, have them defend
                 defense+=gdefense;
                 defender=i;
-//                    printf("\nFound defender on tile %d, group %d",home, group_id);
                 break;
             }
         }
-//        if (debug) printf("\ndefender: %d", defender);
         if (defender==-1){ // Every group notes failure
             for (int i=0;i<people[target_ind].mships.size();i++){
                 int group_id=people[target_ind].mships[i].id;
                 groups[group_id].nundefended +=1;
                 groups[group_id].undefended.push_back(target_ind);
-//                printf("\nNo defender on tile %d, group %d",home, group_id);
             }
         }
-//if (debug) return;
+
         float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
         // Rational thieving decisions:
         float amt_to_steal = people[target_ind].wealth; // Steal all, for now

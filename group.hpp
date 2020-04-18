@@ -54,6 +54,26 @@ class Group{
         }
     }
 
+    void assess_defence(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left){
+        nguards_desired.resize(0);
+        guards_desired_loc.resize(0);
+        // Great, now have a list of used/defended, by tile
+        for (int j=0;j<victim_homes.size();j++){
+            // Apply the adjustments to decide how many guards to request in each location
+            int nlast_turn = guards_left[j]+lused[j];
+            int adjustment = 0;
+            if (guards_left[j]>0){ // Not all guards were used
+                adjustment= -1; // Reduce guard request by one
+            } else { // All guards were used
+                if (lundefended[j]>0) { // not enough guards
+                    adjustment=4; // Not enough guards->aggressively hire guards
+                }
+            }
+            nguards_desired.push_back(nlast_turn + adjustment);
+            guards_desired_loc.push_back(victim_homes[j]);
+        }
+    }
+
     void set_wealth_request(){
         int nguards_desired_total=0;
         for (int i=0;i<nguards_desired.size();i++){
@@ -62,9 +82,7 @@ class Group{
         float desired_expenditure=guard_cost*nguards_desired_total;
         float amt_to_raise = std::max(desired_expenditure-wealth,0.0f);
         wealth_request=req_to_rec*amt_to_raise/npaying; // Requests going out to each member
-//if (id==0) printf("\n%s had %d used and %d undef, requests %.3f to %d members",gnames[name].c_str(),nused,nundefended,wealth_request,npaying);
         npaying=0; // Set this to zero to get an accurate count next time
-//        wealth_request=0.0f;
     }
 
     void assess_wealth_request(){
@@ -78,13 +96,9 @@ class Group{
     }
 
     void set_task_request(){
-//if (id==0) printf("\n%s raised %.3f ",gnames[name].c_str(),received);
-
         guard_request = wealth/guard_cost; // Find this many people to hire
-//if (guard_request!=0) printf("\nGuard request of %d: %d",id,guard_request);
         nguards=0; // Assume have to rehire all guards each turn
         guards.resize(0);
-//if (id==0) printf("and bought %d guards",nguards);
     }
 
     void set_tasks(){
