@@ -67,7 +67,7 @@ int generate_letter(int nletters,float* cumul_freq){
 
 std::string generate_name(){
     std::string new_name;
-    int namelength=5+rand_f1()*3;
+    int namelength=5+rand_int(3);
     bool wasvow=true;
     bool isvow=false;
     for (int i=0;i<namelength;i++){
@@ -78,7 +78,7 @@ std::string generate_name(){
         else if (i==namelength-1) // AC (dont end in ACC)
             {wasvow=isvow;isvow=true;}
         else // AC
-            {wasvow=isvow;isvow=((int)(rand_f1()*3)==0);} // Prefer ACCA to ACA by 2 to 1
+            {wasvow=isvow;isvow=(rand_int(3)==0);} // Prefer ACCA to ACA by 2 to 1
 
         if (i==0){
             if (isvow) new_name += uvows[generate_letter(6,v_cumul_freq)];

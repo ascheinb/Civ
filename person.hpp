@@ -74,11 +74,11 @@ class Person{
 
     // Initial generation
     Person(int id, int age, int lifespan, int home ) : id(id), age(age), lifespan(lifespan), will_starve(false), home(home), wealth(0), watch(false) {
-        female = (rand_f1()<0.5); // 50% chance of being female
-        name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
-        extroversion = 8+8 + rand_f1()*16;
-        agreeableness = 8 + rand_f1()*16;
-        conscientiousness = 8 + rand_f1()*16;
+        female = chance(0.5); // 50% chance of being female
+        name = female ? rand_int(NF_NAMES) : NF_NAMES + rand_int(NM_NAMES);
+        extroversion = 16 + rand_int(16);
+        agreeableness = 8 + rand_int(16);
+        conscientiousness = 8 + rand_int(16);
         worktype=FORAGE;
         workrate=1.0f;
         old_workrate=1.0f;
@@ -88,15 +88,15 @@ class Person{
     // Birth
     Person(int id, Person* mom, Person& dad) : id(id), age(0), will_starve(false), wealth(0.0), watch(false) {
         lifespan = (mom->lifespan+dad.lifespan)/2;
-        female = (rand_f1()<0.5); // 50% chance of being female
-        name = female ? (rand_f1()*NF_NAMES) : NF_NAMES + (rand_f1()*NM_NAMES);
+        female = chance(0.5); // 50% chance of being female
+        name = female ? rand_int(NF_NAMES) : NF_NAMES + rand_int(NM_NAMES);
 
         int mutation_rate = 2; // parents avg +/- 0,1,or 2
-        extroversion =  (mom->extroversion +dad.extroversion +rand_f1()*2)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
-        int one_parent=rand_f1()*2;
-        agreeableness = (mom->agreeableness*one_parent+dad.agreeableness*(1-one_parent)) + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+        extroversion =  (mom->extroversion +dad.extroversion +rand_int(2))/2 + rand_int(1+2*mutation_rate)-mutation_rate;
+        int one_parent=rand_int(2);
+        agreeableness = (mom->agreeableness*one_parent+dad.agreeableness*(1-one_parent)) + rand_int(1+2*mutation_rate)-mutation_rate;
 
-        conscientiousness =  (mom->conscientiousness+dad.conscientiousness+rand_f1()*2)/2 + (int)(rand_f1()*(1+2*mutation_rate))-mutation_rate;
+        conscientiousness =  (mom->conscientiousness+dad.conscientiousness+rand_int(2))/2 + rand_int(1+2*mutation_rate)-mutation_rate;
 
         // Stay in range
         extroversion=std::max(std::min(extroversion,TRAITMAX),0);
@@ -125,15 +125,43 @@ class Person{
         for (int i=0;i<dad.mships.size();i++){
             mships.push_back(Membership(dad.mships[i].id,INITLOYALTY));
         }
-        // Check uniqueness
+        // Join mom's groups if not already in them
         for (int i=0;i<mom->mships.size();i++){
-            bool unique=true;
-            for (int j=0;j<mships.size();j++)
-                if (mships[j].id==mom->mships[i].id)
-                    {unique=false; break;};
-            if (unique) mships.push_back(Membership(mom->mships[i].id,INITLOYALTY));
+            if (!is_member(mom->mships[i].id)) mships.push_back(Membership(mom->mships[i].id,INITLOYALTY));
         }
     }
+
+    // Useful utilities
+    bool is_member(int group_id){
+        for (int k = 0; k<mships.size();k++)
+            if (mships[k].id==group_id)
+                return true;
+        return false;
+    }
+
+    int mship_index(int group_id){
+        for (int k = 0; k<mships.size();k++)
+            if (mships[k].id==group_id)
+                return k;
+        return -1;
+    }
+
+    bool knows(int person_id){
+        for (int k = 0; k<rships.size();k++)
+            if (rships[k].person_id==person_id)
+                return true;
+        return false;
+    }
+
+    int rship_index(int person_id){
+        for (int k = 0; k<rships.size();k++)
+            if (rships[k].person_id==person_id)
+                return k;
+        return -1;
+    }
+
+
+    // Actions
 
     void evaluate_choices(){
         if (worktype==FORAGE){
@@ -164,10 +192,10 @@ class Person{
             float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
             if (nature.map[home].food_available<FOOD_TO_SURVIVE) {
                 if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
-                bool move_tiles = (rand_f1()<0.05);
+                bool move_tiles = chance(0.05);
                 if (move_tiles){
                     // Change home to an adjacent tile
-                    int adj_tile = nature.neighbor(home,(int)(rand_f1()*6.0f));
+                    int adj_tile = nature.neighbor(home,rand_int(6));
                     int oldhome=home;
                     if (adj_tile!=-1){
                         if (nature.map[adj_tile].terrain!=WATER){
@@ -202,21 +230,15 @@ class Person{
         if (agreeableness>THIEF && !ordered) return; // Too agreeable, won't steal (if not ordered)
         int target_ind = -1;
         if (false){ // Take from someone anywhere
-            target_ind = rand_f1()*people.size();
+            target_ind = rand_int(people.size());
         } else { // Take from someone local
             if (ordered){ // Attack whoever your employer wants you to
                 if (groups[employer].gtarget[employee_id]==-1) { // Anyone not in your group
                     int nlocals = nature.map[home].residents.size();
                     RandPerm rp(nlocals);
-                    for (int i=0;i<nlocals;i++){
-                        bool target_is_in_group=false;
+                    for (int i=0;i<nlocals;i++){ // Loop randomly over residents
                         int ptarget = nature.map[home].residents[rp.x[i]];
-                        for (int j=0;j<people[ptarget].mships.size();j++){
-                            if (people[ptarget].mships[j].id==employer){
-                                target_is_in_group=true; break;
-                            }
-                        }
-                        if (!target_is_in_group){
+                        if (!people[ptarget].is_member(employer)){ // Check they're not in your group
                             target_ind=ptarget;
                             break;
                         }
@@ -226,7 +248,7 @@ class Person{
 //                if (debug) return;
             } else {
                 int nlocals = nature.map[home].residents.size();
-                target_ind = nature.map[home].residents[rand_f1()*nlocals];
+                target_ind = nature.map[home].residents[rand_int(nlocals)];
             }
         }
         if (target_ind==-1) return; // Couldn't find target
@@ -274,7 +296,7 @@ class Person{
         float expected_value = amt_to_steal*success_rate - (1-success_rate)*wealth;
         if (expected_value<0 && !ordered) return; // Not worth the risk! (unless ordered, for now)
 
-        if (rand_f1()<success_rate){ // Successful theft
+        if (chance(success_rate)){ // Successful theft
             float amt_to_steal = people[target_ind].wealth; // Steal all, for now
             if (ordered){ // group gets the cash
                 groups[employer].wealth += amt_to_steal;
@@ -344,17 +366,14 @@ class Person{
         if (rships.size()==0) return;
         int friend_rind;
         if (false){ // Doesn't matter where friend is
-            friend_rind = rand_f1()*rships.size();
+            friend_rind = rand_int(rships.size());
         }else{ // Only socialize with locals
             friend_rind = choose_local_friend(people,id2ind);
             if (friend_rind==-1) return; // No local friends, can't socialize
         }
         int friend_ind = id2ind[rships[friend_rind].person_id];
 
-        int this_rind;
-        for (int i_rship=0;i_rship<people[friend_ind].rships.size();i_rship++){
-            if (people[friend_ind].rships[i_rship].person_id==id) {this_rind = i_rship; break;}
-        }
+        int this_rind = people[friend_ind].rship_index(id);
 
         // Strengthen relationship with friend
         rships[friend_rind].fondness_to = std::min(rships[friend_rind].fondness_to+1,TRAITMAX);
@@ -365,7 +384,7 @@ class Person{
         // Strategy 2: Branch out
         if (rand_f1()*TRAITMAX>extroversion) return; // Too shy
         // Choose one of their friends at random
-        int fof_rind = rand_f1()*people[friend_ind].rships.size();
+        int fof_rind = rand_int(people[friend_ind].rships.size());
         if (fof_rind == this_rind) return; // Chose yourself, whatever
         int fof_ind = id2ind[people[friend_ind].rships[fof_rind].person_id];
 
@@ -384,14 +403,9 @@ class Person{
 
         // Join a random group of your friends but at low loyalty
         if (people[friend_ind].mships.size()>0){
-            int rand_ind = rand_f1()*people[friend_ind].mships.size();
+            int rand_ind = rand_int(people[friend_ind].mships.size());
             int rand_id = people[friend_ind].mships[rand_ind].id;
-            bool not_yet_member=true;
-            for (int i=0;i<mships.size();i++){
-                if (mships[i].id==rand_id)
-                    {not_yet_member=false; break;}
-            }
-            if (not_yet_member){
+            if (!is_member(rand_id)){ // If not already member
                 if (watch) printf("\n%s joined %s", names[name].c_str(),gnames[groups[rand_id].name].c_str());
                 mships.push_back(Membership(rand_id,1));
             }
@@ -479,7 +493,7 @@ class Person{
 
     int breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people, std::vector<int>& id2ind) {
         if (female && age>=fertility_age){ // If female and old enough
-            if (rand_f1()<fertility_rate){ // If having children
+            if (chance(fertility_rate)){ // If having children
                 if (watch) printf("\n%s wants a kid.", names[name].c_str());
                 // Find father
                 int dad_ind = -1;

@@ -19,11 +19,11 @@ int main(){
     fill_names();
 
     bool debug=false;
-    int initial_n_ppl = 3000;
+    int initial_n_ppl = 1000;
     int n_years = 2000;
     int n_turns = n_years*4; // A turn is one season
-    float min_food_gen=6000;
-    float max_food_gen=6000;
+    float min_food_gen=2000;
+    float max_food_gen=2000;
     float carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
     int climate_type = 1; // 0 is uniform; 1 has cold poles
     int mapsize=200; // Must be divisible by mapwidth

@@ -64,7 +64,7 @@ class Nature{
             map[wtile].terrain=WATER;
             int cand=-1;
             while (cand==-1)
-                cand = map[wtile].neighbor(ncol,nrow,rand_f1()*6);
+                cand = map[wtile].neighbor(ncol,nrow,rand_int(6));
             wtile = cand;
         }
 

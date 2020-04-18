@@ -3,6 +3,7 @@
 #include <vector>
 #include <string.h>
 #include "random.hpp"
+#include "myutils.hpp"
 #include "group.hpp"
 #include "person.hpp"
 
@@ -46,7 +47,7 @@ class Population{
 
         // Assign people randomly to groups
         for(int i = 0; i<initial_n_ppl;i++)
-            person[i].mships.push_back(Membership(rand_f1()*groups.size(),INITLOYALTY));
+            person[i].mships.push_back(Membership(rand_int(groups.size()),INITLOYALTY));
     }
 
     void task_requests(int i_turn) {
@@ -72,10 +73,7 @@ class Population{
             std::vector<int> lundefended;
             for (int j=0;j<groups[i].used.size();j++){
                 int victim_home=person[groups[i].used[j]].home;
-                int vhome_ind = -1;
-                for (int k=0;k<victim_homes.size();k++)
-                    if (victim_home==victim_homes[k])
-                        {vhome_ind=k;break;}
+                int vhome_ind = get_index(victim_homes,victim_home);
                 if (vhome_ind==-1){ // Add to list of tiles
                     vhome_ind=victim_homes.size();
                     victim_homes.push_back(victim_home);
@@ -86,10 +84,7 @@ class Population{
             }
             for (int j=0;j<groups[i].undefended.size();j++){
                 int victim_home=person[groups[i].undefended[j]].home;
-                int vhome_ind = -1;
-                for (int k=0;k<victim_homes.size();k++)
-                    if (victim_home==victim_homes[k])
-                        {vhome_ind=k;break;}
+                int vhome_ind = get_index(victim_homes,victim_home);
                 if (vhome_ind==-1){ // Add to list of tiles
                     vhome_ind=victim_homes.size();
                     victim_homes.push_back(victim_home);
@@ -102,10 +97,7 @@ class Population{
             for (int j=0;j<groups[i].guards.size();j++){
                 if (groups[i].guard_actions[j]==0 && groups[i].gtask[j]==DEFEND) continue; // Guard defended 
                 int guard_home=person[groups[i].guards[j]].home;
-                int ghome_ind = -1;
-                for (int k=0;k<victim_homes.size();k++)
-                    if (guard_home==victim_homes[k])
-                        {ghome_ind=k;break;}
+                int ghome_ind = get_index(victim_homes,guard_home);
                 if (ghome_ind==-1){ // Add to list of tiles
                     ghome_ind=victim_homes.size();
                     victim_homes.push_back(guard_home);
@@ -223,20 +215,6 @@ class Population{
         }
     }
 
-    bool is_member(Person& p, int group_id){
-        for (int k = 0; k<p.mships.size();k++)
-            if (p.mships[k].id==group_id)
-                return true;
-        return false;
-    }
-
-    int mship_index(Person& p, int group_id){
-        for (int k = 0; k<p.mships.size();k++)
-            if (p.mships[k].id==group_id)
-                return k;
-        return -1;
-    }
-
     int get_nextant(){
         int extant_groups=0;
         for (int i=0;i<groups.size();i++)
@@ -255,10 +233,10 @@ class Population{
                 int id_smaller = (groups[i].npaying <= groups[similar_group].npaying ? i : similar_group);
                 for(int j = 0; j<groups[id_smaller].memberlist.size();j++){ // Loop over members of smaller group
                     int pind = groups[id_smaller].memberlist[j];
-                    int k = mship_index(person[pind],id_smaller);
+                    int k = person[pind].mship_index(id_smaller);
                     // If person is in big group too, delete the small group
                     // (LOSS OF INFO (e.g. loyalty) - could MERGE instead)
-                    bool in_both=is_member(person[pind],id_bigger);
+                    bool in_both=person[pind].is_member(id_bigger);
                     if (in_both){
                         person[pind].mships.erase(person[pind].mships.begin() + k);
                     } else { // Join bigger group
@@ -409,7 +387,7 @@ class Population{
                 int n_common_members=0;
                 for (int gc=0;gc<groupsize;gc++){
                     int indc = new_group[gc];
-                    if (is_member(person[indc],xgroupid))
+                    if (person[indc].is_member(xgroupid))
                         n_common_members++;
                 }
                 if (n_common_members*2>groupsize || n_common_members*2>xgroupsize){
