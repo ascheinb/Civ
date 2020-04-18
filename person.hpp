@@ -471,7 +471,7 @@ class Person{
         }
     }
 
-    int breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people, std::vector<int>& id2ind) {
+    int breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people, std::vector<int>& id2ind, Nature& nature) {
         if (female && age>=fertility_age){ // If female and old enough
             if (chance(fertility_rate)){ // If having children
                 if (watch) printf("\n%s wants a kid.", names[name].c_str());
@@ -487,10 +487,11 @@ class Person{
                         }
                     }
                 }
-                if (dad_ind==-1){ // If Method 2 failed, revert to Method 1: Random 
-                    RandPerm rp(people.size());
-                    for (int idad = 0; idad<people.size(); idad++){
-                        int ri = rp.x[idad];
+                if (dad_ind==-1){ // If Method 2 failed, revert to Method 1b: Random among locals
+                    int nlocals = nature.map[home].residents.size();
+                    RandPerm rp(nlocals);
+                    for (int idad = 0; idad<nlocals; idad++){
+                        int ri = nature.map[home].residents[rp.x[idad]];
                         if(people[ri].age>=fertility_age && !people[ri].female) // adult male, good enough
                             {dad_ind=ri; break;}
                     }

@@ -46,8 +46,8 @@ class Population{
             groups.push_back(Group(i,0,initial_n_ppl/10));
 
         // Assign people randomly to groups
-        for(int i = 0; i<initial_n_ppl;i++)
-            person[i].mships.push_back(Membership(rand_int(groups.size()),INITLOYALTY));
+//        for(int i = 0; i<initial_n_ppl;i++)
+//            person[i].mships.push_back(Membership(rand_int(groups.size()),INITLOYALTY));
     }
 
     void task_requests(int i_turn) {
@@ -320,10 +320,10 @@ class Population{
         }
     }
 
-    int breed() {
+    int breed(Nature& nature) {
         int n_kids = 0;
         for(int i = 0; i<person.size();i++){
-            n_kids += person[i].breed(n_ids+n_kids,fertility_age, fertility_rate, person,id2ind);
+            n_kids += person[i].breed(n_ids+n_kids,fertility_age, fertility_rate, person,id2ind, nature);
         }
         // Updated id to index mapping
         for(int i = person.size()-n_kids; i<person.size();i++)

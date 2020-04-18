@@ -19,14 +19,14 @@ int main(){
     fill_names();
 
     bool debug=false;
-    int initial_n_ppl = 1000;
+    int initial_n_ppl = 2000;
     int n_years = 2000;
     int n_turns = n_years*4; // A turn is one season
-    float min_food_gen=2000;
-    float max_food_gen=2000;
+    float min_food_gen=10000;
+    float max_food_gen=10000;
     float carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=200; // Must be divisible by mapwidth
+    int mapsize=400; // Must be divisible by mapwidth
     int mapwidth=20; // Keep even for map_by_groups to work
     bool watch = false;
     int watch_start_year=500;
@@ -115,7 +115,7 @@ printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==GUA
         p.update_memberlists();
 
         // Breed
-        int n_kids = p.breed();
+        int n_kids = p.breed(nature);
         nkids.add(i_turn,n_kids);
 
         int n_ppl = p.person.size();
