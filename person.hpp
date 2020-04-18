@@ -219,7 +219,7 @@ class Person{
         }
     }
 
-    void take_by_force(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature,bool debug){
+    void take_by_force(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature){
         bool ordered=false;
         if (worktype==GUARD){
             int task = groups[employer].guards[employee_id].task;
@@ -243,8 +243,6 @@ class Person{
                         }
                     }
                 }
-                if (debug) printf("\ntarget: %d", target_ind);
-//                if (debug) return;
             } else {
                 int nlocals = nature.map[home].residents.size();
                 target_ind = nature.map[home].residents[rand_int(nlocals)];
@@ -314,9 +312,9 @@ class Person{
             if (wealth>1.5){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
-                if (people[friend_ind].wealth<1.0){ // And a friend is hungry
+                if (people[friend_ind].wealth<FOOD_TO_SURVIVE){ // And a friend is hungry
                     // Feed friend
-                    float transfer_amt = std::min(wealth-1.5,1.0-people[friend_ind].wealth);
+                    float transfer_amt = std::min(wealth-1.5f,FOOD_TO_SURVIVE-people[friend_ind].wealth);
                     wealth-=transfer_amt;
                     people[friend_ind].wealth+=transfer_amt;
 
@@ -447,9 +445,6 @@ class Person{
 
                 // Localality info
                 groups[gid].nguards_desired[area_gid]--;
-
-//                printf("\nPerson %d joined the guard of group %d on Tile %d",id,gid,home);
-//                printf("\nGroup %d now has %.2f money",gid,groups[gid].wealth);
             }
         }
     }

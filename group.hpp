@@ -72,6 +72,12 @@ class Group{
             nguards_desired.push_back(nlast_turn + adjustment);
             guards_desired_loc.push_back(victim_homes[j]);
         }
+
+        // Reset defence assessment monitoring data
+        nused=0;
+        nundefended=0;
+        used.resize(0);
+        undefended.resize(0);
     }
 
     void set_wealth_request(){
@@ -102,11 +108,6 @@ class Group{
     }
 
     void set_tasks(){
-        nused=0;
-        nundefended=0;
-        used.resize(0);
-        undefended.resize(0);
-
         // Set some to attack
         int nattacks=2; // or less
         for (int i=0;i<guards.size();i++){

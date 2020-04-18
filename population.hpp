@@ -131,12 +131,8 @@ class Population{
         ramp = std::min((int)(person.size()),std::max(0,ramp));
         for(int i = 0; i<ramp;i++){
             int ri = rp.x[i];
-//            if (i_turn>456){printf("\ni %d ri %d id %d",i,ri,person[ri].id);}
-            bool debug=false;
-//            if (i_turn>456 && i==5) debug=true;
-            person[ri].take_by_force(person, groups, nature,debug);
+            person[ri].take_by_force(person, groups, nature);
         }
- //       if (i_turn>456){return;}
     }
 
     void feed_friends() {
