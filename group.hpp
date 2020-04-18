@@ -5,9 +5,7 @@
 #include "random.hpp"
 #include "person.hpp"
 #include "names.hpp"
-
-#define DEFEND 0
-#define ATTACK 1
+#include "guard.hpp"
 
 class Group{
     public:
@@ -37,10 +35,7 @@ class Group{
     std::vector<int> memberlist;
 
     // Guard list
-    std::vector<int> guards;
-    std::vector<int> guard_actions;
-    std::vector<int> gtask;
-    std::vector<int> gtarget;
+    std::vector<Guard> guards;
 
     // Will be a function later
     float wealth_request;
@@ -89,9 +84,6 @@ class Group{
 //if (guard_request!=0) printf("\nGuard request of %d: %d",id,guard_request);
         nguards=0; // Assume have to rehire all guards each turn
         guards.resize(0);
-        guard_actions.resize(0);
-//        gtask.resize(0);
-//        gtarget.resize(0);
 //if (id==0) printf("and bought %d guards",nguards);
     }
 
@@ -101,19 +93,32 @@ class Group{
         used.resize(0);
         undefended.resize(0);
 
-        gtask.resize(guards.size());
-        gtarget.resize(guards.size());
+        // Set some to attack
         int nattacks=2; // or less
-
         for (int i=0;i<guards.size();i++){
             if (i<nattacks){
-                gtask[i]=ATTACK;
-                gtarget[i]=-1;
-            } else {
-                gtask[i]=DEFEND;
-                gtarget[i]=-1;
+                guards[i].task=ATTACK;
+                guards[i].target=-1;
             }
         }
+    }
+
+    std::tuple<float,int> provide_defense(int victim_ind, int location){
+        if (nused<nguards){
+            // Check if local defender available
+            for (int j=0;j<guards.size();j++){
+                if (guards[j].station==location // local
+                    && guards[j].task==DEFEND // defender
+                    && guards[j].nactions>0) // available
+                {
+                    nused +=1;
+                    used.push_back(victim_ind);
+                    guards[j].nactions--;
+                    return std::make_tuple(guard_strength,j);
+                }
+            }
+        }
+        return std::make_tuple(0.0f,-1); // Couldn't provide defense
     }
 };
 

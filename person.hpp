@@ -222,8 +222,7 @@ class Person{
     void take_by_force(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature,bool debug){
         bool ordered=false;
         if (worktype==GUARD){
-            if (debug) printf("\ngtask: %d", groups[employer].gtask[employee_id]);
-            int task = groups[employer].gtask[employee_id];
+            int task = groups[employer].guards[employee_id].task;
             if (task==ATTACK)
                 ordered=true;
         }
@@ -233,7 +232,7 @@ class Person{
             target_ind = rand_int(people.size());
         } else { // Take from someone local
             if (ordered){ // Attack whoever your employer wants you to
-                if (groups[employer].gtarget[employee_id]==-1) { // Anyone not in your group
+                if (groups[employer].guards[employee_id].target==-1) { // Anyone not in your group
                     int nlocals = nature.map[home].residents.size();
                     RandPerm rp(nlocals);
                     for (int i=0;i<nlocals;i++){ // Loop randomly over residents
@@ -259,24 +258,14 @@ class Person{
         for (int i=0;i<people[target_ind].mships.size();i++){
             // Muster defense
             int group_id=people[target_ind].mships[i].id;
-            if (groups[group_id].nused<groups[group_id].nguards){
-                // Check if local defender available
-                int local_guard =-1;
-                for (int j=0;j<groups[group_id].guards.size();j++){
-                    if (people[groups[group_id].guards[j]].home==home // local
-                        && groups[group_id].gtask[j]==DEFEND // defender
-                        && groups[group_id].guard_actions[j]>0) // available
-                        {local_guard=j;break;}
-                }
-                if (local_guard>=0){ // If local defender is available, have them defend
-                    defense+=groups[group_id].guard_strength;
-                    groups[group_id].nused +=1;
-                    groups[group_id].used.push_back(target_ind);
-                    groups[group_id].guard_actions[local_guard]--;
-                    defender=i;
+            int local_guard =-1;
+            float gdefense;
+            std::tie(gdefense,local_guard) = groups[group_id].provide_defense(target_ind,home);
+            if (local_guard>=0){ // If local defender is available, have them defend
+                defense+=gdefense;
+                defender=i;
 //                    printf("\nFound defender on tile %d, group %d",home, group_id);
-                    break;
-                }
+                break;
             }
         }
 //        if (debug) printf("\ndefender: %d", defender);
@@ -454,8 +443,7 @@ class Person{
                 worktype = GUARD;
                 employer = gid;
                 groups[gid].nguards++;
-                groups[gid].guards.push_back(this_ind);
-                groups[gid].guard_actions.push_back(ACTIONS_PER_GUARD);
+                groups[gid].guards.push_back(Guard(this_ind,ACTIONS_PER_GUARD,DEFEND,home));
                 employee_id = groups[gid].guards.size();
                 groups[gid].wealth-=groups[gid].guard_cost;
                 wealth+=groups[gid].guard_cost;

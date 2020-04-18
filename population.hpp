@@ -95,18 +95,17 @@ class Population{
             }
             std::vector<int> guards_left(victim_homes.size(),0);
             for (int j=0;j<groups[i].guards.size();j++){
-                if (groups[i].guard_actions[j]==0 && groups[i].gtask[j]==DEFEND) continue; // Guard defended 
-                int guard_home=person[groups[i].guards[j]].home;
-                int ghome_ind = get_index(victim_homes,guard_home);
+                if (groups[i].guards[j].nactions==0 && groups[i].guards[j].task==DEFEND) continue; // Guard defended 
+                int guard_station=groups[i].guards[j].station;
+                int ghome_ind = get_index(victim_homes,guard_station);
                 if (ghome_ind==-1){ // Add to list of tiles
                     ghome_ind=victim_homes.size();
-                    victim_homes.push_back(guard_home);
+                    victim_homes.push_back(guard_station);
                     lused.push_back(0);
                     lundefended.push_back(0);
                     guards_left.push_back(0);
                 }
                 guards_left[ghome_ind]++;
-//                printf("\n guard %d, guard_home: %d", person[groups[i].guards[j]].id,guard_home);
             }
 //if (victim_homes.size()>0) printf("\nResults:");
             groups[i].nguards_desired.resize(0);
