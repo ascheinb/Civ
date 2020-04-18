@@ -6,6 +6,9 @@
 #include "person.hpp"
 #include "names.hpp"
 
+#define DEFEND 0
+#define ATTACK 1
+
 class Group{
     public:
     // fixed
@@ -36,6 +39,8 @@ class Group{
     // Guard list
     std::vector<int> guards;
     std::vector<int> guard_actions;
+    std::vector<int> gtask;
+    std::vector<int> gtarget;
 
     // Will be a function later
     float wealth_request;
@@ -85,6 +90,8 @@ class Group{
         nguards=0; // Assume have to rehire all guards each turn
         guards.resize(0);
         guard_actions.resize(0);
+//        gtask.resize(0);
+//        gtarget.resize(0);
 //if (id==0) printf("and bought %d guards",nguards);
     }
 
@@ -93,7 +100,20 @@ class Group{
         nundefended=0;
         used.resize(0);
         undefended.resize(0);
-//if (id==0) printf("\n%s hired %d guards, wanted %d",gnames[name].c_str(),nguards,guard_request);
+
+        gtask.resize(guards.size());
+        gtarget.resize(guards.size());
+        int nattacks=2; // or less
+
+        for (int i=0;i<guards.size();i++){
+            if (i<nattacks){
+                gtask[i]=ATTACK;
+                gtarget[i]=-1;
+            } else {
+                gtask[i]=DEFEND;
+                gtarget[i]=-1;
+            }
+        }
     }
 };
 

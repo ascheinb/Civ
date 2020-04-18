@@ -55,6 +55,9 @@ class Person{
     float workrate;
     float contentedness;
 
+    int employer;
+    int employee_id;
+
     // Personality
     int extroversion; // Controls branch-out socialization
     int agreeableness; // Controls theft and caretaking
@@ -188,15 +191,45 @@ class Person{
         }
     }
 
-    void take_by_force(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature){
-        if (agreeableness>THIEF) return; // Too agreeable, won't steal
-        int target_ind;
+    void take_by_force(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature,bool debug){
+        bool ordered=false;
+        if (worktype==GUARD){
+            if (debug) printf("\ngtask: %d", groups[employer].gtask[employee_id]);
+            int task = groups[employer].gtask[employee_id];
+            if (task==ATTACK)
+                ordered=true;
+        }
+        if (agreeableness>THIEF && !ordered) return; // Too agreeable, won't steal (if not ordered)
+        int target_ind = -1;
         if (false){ // Take from someone anywhere
             target_ind = rand_f1()*people.size();
         } else { // Take from someone local
-            int nlocals = nature.map[home].residents.size();
-            target_ind = nature.map[home].residents[rand_f1()*nlocals];
+            if (ordered){ // Attack whoever your employer wants you to
+                if (groups[employer].gtarget[employee_id]==-1) { // Anyone not in your group
+                    int nlocals = nature.map[home].residents.size();
+                    RandPerm rp(nlocals);
+                    for (int i=0;i<nlocals;i++){
+                        bool target_is_in_group=false;
+                        int ptarget = nature.map[home].residents[rp.x[i]];
+                        for (int j=0;j<people[ptarget].mships.size();j++){
+                            if (people[ptarget].mships[j].id==employer){
+                                target_is_in_group=true; break;
+                            }
+                        }
+                        if (!target_is_in_group){
+                            target_ind=ptarget;
+                            break;
+                        }
+                    }
+                }
+                if (debug) printf("\ntarget: %d", target_ind);
+//                if (debug) return;
+            } else {
+                int nlocals = nature.map[home].residents.size();
+                target_ind = nature.map[home].residents[rand_f1()*nlocals];
+            }
         }
+        if (target_ind==-1) return; // Couldn't find target
         if (people[target_ind].id==id) return; // Can't steal from yourself smart guy
         
         float defense=0.0f;
@@ -208,7 +241,9 @@ class Person{
                 // Check if local defender available
                 int local_guard =-1;
                 for (int j=0;j<groups[group_id].guards.size();j++){
-                    if (people[groups[group_id].guards[j]].home==home)
+                    if (people[groups[group_id].guards[j]].home==home // local
+                        && groups[group_id].gtask[j]==DEFEND // defender
+                        && groups[group_id].guard_actions[j]>0) // available
                         {local_guard=j;break;}
                 }
                 if (local_guard>=0){ // If local defender is available, have them defend
@@ -216,16 +251,13 @@ class Person{
                     groups[group_id].nused +=1;
                     groups[group_id].used.push_back(target_ind);
                     groups[group_id].guard_actions[local_guard]--;
-                    if (groups[group_id].guard_actions[local_guard]==0){
-                        groups[group_id].guards.erase(groups[group_id].guards.begin() + local_guard);
-                        groups[group_id].guard_actions.erase(groups[group_id].guard_actions.begin() + local_guard);
-                    }
                     defender=i;
 //                    printf("\nFound defender on tile %d, group %d",home, group_id);
                     break;
                 }
             }
         }
+//        if (debug) printf("\ndefender: %d", defender);
         if (defender==-1){ // Every group notes failure
             for (int i=0;i<people[target_ind].mships.size();i++){
                 int group_id=people[target_ind].mships[i].id;
@@ -234,25 +266,33 @@ class Person{
 //                printf("\nNo defender on tile %d, group %d",home, group_id);
             }
         }
-
+//if (debug) return;
         float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
         // Rational thieving decisions:
         float amt_to_steal = people[target_ind].wealth; // Steal all, for now
         float amt_to_lose = wealth; // Group rule: If you're caught, they take all your money
         float expected_value = amt_to_steal*success_rate - (1-success_rate)*wealth;
-        if (expected_value<0) return; // Not worth the risk!
+        if (expected_value<0 && !ordered) return; // Not worth the risk! (unless ordered, for now)
 
         if (rand_f1()<success_rate){ // Successful theft
             float amt_to_steal = people[target_ind].wealth; // Steal all, for now
-            wealth += amt_to_steal;
+            if (ordered){ // group gets the cash
+                groups[employer].wealth += amt_to_steal;
+            }else{
+                wealth += amt_to_steal;
+            }
             people[target_ind].wealth -= amt_to_steal;
             if (watch) printf("\n%s successfully stole %.3f from %s %s",names[name].c_str(),amt_to_steal,names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str());
         } else { // Caught
             if (defender==-1){
                 people[target_ind].wealth += wealth; // If no defenders, target gets the cash
             } else {
-                groups[people[target_ind].mships[defender].id].wealth += wealth; // Defending group gets all, for now
-                people[target_ind].mships[defender].loyalty_to+=4.0f; // Person is more loyal to group!
+                if (ordered){
+                    // No exchange
+                } else {
+                    groups[people[target_ind].mships[defender].id].wealth += wealth; // Defending group gets all, for now
+                    people[target_ind].mships[defender].loyalty_to+=4.0f; // Person is more loyal to group!
+                }
             }
             wealth=0.0f;
             if (watch || people[target_ind].watch) printf("\n%s was caught stealing from %s %s by %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str(),gnames[groups[people[target_ind].mships[defender].id].name].c_str());
@@ -398,9 +438,11 @@ class Person{
                 if (area_gid==-1) continue;
                 // Accept automatically, for now
                 worktype = GUARD;
+                employer = gid;
                 groups[gid].nguards++;
                 groups[gid].guards.push_back(this_ind);
                 groups[gid].guard_actions.push_back(ACTIONS_PER_GUARD);
+                employee_id = groups[gid].guards.size();
                 groups[gid].wealth-=groups[gid].guard_cost;
                 wealth+=groups[gid].guard_cost;
 
