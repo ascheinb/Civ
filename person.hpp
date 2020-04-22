@@ -35,7 +35,6 @@
 // Food to survive
 #define FOOD_TO_SURVIVE 1.0f
 
-
 class Person{
     public:
     // fixed
@@ -73,9 +72,10 @@ class Person{
 
     // Simulation
     bool watch;
+    bool play;
 
     // Initial generation
-    Person(int id, int age, int lifespan, int home ) : id(id), age(age), lifespan(lifespan), will_starve(false), home(home), wealth(0), watch(false) {
+    Person(int id, int age, int lifespan, int home ) : id(id), age(age), lifespan(lifespan), will_starve(false), home(home), wealth(0), watch(false), play(false) {
         female = chance(0.5); // 50% chance of being female
         name = female ? rand_int(NF_NAMES) : NF_NAMES + rand_int(NM_NAMES);
         extroversion = 16 + rand_int(16);
@@ -90,7 +90,7 @@ class Person{
     }
 
     // Birth
-    Person(int id, Person* mom, Person& dad) : id(id), age(0), will_starve(false), wealth(0.0), watch(false) {
+    Person(int id, Person* mom, Person& dad) : id(id), age(0), will_starve(false), wealth(0.0), watch(false), play(false) {
         lifespan = (mom->lifespan+dad.lifespan)/2;
         female = chance(0.5); // 50% chance of being female
         name = female ? rand_int(NF_NAMES) : NF_NAMES + rand_int(NM_NAMES);
@@ -168,9 +168,102 @@ class Person{
         return -1;
     }
 
+    bool more_info(std::string& input){
+        if(input.compare("status")==0){
+            printf("\nAge: %d",age/4);
+            printf("\nWealth: %.2f",wealth);
+            printf("\n# of relationships: %lu",rships.size());
+            printf("\n# of memberships: %lu",mships.size());
+            printf("\n");
+        }else if(input.compare("groups")==0){
+            printf("\nPrinting group info");
+            printf("\n");
+        }else{
+            return false;
+        }
+        return true;
+    }
+
+    bool more_info(std::string& input,std::vector<Person>& people, std::vector<int>& id2ind){
+        if(input.compare("status")==0){
+            printf("\nAge: %d",age/4);
+            printf("\nWealth: %.2f",wealth);
+            printf("\n# of relationships: %lu",rships.size());
+            printf("\n# of memberships: %lu",mships.size());
+            printf("\n");
+        }else if(input.compare("friends")==0){
+            printf("\n#\tName\t\tFondness");
+            printf("\n______________________________________________________");
+            for (int i=0;i<rships.size();i++){
+                int ind = id2ind[rships[i].person_id];
+                char atab[2];
+                std::strcpy(atab,names[people[ind].name].length()<8 ? "\t" : "");
+                printf("\n%d.\t%s%s\t%d",i,names[people[ind].name].c_str(),atab,rships[i].fondness_to);
+            }
+            printf("\n");
+        }else if(input.compare("groups")==0){
+            printf("\nPrinting group info");
+            printf("\n");
+        }else{
+            return false;
+        }
+        return true;
+    }
+
+    bool yes_or_no(std::string& input){
+        if ((input.compare("y")==0) || (input.compare("n")==0)){
+            return (input.compare("y")==0);
+        }
+        throw -1;
+    }
+
+    template<typename T>
+    T decision(const char* question){
+        printf("\n%s ",question);
+        std::string input;
+        T num;
+        bool no_answer=true;
+        while (no_answer){
+            getline(std::cin, input);
+            if(more_info(input)) continue;
+            try {
+                if (std::is_same<T, float>::value) num = std::stof(input);
+                if (std::is_same<T, int>::value)   num = std::stoi(input);
+                if (std::is_same<T, bool>::value)  num = yes_or_no(input);
+                no_answer=false;
+            } catch (...) {
+                printf("Not a valid input. ");
+            }
+        }
+        return num;
+    }
+
+    template<typename T>
+    T decision(const char* question,std::vector<Person>& people, std::vector<int>& id2ind){
+        printf("\n%s ",question);
+        std::string input;
+        T num;
+        bool no_answer=true;
+        while (no_answer){
+            getline(std::cin, input);
+            if(more_info(input,people,id2ind)) continue;
+            try {
+                if (std::is_same<T, float>::value) num = std::stof(input);
+                if (std::is_same<T, int>::value)   num = std::stoi(input);
+                if (std::is_same<T, bool>::value)  num = yes_or_no(input);
+                no_answer=false;
+            } catch (...) {
+                printf("Not a valid input. ");
+            }
+        }
+        return num;
+    }
+
+
     // Decisions
 
     int will_choose_which_father(int fertility_age, std::vector<Person>& people, std::vector<int>& id2ind,Nature& nature){
+        if (play) return decision<int>("Which person do you choose?",people,id2ind);
         if (true){ // Method 2: Choose randomly among pre-existing relationships
             if (rships.size()>0){
                 RandPerm rp(rships.size());
@@ -193,6 +286,7 @@ class Person{
     }
 
     float how_hard_will_work(){
+        if (play) return decision<float>("How hard do you want to work this turn? (Scale of 0 to 1)");
         if (contentedness > old_contentedness){
             // Last turn was happy, so use last turn's workrate as the new base workrate
             old_workrate=workrate;
@@ -204,18 +298,22 @@ class Person{
     }
 
     bool will_move(){
+        if (play) return decision<bool>("Move tiles? (y/n)");
         return chance((float)openness/TRAITMAX);
     }
 
     int where_will_move(Nature& nature){
+        if (play) return decision<int>("Where to move? (0-5)");
         return nature.neighbor(home,rand_int(6));
     }
 
     bool will_take(bool ordered){
+        if (play) return decision<bool>("Take wealth by force? (y/n)");
         return agreeableness<=THIEF || ordered;
     }
 
     int whom_will_take_from(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature, int ordered){
+        if (play) return decision<int>("Who to target?");
         if (false){ // Take from someone anywhere
             return rand_int(people.size());
         } else { // Take from someone local
@@ -238,15 +336,18 @@ class Person{
     }
 
     bool will_risk_taking(float amt_to_steal, float success_rate, bool ordered){
+        if (play) return decision<bool>("Go through with force attempt? (y/n)");
         float expected_value = amt_to_steal*success_rate - (1-success_rate)*wealth;
         return (expected_value>0.0f || ordered);
     }
 
     bool will_give_food(int i_rship){
+//        if (play) return decision<bool>("Give food to ___? (y/n)");
         return (rships[i_rship].fondness_to>=FONDSHARE || rships[i_rship].child);
     }
 
     float how_much_food_will_give(Person& p){
+//        if (play) return decision<float>("How much to give to ___?");
         float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
         return std::min(wealth-(FOOD_TO_SURVIVE+std_lux),FOOD_TO_SURVIVE-p.wealth);
     }
@@ -262,6 +363,7 @@ class Person{
     }
 
     int will_choose_which_friend(std::vector<Person>& people, std::vector<int>& id2ind){
+        if (play) return decision<int>("Which friend to hang out with?",people,id2ind);
         // Choose a pre-existing relationship at random
         if (false){ // Doesn't matter where friend is
             return rand_int(rships.size());
@@ -271,22 +373,27 @@ class Person{
     }
 
     bool will_branch_out(){
+        if (play) return decision<bool>("Meet a friend of your friend? (y/n)");
         return (rand_f1()*TRAITMAX<=extroversion);
     }
 
     float how_much_will_consume(){
+        if (play) return decision<float>("How much to consume?");
         return wealth*((float)(TRAITMAX-neuroticism)/TRAITMAX);
     }
 
     float how_much_will_tithe(float req){
+        if (play) return decision<float>("How much to give to this group?");
         return std::min(wealth,req);
     }
 
     bool will_accept_task(){
+        if (play) return decision<bool>("Accept task? (y/n)");
         return true;
     }
 
     bool will_bump_workrate(){
+        if (play) return false; // Manual control
         return (agreeableness>KIDCARE);
     }
 
@@ -438,6 +545,7 @@ class Person{
     }
 
     void socialize(std::vector<Person>& people, std::vector<int>& id2ind, std::vector<Group>& groups){
+//        if (play) printf("\nentered socialize");
         if (rships.size()==0) return; // Skip if no existing relationships
         // Strategy 1: Spend time with a friend
         int friend_rind = will_choose_which_friend(people,id2ind);

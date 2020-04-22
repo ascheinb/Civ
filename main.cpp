@@ -28,7 +28,7 @@ int main(){
     int climate_type = 1; // 0 is uniform; 1 has cold poles
     int mapsize=40; // Must be divisible by mapwidth
     int mapwidth=8; // Keep even for map_by_groups to work
-    bool watch = false;
+    bool watch = true;
     int watch_start_year=500;
     SimVar<int> nkids(n_turns);
     SimVar<int> nstarved(n_turns);
@@ -45,6 +45,7 @@ int ncreated=0; int nextant=0; int nmerged=0; p.sum_nage=0; p.sum_dage=0;
             // Choose who to watch; start with someone middleaged
             int first_watch=p.person.size()/2;
             p.person[first_watch].watch=true;
+            p.person[first_watch].play=true;
         }
 
         //*** NATURE ***//
