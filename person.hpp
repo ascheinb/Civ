@@ -193,6 +193,18 @@ class Person{
         if (watch && age==ADULT) printf("\n%s is working independently for the first time :)",names[name].c_str());
     }
 
+    void move_tiles(Nature& nature, int new_home){
+        if (new_home!=-1){
+            if (nature.map[new_home].terrain!=WATER){
+                if (watch){
+                    char him_or_her[3]=""; strcpy(him_or_her, female ? "She" : "He");
+                    printf("\n%s moved from Tile %d to Tile %d",him_or_her,home,new_home);
+                }
+                home = new_home;
+            }
+        }
+    }
+
     void do_long_action(Nature& nature){
         if (worktype==GROW){
             // Do nothing, you're growing!
@@ -202,20 +214,10 @@ class Person{
             if (nature.map[home].food_available<FOOD_TO_SURVIVE) {
                 if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
                 //*****        DECISION        *****//
-                bool move_tiles = chance((float)openness/TRAITMAX);
-                if (move_tiles){
+                if (chance((float)openness/TRAITMAX)){
                     // Change home to an adjacent tile
-                    int adj_tile = nature.neighbor(home,rand_int(6));
-                    int oldhome=home;
-                    if (adj_tile!=-1){
-                        if (nature.map[adj_tile].terrain!=WATER){
-                            home = adj_tile;
-                            if (watch){
-                                char him_or_her[3]=""; strcpy(him_or_her, female ? "She" : "He");
-                                printf("\n%s moved from Tile %d to Tile %d",him_or_her,oldhome,home);
-                            }
-                        }
-                    }
+                    int new_home = nature.neighbor(home,rand_int(6));
+                    move_tiles(nature,new_home);
                 }
             }
             wealth+=food_haul;
@@ -321,13 +323,13 @@ class Person{
         for (int i_rship=0;i_rship<rships.size();i_rship++){
             //*****        DECISION        *****//
             if (rships[i_rship].fondness_to<FONDSHARE && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
-
-            if (wealth>1.5){ // If you have extra food
+            float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
+            if (wealth>FOOD_TO_SURVIVE+std_lux){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
                 if (people[friend_ind].wealth<FOOD_TO_SURVIVE){ // And a friend is hungry
                     // Feed friend
-                    float transfer_amt = std::min(wealth-1.5f,FOOD_TO_SURVIVE-people[friend_ind].wealth);
+                    float transfer_amt = std::min(wealth-(FOOD_TO_SURVIVE+std_lux),FOOD_TO_SURVIVE-people[friend_ind].wealth);
                     wealth-=transfer_amt;
                     people[friend_ind].wealth+=transfer_amt;
 
