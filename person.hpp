@@ -62,6 +62,8 @@ class Person{
     int extroversion; // Controls branch-out socialization
     int agreeableness; // Controls theft and caretaking
     int conscientiousness; // Controls group loyalty degradation rate
+    int neuroticism; // Controls savings vs luxury spending
+    int openness; // Controls willingness to move
 
     // Relationships
     std::vector<Relationship> rships;
@@ -79,6 +81,8 @@ class Person{
         extroversion = 16 + rand_int(16);
         agreeableness = 8 + rand_int(16);
         conscientiousness = 8 + rand_int(16);
+        neuroticism = 8 + rand_int(16);
+        openness = 8 + rand_int(16);
         worktype=FORAGE;
         workrate=1.0f;
         old_workrate=1.0f;
@@ -97,11 +101,15 @@ class Person{
         agreeableness = (mom->agreeableness*one_parent+dad.agreeableness*(1-one_parent)) + rand_int(1+2*mutation_rate)-mutation_rate;
 
         conscientiousness =  (mom->conscientiousness+dad.conscientiousness+rand_int(2))/2 + rand_int(1+2*mutation_rate)-mutation_rate;
+        neuroticism =  (mom->neuroticism+dad.neuroticism+rand_int(2))/2 + rand_int(1+2*mutation_rate)-mutation_rate;
+        openness =  (mom->openness+dad.openness+rand_int(2))/2 + rand_int(1+2*mutation_rate)-mutation_rate;
 
         // Stay in range
         extroversion=std::max(std::min(extroversion,TRAITMAX),0);
         agreeableness=std::max(std::min(agreeableness,TRAITMAX),0);
         conscientiousness=std::max(std::min(conscientiousness,TRAITMAX),0);
+        neuroticism=std::max(std::min(neuroticism,TRAITMAX),0);
+        openness=std::max(std::min(openness,TRAITMAX),0);
 
         // Home
         home = dad.home; // Patrilineal home for now
@@ -192,7 +200,7 @@ class Person{
             float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
             if (nature.map[home].food_available<FOOD_TO_SURVIVE) {
                 if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
-                bool move_tiles = chance(0.05);
+                bool move_tiles = chance((float)openness/TRAITMAX);
                 if (move_tiles){
                     // Change home to an adjacent tile
                     int adj_tile = nature.neighbor(home,rand_int(6));

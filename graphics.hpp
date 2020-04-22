@@ -398,6 +398,19 @@ void histograms(Population& p){
     printf("\nConscientiousness:");
     print_histogram(fracs);
 
+    // Neuroticism
+    for (int i=0;i<fracs.size();i++){
+        fracs[i] = p.frac(i,[](int i,Person& h){return h.neuroticism==i;});
+    }
+    printf("\nNeuroticism:");
+    print_histogram(fracs);
+
+    // Openness
+    for (int i=0;i<fracs.size();i++){
+        fracs[i] = p.frac(i,[](int i,Person& h){return h.openness==i;});
+    }
+    printf("\nOpenness:");
+    print_histogram(fracs);
 }
 
 #endif

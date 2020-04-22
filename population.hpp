@@ -248,7 +248,9 @@ class Population{
 
     void luxury() {
         for(int i = 0; i<person.size();i++){
-            float to_enjoy = std::min(person[i].wealth,0.5f);
+            // Function to determine how much to spend vs save: save all if neurotic, spend all if not
+            float to_enjoy = person[i].wealth*((float)(TRAITMAX-person[i].neuroticism)/TRAITMAX);
+            //float to_enjoy = std::min(person[i].wealth,0.5f);
             person[i].wealth-=to_enjoy;
             person[i].contentedness+=to_enjoy;
             //if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
