@@ -212,6 +212,11 @@ void map_by_population(Population &p, Nature &n){
     for (int i=0;i<p.person.size();i++){
         tilepop[p.person[i].home]+=1;
     }
+    // Get max population
+    int maxpop=0;
+    for (int i=0;i<tilepop.size();i++){
+        if (tilepop[i]>maxpop) maxpop=tilepop[i];
+    }
     std::string letts;
     // Now fill map
     for (int i=0;i<n.map.size();i++){
@@ -221,7 +226,11 @@ void map_by_population(Population &p, Nature &n){
         if (lpop>99) letts="";
         letts+=std::to_string(lpop);
         if (lpop<=9) letts+=" ";
-        int gid=i;
+        int gid=(4*lpop)/maxpop; // Creates four density contours
+        if (gid==0) letts="   ";
+        if (gid==1) letts=" + ";
+        if (gid==2) letts="+ +";
+        if (gid>=3) letts="+++";
 
         if (lpop==0){
             if (n.map[i].terrain==GRASS){
