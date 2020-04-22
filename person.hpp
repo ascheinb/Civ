@@ -35,6 +35,8 @@
 // Food to survive
 #define FOOD_TO_SURVIVE 1.0f
 
+class Population;
+
 class Person{
     public:
     // fixed
@@ -168,102 +170,42 @@ class Person{
         return -1;
     }
 
-    bool more_info(std::string& input){
-        if(input.compare("status")==0){
-            printf("\nAge: %d",age/4);
-            printf("\nWealth: %.2f",wealth);
-            printf("\n# of relationships: %lu",rships.size());
-            printf("\n# of memberships: %lu",mships.size());
-            printf("\n");
-        }else if(input.compare("groups")==0){
-            printf("\nPrinting group info");
-            printf("\n");
-        }else{
-            return false;
-        }
-        return true;
-    }
-
-    bool more_info(std::string& input,std::vector<Person>& people, std::vector<int>& id2ind){
-        if(input.compare("status")==0){
-            printf("\nAge: %d",age/4);
-            printf("\nWealth: %.2f",wealth);
-            printf("\n# of relationships: %lu",rships.size());
-            printf("\n# of memberships: %lu",mships.size());
-            printf("\n");
-        }else if(input.compare("friends")==0){
-            printf("\n#\tName\t\tFondness");
-            printf("\n______________________________________________________");
-            for (int i=0;i<rships.size();i++){
-                int ind = id2ind[rships[i].person_id];
-                char atab[2];
-                std::strcpy(atab,names[people[ind].name].length()<8 ? "\t" : "");
-                printf("\n%d.\t%s%s\t%d",i,names[people[ind].name].c_str(),atab,rships[i].fondness_to);
-            }
-            printf("\n");
-        }else if(input.compare("groups")==0){
-            printf("\nPrinting group info");
-            printf("\n");
-        }else{
-            return false;
-        }
-        return true;
-    }
-
-    bool yes_or_no(std::string& input){
-        if ((input.compare("y")==0) || (input.compare("n")==0)){
-            return (input.compare("y")==0);
-        }
-        throw -1;
-    }
-
+    // Ask question and wait for UI thread to get answer
     template<typename T>
     T decision(const char* question){
         printf("\n%s ",question);
-        std::string input;
+
         T num;
-        bool no_answer=true;
-        while (no_answer){
-            getline(std::cin, input);
-            if(more_info(input)) continue;
-            try {
-                if (std::is_same<T, float>::value) num = std::stof(input);
-                if (std::is_same<T, int>::value)   num = std::stoi(input);
-                if (std::is_same<T, bool>::value)  num = yes_or_no(input);
-                no_answer=false;
-            } catch (...) {
-                printf("Not a valid input. ");
+        ctrl.info_id = id; // Localize on this person
+        if (std::is_same<T, float>::value){
+            ctrl.needs_float=true;
+            while (ctrl.needs_float){
+                usleep(50); // Check for updates every 50 ms
             }
+            return ctrl.input_float;
         }
+        if (std::is_same<T, int>::value){
+            ctrl.needs_int=true;
+            while (ctrl.needs_int){
+                usleep(50); // Check for updates every 50 ms
+            }
+            return ctrl.input_int;
+        }
+        if (std::is_same<T, bool>::value){
+            ctrl.needs_bool=true;
+            while (ctrl.needs_bool){
+                usleep(50); // Check for updates every 50 ms
+            }
+            return ctrl.input_bool;
+        }
+
         return num;
     }
-
-    template<typename T>
-    T decision(const char* question,std::vector<Person>& people, std::vector<int>& id2ind){
-        printf("\n%s ",question);
-        std::string input;
-        T num;
-        bool no_answer=true;
-        while (no_answer){
-            getline(std::cin, input);
-            if(more_info(input,people,id2ind)) continue;
-            try {
-                if (std::is_same<T, float>::value) num = std::stof(input);
-                if (std::is_same<T, int>::value)   num = std::stoi(input);
-                if (std::is_same<T, bool>::value)  num = yes_or_no(input);
-                no_answer=false;
-            } catch (...) {
-                printf("Not a valid input. ");
-            }
-        }
-        return num;
-    }
-
 
     // Decisions
 
     int will_choose_which_father(int fertility_age, std::vector<Person>& people, std::vector<int>& id2ind,Nature& nature){
-        if (play) return decision<int>("Which person do you choose?",people,id2ind);
+        if (play) return decision<int>("Which person do you choose?");
         if (true){ // Method 2: Choose randomly among pre-existing relationships
             if (rships.size()>0){
                 RandPerm rp(rships.size());
@@ -363,7 +305,7 @@ class Person{
     }
 
     int will_choose_which_friend(std::vector<Person>& people, std::vector<int>& id2ind){
-        if (play) return decision<int>("Which friend to hang out with?",people,id2ind);
+        if (play) return decision<int>("Which friend to hang out with?");
         // Choose a pre-existing relationship at random
         if (false){ // Doesn't matter where friend is
             return rand_int(rships.size());
