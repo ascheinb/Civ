@@ -54,10 +54,11 @@ class Group{
         }
     }
 
-    void assess_defence(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left){
+    // Decisions
+
+    void will_desire_how_many_guards(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left){
         nguards_desired.resize(0);
         guards_desired_loc.resize(0);
-        //*****        DECISION        *****//
         // Great, now have a list of used/defended, by tile
         for (int j=0;j<victim_homes.size();j++){
             // Apply the adjustments to decide how many guards to request in each location
@@ -73,6 +74,41 @@ class Group{
             nguards_desired.push_back(nlast_turn + adjustment);
             guards_desired_loc.push_back(victim_homes[j]);
         }
+    }
+
+    float will_try_to_raise_how_much(){
+        int nguards_desired_total=0;
+        for (int i=0;i<nguards_desired.size();i++){
+            nguards_desired_total+=nguards_desired[i];
+        }
+        float desired_expenditure=guard_cost*nguards_desired_total;
+        return std::max(desired_expenditure-wealth,0.0f);
+    }
+
+    int will_request_how_many_guards(){
+        return (int)(wealth/guard_cost); // rounds down
+    }
+
+    void set_tasks(){
+        // Set some to attack
+        int nattacks=2; // or less
+        for (int i=0;i<guards.size();i++){
+            if (i<nattacks){
+                guards[i].task=ATTACK;
+                guards[i].target=-1;
+            }
+        }
+    }
+
+    bool will_try_to_defend(){
+        return (nused<nguards);
+    }
+
+    // Actions
+
+    void assess_defence(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left){
+        // Updates nguards_desired and guards_desired_loc
+        will_desire_how_many_guards(victim_homes,lused,lundefended,guards_left);
 
         // Reset defence assessment monitoring data
         nused=0;
@@ -82,13 +118,7 @@ class Group{
     }
 
     void set_wealth_request(){
-        //*****        DECISION        *****//
-        int nguards_desired_total=0;
-        for (int i=0;i<nguards_desired.size();i++){
-            nguards_desired_total+=nguards_desired[i];
-        }
-        float desired_expenditure=guard_cost*nguards_desired_total;
-        float amt_to_raise = std::max(desired_expenditure-wealth,0.0f);
+        float amt_to_raise = will_try_to_raise_how_much();
         wealth_request=req_to_rec*amt_to_raise/npaying; // Requests going out to each member
         npaying=0; // Set this to zero to get an accurate count next time
     }
@@ -104,27 +134,13 @@ class Group{
     }
 
     void set_task_request(){
-        //*****        DECISION        *****//
-        guard_request = wealth/guard_cost; // Find this many people to hire
+        guard_request = will_request_how_many_guards(); // Find this many people to hire
         nguards=0; // Assume have to rehire all guards each turn
         guards.resize(0);
     }
 
-    void set_tasks(){
-        //*****        DECISION        *****//
-        // Set some to attack
-        int nattacks=2; // or less
-        for (int i=0;i<guards.size();i++){
-            if (i<nattacks){
-                guards[i].task=ATTACK;
-                guards[i].target=-1;
-            }
-        }
-    }
-
     std::tuple<float,int> provide_defense(int victim_ind, int location){
-        //*****        DECISION        *****//
-        if (nused<nguards){
+        if (will_try_to_defend()){
             // Check if local defender available
             for (int j=0;j<guards.size();j++){
                 if (guards[j].station==location // local

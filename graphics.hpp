@@ -93,6 +93,7 @@ void map_by_groups(Population &p, Nature &n){
     for (int i=0;i<p.person.size();i++){
         if (p.person[i].mships.size()==0)
             {nameless++;continue;}
+
         int lastname = p.person[i].mships[0].id;
         bool already_present = false;
         // Check if name already appears
@@ -411,6 +412,7 @@ void histograms(Population& p){
     }
     printf("\nOpenness:");
     print_histogram(fracs);
+    fflush(stdout);
 }
 
 #endif

@@ -145,7 +145,7 @@ histograms(p);
         }
     }
 
-//histograms(p);
+    if (p.person.size()==0) return 0; // If no population, no final stats
     map_by_geogroup(p,nature);
     map_by_groups(p,nature);
     map_by_population(p,nature);

@@ -168,18 +168,133 @@ class Person{
         return -1;
     }
 
+    // Decisions
+
+    int will_choose_which_father(int fertility_age, std::vector<Person>& people, std::vector<int>& id2ind,Nature& nature){
+        if (true){ // Method 2: Choose randomly among pre-existing relationships
+            if (rships.size()>0){
+                RandPerm rp(rships.size());
+                for (int ridad = 0; ridad<rships.size(); ridad++){
+                    int ri = id2ind[rships[rp.x[ridad]].person_id];
+                    if(people[ri].age>=fertility_age && !people[ri].female) // known adult male, good enough
+                        return ri;
+                }
+            }
+        }
+        // If Method 2 failed, revert to Method 1b: Random among locals
+        int nlocals = nature.map[home].residents.size();
+        RandPerm rp(nlocals);
+        for (int idad = 0; idad<nlocals; idad++){
+            int ri = nature.map[home].residents[rp.x[idad]];
+            if(people[ri].age>=fertility_age && !people[ri].female) // adult male, good enough
+                return ri;
+        }
+        return -1;
+    }
+
+    float how_hard_will_work(){
+        if (contentedness > old_contentedness){
+            // Last turn was happy, so use last turn's workrate as the new base workrate
+            old_workrate=workrate;
+        }
+
+        // Try a bit more or less work
+        float new_workrate = old_workrate+rand_f1()*0.1f-0.05f;
+        return std::min(1.0f,std::max(0.0f,new_workrate));
+    }
+
+    bool will_move(){
+        return chance((float)openness/TRAITMAX);
+    }
+
+    int where_will_move(Nature& nature){
+        return nature.neighbor(home,rand_int(6));
+    }
+
+    bool will_take(bool ordered){
+        return agreeableness<=THIEF || ordered;
+    }
+
+    int whom_will_take_from(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature, int ordered){
+        if (false){ // Take from someone anywhere
+            return rand_int(people.size());
+        } else { // Take from someone local
+            int nlocals = nature.map[home].residents.size();
+            if (ordered){ // Attack whoever your employer wants you to
+                if (groups[employer].guards[employee_id].target==-1) { // Anyone not in your group
+                    RandPerm rp(nlocals);
+                    for (int i=0;i<nlocals;i++){ // Loop randomly over residents
+                        int ptarget = nature.map[home].residents[rp.x[i]];
+                        if (!people[ptarget].is_member(employer)){ // Check they're not in your group
+                            return ptarget;
+                        }
+                    }
+                }
+            } else {
+                return nature.map[home].residents[rand_int(nlocals)];
+            }
+        }
+        return -1;
+    }
+
+    bool will_risk_taking(float amt_to_steal, float success_rate, bool ordered){
+        float expected_value = amt_to_steal*success_rate - (1-success_rate)*wealth;
+        return (expected_value>0.0f || ordered);
+    }
+
+    bool will_give_food(int i_rship){
+        return (rships[i_rship].fondness_to>=FONDSHARE || rships[i_rship].child);
+    }
+
+    float how_much_food_will_give(Person& p){
+        float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
+        return std::min(wealth-(FOOD_TO_SURVIVE+std_lux),FOOD_TO_SURVIVE-p.wealth);
+    }
+
+    int choose_local_friend(std::vector<Person>& people, std::vector<int>& id2ind){
+        RandPerm rp(rships.size());
+        for (int i=0;i<rships.size();i++){
+            int ri=rp.x[i];
+            int friend_ind = id2ind[rships[ri].person_id];
+            if (people[friend_ind].home==home) return ri;
+        }
+        return -1;
+    }
+
+    int will_choose_which_friend(std::vector<Person>& people, std::vector<int>& id2ind){
+        // Choose a pre-existing relationship at random
+        if (false){ // Doesn't matter where friend is
+            return rand_int(rships.size());
+        }else{ // Only socialize with locals
+            return choose_local_friend(people,id2ind);
+        }
+    }
+
+    bool will_branch_out(){
+        return (rand_f1()*TRAITMAX<=extroversion);
+    }
+
+    float how_much_will_consume(){
+        return wealth*((float)(TRAITMAX-neuroticism)/TRAITMAX);
+    }
+
+    float how_much_will_tithe(float req){
+        return std::min(wealth,req);
+    }
+
+    bool will_accept_task(){
+        return true;
+    }
+
+    bool will_bump_workrate(){
+        return (agreeableness>KIDCARE);
+    }
 
     // Actions
 
     void evaluate_choices(){
-        //*****        DECISION        *****//
         if (worktype==FORAGE){
-            if (contentedness > old_contentedness){ // This is better, change workrate!
-                old_workrate=workrate;
-            }
-            // Try a bit more or less work
-            workrate = old_workrate+rand_f1()*0.1f-0.05f;
-            workrate = std::min(1.0f,std::max(0.0f,workrate));
+            workrate = how_hard_will_work();
         }
 
         // Reset contentedness counter
@@ -213,11 +328,8 @@ class Person{
             float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
             if (nature.map[home].food_available<FOOD_TO_SURVIVE) {
                 if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
-                //*****        DECISION        *****//
-                if (chance((float)openness/TRAITMAX)){
-                    // Change home to an adjacent tile
-                    int new_home = nature.neighbor(home,rand_int(6));
-                    move_tiles(nature,new_home);
+                if (will_move()){
+                    move_tiles(nature,where_will_move(nature));
                 }
             }
             wealth+=food_haul;
@@ -238,29 +350,10 @@ class Person{
             if (task==ATTACK)
                 ordered=true;
         }
-        //*****        DECISION        *****//
-        if (agreeableness>THIEF && !ordered) return; // Too agreeable, won't steal (if not ordered)
-        int target_ind = -1;
-        if (false){ // Take from someone anywhere
-            target_ind = rand_int(people.size());
-        } else { // Take from someone local
-            if (ordered){ // Attack whoever your employer wants you to
-                if (groups[employer].guards[employee_id].target==-1) { // Anyone not in your group
-                    int nlocals = nature.map[home].residents.size();
-                    RandPerm rp(nlocals);
-                    for (int i=0;i<nlocals;i++){ // Loop randomly over residents
-                        int ptarget = nature.map[home].residents[rp.x[i]];
-                        if (!people[ptarget].is_member(employer)){ // Check they're not in your group
-                            target_ind=ptarget;
-                            break;
-                        }
-                    }
-                }
-            } else {
-                int nlocals = nature.map[home].residents.size();
-                target_ind = nature.map[home].residents[rand_int(nlocals)];
-            }
-        }
+
+        if (!will_take(ordered)) return; // Too agreeable, won't steal (if not ordered)
+        int target_ind = whom_will_take_from(people,groups,nature,ordered);
+
         if (target_ind==-1) return; // Couldn't find target
         if (people[target_ind].id==id) return; // Can't steal from yourself smart guy
         
@@ -287,12 +380,8 @@ class Person{
         }
 
         float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
-        //*****        DECISION        *****//
-        // Rational thieving decisions:
         float amt_to_steal = people[target_ind].wealth; // Steal all, for now
-        float amt_to_lose = wealth; // Group rule: If you're caught, they take all your money
-        float expected_value = amt_to_steal*success_rate - (1-success_rate)*wealth;
-        if (expected_value<0 && !ordered) return; // Not worth the risk! (unless ordered, for now)
+        if (!will_risk_taking(amt_to_steal, success_rate, ordered)) return; // Not worth the risk! (unless ordered, for now)
 
         if (chance(success_rate)){ // Successful theft
             float amt_to_steal = people[target_ind].wealth; // Steal all, for now
@@ -321,15 +410,14 @@ class Person{
 
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
         for (int i_rship=0;i_rship<rships.size();i_rship++){
-            //*****        DECISION        *****//
-            if (rships[i_rship].fondness_to<FONDSHARE && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
+            if (!will_give_food(i_rship)) continue; // Skip not fond friends unless its your kid
             float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
             if (wealth>FOOD_TO_SURVIVE+std_lux){ // If you have extra food
                 int friend_id = rships[i_rship].person_id;
                 int friend_ind = id2ind[friend_id];
                 if (people[friend_ind].wealth<FOOD_TO_SURVIVE){ // And a friend is hungry
                     // Feed friend
-                    float transfer_amt = std::min(wealth-(FOOD_TO_SURVIVE+std_lux),FOOD_TO_SURVIVE-people[friend_ind].wealth);
+                    float transfer_amt = how_much_food_will_give(people[friend_ind]);
                     wealth-=transfer_amt;
                     people[friend_ind].wealth+=transfer_amt;
 
@@ -349,30 +437,12 @@ class Person{
         }
     }
 
-    int choose_local_friend(std::vector<Person>& people, std::vector<int>& id2ind){
-        RandPerm rp(rships.size());
-        for (int i=0;i<rships.size();i++){
-            int ri=rp.x[i];
-            int friend_ind = id2ind[rships[ri].person_id];
-            if (people[friend_ind].home==home) return ri;
-        }
-        return -1;
-    }
-
     void socialize(std::vector<Person>& people, std::vector<int>& id2ind, std::vector<Group>& groups){
+        if (rships.size()==0) return; // Skip if no existing relationships
         // Strategy 1: Spend time with a friend
-        //*****        DECISION        *****//
-        // Choose a pre-existing relationship at random
-        if (rships.size()==0) return;
-        int friend_rind;
-        if (false){ // Doesn't matter where friend is
-            friend_rind = rand_int(rships.size());
-        }else{ // Only socialize with locals
-            friend_rind = choose_local_friend(people,id2ind);
-            if (friend_rind==-1) return; // No local friends, can't socialize
-        }
+        int friend_rind = will_choose_which_friend(people,id2ind);
+        if (friend_rind==-1) return; // No friends, can't socialize
         int friend_ind = id2ind[rships[friend_rind].person_id];
-
         int this_rind = people[friend_ind].rship_index(id);
 
         // Strengthen relationship with friend
@@ -382,8 +452,7 @@ class Person{
         people[friend_ind].rships[this_rind].fondness_of = std::min(people[friend_ind].rships[this_rind].fondness_of+1,TRAITMAX);
 
         // Strategy 2: Branch out
-        //*****        DECISION        *****//
-        if (rand_f1()*TRAITMAX>extroversion) return; // Too shy
+        if (!will_branch_out()) return; // Too shy
         // Choose one of their friends at random
         int fof_rind = rand_int(people[friend_ind].rships.size());
         if (fof_rind == this_rind) return; // Chose yourself, whatever
@@ -395,8 +464,7 @@ class Person{
             if (rships[i_rship].person_id==people[fof_ind].id) return;
         }
         // Otherwise, create the relationship
-        //*****        DECISION        *****//
-        if (rand_f1()*TRAITMAX>people[fof_ind].extroversion) return; // Friend is too shy
+        if (!people[fof_ind].will_branch_out()) return; // Friend is too shy
         rships.push_back(Relationship(people[fof_ind].id));
         people[fof_ind].rships.push_back(Relationship(id));
 
@@ -414,7 +482,6 @@ class Person{
         }
         // Adjust loyalty to groups
         for (int i=(int)(mships.size())-1;i>=0;i--){
-            //*****        DECISION        *****//
             mships[i].loyalty_to-=3.0f*(float)(TRAITMAX-conscientiousness)/TRAITMAX; // Reduce loyalty to all groups as time passes
             for (int j=0;j<people[friend_ind].mships.size();j++){
                 if (mships[i].id==people[friend_ind].mships[j].id){ // group is common
@@ -431,9 +498,8 @@ class Person{
     }
 
     void luxury(){
-        //*****        DECISION        *****//
         // Function to determine how much to spend vs save: save all if neurotic, spend all if not
-        float to_enjoy = wealth*((float)(TRAITMAX-neuroticism)/TRAITMAX);
+        float to_enjoy = how_much_will_consume();
         wealth-=to_enjoy;
         contentedness+=to_enjoy;
         //if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
@@ -443,9 +509,8 @@ class Person{
         for (int i=0;i<mships.size();i++){
             float req = groups[mships[i].id].wealth_request;
 
-            //*****        DECISION        *****//
-            // Accept automatically, for now
-            float transfer_amt = std::min(wealth,req);
+            float transfer_amt = how_much_will_tithe(req);
+
             wealth-=transfer_amt;
             groups[mships[i].id].received+=transfer_amt;
             groups[mships[i].id].npaying+=1;
@@ -464,18 +529,19 @@ class Person{
                         {area_gid=j; break;}
                 }
                 if (area_gid==-1) continue;
-                //*****        DECISION        *****//
-                // Accept automatically, for now
-                worktype = GUARD;
-                employer = gid;
-                groups[gid].nguards++;
-                groups[gid].guards.push_back(Guard(this_ind,ACTIONS_PER_GUARD,DEFEND,home));
-                employee_id = groups[gid].guards.size();
-                groups[gid].wealth-=groups[gid].guard_cost;
-                wealth+=groups[gid].guard_cost;
 
-                // Localality info
-                groups[gid].nguards_desired[area_gid]--;
+                if(will_accept_task()){
+                    worktype = GUARD;
+                    employer = gid;
+                    groups[gid].nguards++;
+                    groups[gid].guards.push_back(Guard(this_ind,ACTIONS_PER_GUARD,DEFEND,home));
+                    employee_id = groups[gid].guards.size();
+                    groups[gid].wealth-=groups[gid].guard_cost;
+                    wealth+=groups[gid].guard_cost;
+
+                    // Localality info
+                    groups[gid].nguards_desired[area_gid]--;
+                }
             }
         }
     }
@@ -507,27 +573,7 @@ class Person{
             if (chance(fertility_rate)){ // If having children
                 if (watch) printf("\n%s wants a kid.", names[name].c_str());
                 // Find father
-                int dad_ind = -1;
-                //*****        DECISION        *****//
-                if (true){ // Method 2: Choose randomly among pre-existing relationships
-                    if (rships.size()>0){
-                        RandPerm rp(rships.size());
-                        for (int ridad = 0; ridad<rships.size(); ridad++){
-                            int ri = id2ind[rships[rp.x[ridad]].person_id];
-                            if(people[ri].age>=fertility_age && !people[ri].female) // known adult male, good enough
-                                {dad_ind=ri; break;}
-                        }
-                    }
-                }
-                if (dad_ind==-1){ // If Method 2 failed, revert to Method 1b: Random among locals
-                    int nlocals = nature.map[home].residents.size();
-                    RandPerm rp(nlocals);
-                    for (int idad = 0; idad<nlocals; idad++){
-                        int ri = nature.map[home].residents[rp.x[idad]];
-                        if(people[ri].age>=fertility_age && !people[ri].female) // adult male, good enough
-                            {dad_ind=ri; break;}
-                    }
-                }
+                int dad_ind = will_choose_which_father(fertility_age,people,id2ind,nature);
 
                 if (dad_ind>=0) { // found a father
                     // Create kid
@@ -544,10 +590,9 @@ class Person{
                         people[dad_ind].rships.push_back(Relationship(id));
                     }
 
-                    //*****        DECISION        *****//
                     // Bump workrate: they know kids are expensive.
-                    if (agreeableness>KIDCARE) {old_workrate=1.0f; workrate=1.0f;}
-                    if (people[dad_ind].agreeableness>KIDCARE) {people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;}
+                    if (will_bump_workrate()) {old_workrate=1.0f; workrate=1.0f;}
+                    if (people[dad_ind].will_bump_workrate()) {people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;}
 
                     if (watch || people[dad_ind].watch){
                         char him_or_her[3]=""; strcat(him_or_her, people[people.size()-1].female ? "her" : "him");
