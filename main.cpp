@@ -45,7 +45,7 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
 
         //*** NATURE ***//
         nature.generate_food();
-//if (i_turn>0) printf("\nTurn %d",i_turn);
+
         if (watch && i_turn>=(watch_start_year*4-3)){
             if(i_turn%4==1){
                 printf("\nYear %d begins",1+(i_turn-1)/4);
@@ -57,43 +57,45 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
         }
 
         p.evaluate_choices();
-//if (i_turn>456){return 0;}
+
         p.task_requests(i_turn);
-//if (i_turn>456){return 0;}
+
         p.do_long_actions(nature);
         p.update_residents(nature);
-//if (i_turn>456){return 0;}
-//printf("i_turn: %d", i_turn);
+
+
         if (i_turn>240){
             p.take_by_force(i_turn,nature);
         }
-//if (i_turn>456){return 0;}
+
         p.assess_defence();
-//if (i_turn>456){return 0;}
+
         p.feed_friends();
 
         p.socialize();
-int nexb=p.get_nextant();
+
+        int nexb=p.get_nextant();
         p.update_memberlists();
         p.merge_groups();
-nmerged=nexb-p.get_nextant();
+        nmerged=nexb-p.get_nextant();
+
         p.survive();
         p.luxury();
 
         p.wealth_requests();
-//if (i_turn>456){return 0;}
+
         ncreated+=p.new_groups(); // Move before wealth request
 
         p.age();
         if (i_turn%480==1 || i_turn==n_turns){
-printf("\n\nYear: %d, Population: %lu",i_turn/4,p.person.size());
-int nowextant = p.get_nextant();
-    int ndestroyed = ncreated-(nowextant-nextant)-nmerged;
-if (i_turn>1)    printf("\nGroups info: nextant: %d, created: %d, destroyed: %d, merged %d, avg duration: %.1f years",nowextant, ncreated,ndestroyed, nmerged, (0.25f*p.sum_dage)/p.sum_nage);
-    ncreated=0;nmerged=0; nextant=nowextant; p.sum_nage=0; p.sum_dage=0;
-printf("\nPercent growing: %.1f%%", p.frac([](Person& h){return h.worktype==GROW;})*100);
-printf("\nPercent foraging: %.1f%%", p.frac([](Person& h){return h.worktype==FORAGE;})*100);
-printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==GUARD;})*100);
+            printf("\n\nYear: %d, Population: %lu",i_turn/4,p.person.size());
+            int nowextant = p.get_nextant();
+            int ndestroyed = ncreated-(nowextant-nextant)-nmerged;
+            if (i_turn>1)    printf("\nGroups info: nextant: %d, created: %d, destroyed: %d, merged %d, avg duration: %.1f years",nowextant, ncreated,ndestroyed, nmerged, (0.25f*p.sum_dage)/p.sum_nage);
+            ncreated=0;nmerged=0; nextant=nowextant; p.sum_nage=0; p.sum_dage=0;
+            printf("\nPercent growing: %.1f%%", p.frac([](Person& h){return h.worktype==GROW;})*100);
+            printf("\nPercent foraging: %.1f%%", p.frac([](Person& h){return h.worktype==FORAGE;})*100);
+            printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==GUARD;})*100);
         }
         // Deaths
         int n_died;
@@ -121,23 +123,13 @@ printf("\nPercent guarding: %.1f%%", p.frac([](Person& h){return h.worktype==GUA
         // Report
         if (i_turn%480==1 || i_turn==n_turns){
             int extant_groups = p.get_nextant();
-printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
-printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
-printf("\nAverage conscientiousness: %.1f", p.avg([](Person& h){return h.conscientiousness;}));
-printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
-printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}));
-map_by_geogroup(p,nature);
-
-//map_by_groups(p,nature);
-//map_by_population(p,nature);
-histograms(p);
-
-        }
-//if (i_turn>456){return 0;}
-        // Pause
-        if (watch && i_turn>=(watch_start_year*4-3) && i_turn%4==0){
-            printf("\n");
-            std::cin.get();
+            printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
+            printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
+            printf("\nAverage conscientiousness: %.1f", p.avg([](Person& h){return h.conscientiousness;}));
+            printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
+            printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}));
+            map_by_geogroup(p,nature);
+            histograms(p);
         }
     }
     ctrl.active=false; // Exit UI
@@ -180,7 +172,7 @@ struct Model{
     {
         carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
         n_turns = n_years*4; // A turn is one season
-        watch = true;
+        watch = false;
         watch_start_year=500;
     }
 };
@@ -195,17 +187,24 @@ bool more_info(std::string& input, Model& model){
         printf("\n# of memberships: %lu",p->mships.size());
         printf("\n");
     }else if(input.compare("friends")==0){
-        printf("\n#\tName\t\tFondness");
+        printf("\n#\tName\t\tFondness\tAge\tWealth");
         printf("\n______________________________________________________");
         for (int i=0;i<p->rships.size();i++){
             int ind = model.p.id2ind[p->rships[i].person_id];
             char atab[2];
             std::strcpy(atab,names[model.p.person[ind].name].length()<8 ? "\t" : "");
-            printf("\n%d.\t%s%s\t%d",i,names[model.p.person[ind].name].c_str(),atab,p->rships[i].fondness_to);
+            printf("\n%d.\t%s%s\t%d\t\t%d\t%.2f",i,names[model.p.person[ind].name].c_str(),atab,p->rships[i].fondness_to,model.p.person[ind].age/4,model.p.person[ind].wealth);
         }
         printf("\n");
     }else if(input.compare("groups")==0){
-        printf("\nPrinting group info");
+        printf("\n#\tName\t\tLoyalty to\tSize\tWealth");
+        printf("\n______________________________________________________");
+        for (int i=0;i<p->mships.size();i++){
+            int ind = p->mships[i].id;
+            char atab[2];
+            std::strcpy(atab,gnames[model.p.groups[ind].name].length()<8 ? "\t" : "");
+            printf("\n%d.\t%s%s\t%.2f\t\t%lu\t%.2f",i,gnames[model.p.groups[ind].name].c_str(),atab,p->mships[i].loyalty_to,model.p.groups[ind].memberlist.size(),model.p.groups[ind].wealth);
+        }
         printf("\n");
     }else{
         return false;
@@ -259,12 +258,16 @@ void *interface_with_user(void *arguments){
             ctrl.needs_bool=false;
         }
     }
+
+    return NULL;
 }
 
 void *launch_simulation(void *arguments){
     Model *model = ((Model *)arguments);
 
     run_simulation(model->nature, model->p, model->nkids, model->nstarved, model->ndied, model->nppl, model->n_turns, model->carrying_capacity, model->watch, model->watch_start_year);
+
+    return NULL;
 }
 
 int main(){
@@ -279,18 +282,18 @@ int main(){
     // Read in names
     fill_names();
 
-    bool debug=false;
-    int initial_n_ppl = 200;
+    int initial_n_ppl = 2000;
     int n_years = 2000;
-    float min_food_gen=1000;
-    float max_food_gen=1000;
+    float min_food_gen=10000;
+    float max_food_gen=10000;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=40; // Must be divisible by mapwidth
-    int mapwidth=8; // Keep even for map_by_groups to work
+    int mapsize=400; // Must be divisible by mapwidth
+    int mapwidth=20; // Keep even for map_by_groups to work
 
+    // Initialize model
     Model model(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth);
 
-    // Create the threads
+    // Create the threads and launch UI and simulation
     result_code = pthread_create(&threads[UIth], NULL, interface_with_user, &model);
     assert(!result_code);
     result_code = pthread_create(&threads[SIMth], NULL, launch_simulation, &model);
@@ -299,10 +302,8 @@ int main(){
     //wait for each thread to complete
     result_code = pthread_join(threads[UIth], NULL);
     assert(!result_code);
-    printf("IN MAIN: Thread %d has ended.\n", UIth);
     result_code = pthread_join(threads[SIMth], NULL);
     assert(!result_code);
-    printf("IN MAIN: Thread %d has ended.\n", SIMth);
 
     return 0;
 }
