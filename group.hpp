@@ -57,6 +57,7 @@ class Group{
     void assess_defence(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left){
         nguards_desired.resize(0);
         guards_desired_loc.resize(0);
+        //*****        DECISION        *****//
         // Great, now have a list of used/defended, by tile
         for (int j=0;j<victim_homes.size();j++){
             // Apply the adjustments to decide how many guards to request in each location
@@ -81,6 +82,7 @@ class Group{
     }
 
     void set_wealth_request(){
+        //*****        DECISION        *****//
         int nguards_desired_total=0;
         for (int i=0;i<nguards_desired.size();i++){
             nguards_desired_total+=nguards_desired[i];
@@ -102,12 +104,14 @@ class Group{
     }
 
     void set_task_request(){
+        //*****        DECISION        *****//
         guard_request = wealth/guard_cost; // Find this many people to hire
         nguards=0; // Assume have to rehire all guards each turn
         guards.resize(0);
     }
 
     void set_tasks(){
+        //*****        DECISION        *****//
         // Set some to attack
         int nattacks=2; // or less
         for (int i=0;i<guards.size();i++){
@@ -119,6 +123,7 @@ class Group{
     }
 
     std::tuple<float,int> provide_defense(int victim_ind, int location){
+        //*****        DECISION        *****//
         if (nused<nguards){
             // Check if local defender available
             for (int j=0;j<guards.size();j++){

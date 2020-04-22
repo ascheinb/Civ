@@ -172,6 +172,7 @@ class Person{
     // Actions
 
     void evaluate_choices(){
+        //*****        DECISION        *****//
         if (worktype==FORAGE){
             if (contentedness > old_contentedness){ // This is better, change workrate!
                 old_workrate=workrate;
@@ -200,6 +201,7 @@ class Person{
             float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
             if (nature.map[home].food_available<FOOD_TO_SURVIVE) {
                 if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
+                //*****        DECISION        *****//
                 bool move_tiles = chance((float)openness/TRAITMAX);
                 if (move_tiles){
                     // Change home to an adjacent tile
@@ -234,6 +236,7 @@ class Person{
             if (task==ATTACK)
                 ordered=true;
         }
+        //*****        DECISION        *****//
         if (agreeableness>THIEF && !ordered) return; // Too agreeable, won't steal (if not ordered)
         int target_ind = -1;
         if (false){ // Take from someone anywhere
@@ -282,6 +285,7 @@ class Person{
         }
 
         float success_rate=0.99f/(defense+1.0f)+0.01f; // starts at 1, approaches 0.01
+        //*****        DECISION        *****//
         // Rational thieving decisions:
         float amt_to_steal = people[target_ind].wealth; // Steal all, for now
         float amt_to_lose = wealth; // Group rule: If you're caught, they take all your money
@@ -315,6 +319,7 @@ class Person{
 
     void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
         for (int i_rship=0;i_rship<rships.size();i_rship++){
+            //*****        DECISION        *****//
             if (rships[i_rship].fondness_to<FONDSHARE && !rships[i_rship].child) continue; // Skip not fond friends unless its your kid
 
             if (wealth>1.5){ // If you have extra food
@@ -354,6 +359,7 @@ class Person{
 
     void socialize(std::vector<Person>& people, std::vector<int>& id2ind, std::vector<Group>& groups){
         // Strategy 1: Spend time with a friend
+        //*****        DECISION        *****//
         // Choose a pre-existing relationship at random
         if (rships.size()==0) return;
         int friend_rind;
@@ -374,6 +380,7 @@ class Person{
         people[friend_ind].rships[this_rind].fondness_of = std::min(people[friend_ind].rships[this_rind].fondness_of+1,TRAITMAX);
 
         // Strategy 2: Branch out
+        //*****        DECISION        *****//
         if (rand_f1()*TRAITMAX>extroversion) return; // Too shy
         // Choose one of their friends at random
         int fof_rind = rand_int(people[friend_ind].rships.size());
@@ -386,6 +393,7 @@ class Person{
             if (rships[i_rship].person_id==people[fof_ind].id) return;
         }
         // Otherwise, create the relationship
+        //*****        DECISION        *****//
         if (rand_f1()*TRAITMAX>people[fof_ind].extroversion) return; // Friend is too shy
         rships.push_back(Relationship(people[fof_ind].id));
         people[fof_ind].rships.push_back(Relationship(id));
@@ -404,6 +412,7 @@ class Person{
         }
         // Adjust loyalty to groups
         for (int i=(int)(mships.size())-1;i>=0;i--){
+            //*****        DECISION        *****//
             mships[i].loyalty_to-=3.0f*(float)(TRAITMAX-conscientiousness)/TRAITMAX; // Reduce loyalty to all groups as time passes
             for (int j=0;j<people[friend_ind].mships.size();j++){
                 if (mships[i].id==people[friend_ind].mships[j].id){ // group is common
@@ -419,9 +428,20 @@ class Person{
         }
     }
 
+    void luxury(){
+        //*****        DECISION        *****//
+        // Function to determine how much to spend vs save: save all if neurotic, spend all if not
+        float to_enjoy = wealth*((float)(TRAITMAX-neuroticism)/TRAITMAX);
+        wealth-=to_enjoy;
+        contentedness+=to_enjoy;
+        //if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
+    }
+
     void respond_to_wealth_requests(std::vector<Group>& groups){
         for (int i=0;i<mships.size();i++){
             float req = groups[mships[i].id].wealth_request;
+
+            //*****        DECISION        *****//
             // Accept automatically, for now
             float transfer_amt = std::min(wealth,req);
             wealth-=transfer_amt;
@@ -442,6 +462,7 @@ class Person{
                         {area_gid=j; break;}
                 }
                 if (area_gid==-1) continue;
+                //*****        DECISION        *****//
                 // Accept automatically, for now
                 worktype = GUARD;
                 employer = gid;
@@ -485,6 +506,7 @@ class Person{
                 if (watch) printf("\n%s wants a kid.", names[name].c_str());
                 // Find father
                 int dad_ind = -1;
+                //*****        DECISION        *****//
                 if (true){ // Method 2: Choose randomly among pre-existing relationships
                     if (rships.size()>0){
                         RandPerm rp(rships.size());
@@ -520,6 +542,7 @@ class Person{
                         people[dad_ind].rships.push_back(Relationship(id));
                     }
 
+                    //*****        DECISION        *****//
                     // Bump workrate: they know kids are expensive.
                     if (agreeableness>KIDCARE) {old_workrate=1.0f; workrate=1.0f;}
                     if (people[dad_ind].agreeableness>KIDCARE) {people[dad_ind].old_workrate = 1.0f; people[dad_ind].workrate = 1.0f;}
