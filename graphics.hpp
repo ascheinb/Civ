@@ -382,35 +382,35 @@ void histograms(Population& p){
     for (int i=0;i<fracs.size();i++){
         fracs[i] = p.frac(i,[](int i,Person& h){return h.extroversion==i;});
     }
-    printf("\nExtroversion:");
+    printf("\nExtroversion: (average: %.1f)", p.avg([](Person& h){return h.extroversion;}));
     print_histogram(fracs);
 
     // Agreeableness
     for (int i=0;i<fracs.size();i++){
         fracs[i] = p.frac(i,[](int i,Person& h){return h.agreeableness==i;});
     }
-    printf("\nAgreeableness:");
+    printf("\nAgreeableness: (average: %.1f)", p.avg([](Person& h){return h.agreeableness;}));
     print_histogram(fracs);
 
     // Conscientiousness
     for (int i=0;i<fracs.size();i++){
         fracs[i] = p.frac(i,[](int i,Person& h){return h.conscientiousness==i;});
     }
-    printf("\nConscientiousness:");
+    printf("\nConscientiousness (average: %.1f)", p.avg([](Person& h){return h.conscientiousness;}));
     print_histogram(fracs);
 
     // Neuroticism
     for (int i=0;i<fracs.size();i++){
         fracs[i] = p.frac(i,[](int i,Person& h){return h.neuroticism==i;});
     }
-    printf("\nNeuroticism:");
+    printf("\nNeuroticism: (average: %.1f)", p.avg([](Person& h){return h.neuroticism;}));
     print_histogram(fracs);
 
     // Openness
     for (int i=0;i<fracs.size();i++){
         fracs[i] = p.frac(i,[](int i,Person& h){return h.openness==i;});
     }
-    printf("\nOpenness:");
+    printf("\nOpenness: (average: %.1f)", p.avg([](Person& h){return h.openness;}));
     print_histogram(fracs);
     fflush(stdout);
 }

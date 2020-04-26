@@ -141,8 +141,16 @@ class Population{
     }
 
     void socialize() {
-        for(int i = 0; i<person.size();i++)
+        for(int i = 0; i<person.size();i++){
             person[i].socialize(person,id2ind,groups);
+            person[i].erode_loyalty();
+        }
+    }
+
+    void purge_memberships() {
+        for(int i = 0; i<person.size();i++){
+            person[i].purge_memberships(groups);
+        }
     }
 
     void update_memberlists(){

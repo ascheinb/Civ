@@ -501,6 +501,26 @@ class Person{
         people[friend_ind].rships[this_rind].fondness_to = std::min(people[friend_ind].rships[this_rind].fondness_to+1,TRAITMAX);
         people[friend_ind].rships[this_rind].fondness_of = std::min(people[friend_ind].rships[this_rind].fondness_of+1,TRAITMAX);
 
+        // Join a random group of your friends but at low loyalty
+        if (people[friend_ind].mships.size()>0){
+            int rand_ind = rand_int(people[friend_ind].mships.size());
+            int rand_id = people[friend_ind].mships[rand_ind].id;
+            if (!is_member(rand_id)){ // If not already member
+                if (watch) printf("\n%s joined %s", names[name].c_str(),gnames[groups[rand_id].name].c_str());
+                mships.push_back(Membership(rand_id,1));
+            }
+        }
+        // Adjust loyalty to groups
+        for (int i=0;i<mships.size();i++){
+            for (int j=0;j<people[friend_ind].mships.size();j++){
+                if (mships[i].id==people[friend_ind].mships[j].id){ // group is common
+                    mships[i].loyalty_to+=1.0f; // So socializing increases loyalty to the group
+                    people[friend_ind].mships[j].loyalty_to+=1.0f;
+                    break;
+                }
+            }
+        }
+
         // Strategy 2: Branch out
         if (!will_branch_out()) return; // Too shy
         // Choose one of their friends at random
@@ -520,26 +540,17 @@ class Person{
 
         if (watch) printf("\n%s met %s through %s.",names[name].c_str(),names[people[fof_ind].name].c_str(),names[people[friend_ind].name].c_str());
         if (!watch && people[fof_ind].watch) printf("\n%s met %s through %s.",names[people[fof_ind].name].c_str(),names[name].c_str(),names[people[friend_ind].name].c_str());
+    }
 
-        // Join a random group of your friends but at low loyalty
-        if (people[friend_ind].mships.size()>0){
-            int rand_ind = rand_int(people[friend_ind].mships.size());
-            int rand_id = people[friend_ind].mships[rand_ind].id;
-            if (!is_member(rand_id)){ // If not already member
-                if (watch) printf("\n%s joined %s", names[name].c_str(),gnames[groups[rand_id].name].c_str());
-                mships.push_back(Membership(rand_id,1));
-            }
-        }
-        // Adjust loyalty to groups
-        for (int i=(int)(mships.size())-1;i>=0;i--){
+    void erode_loyalty(){
+        for (int i=0;i<mships.size();i++){
             mships[i].loyalty_to-=3.0f*(float)(TRAITMAX-conscientiousness)/TRAITMAX; // Reduce loyalty to all groups as time passes
-            for (int j=0;j<people[friend_ind].mships.size();j++){
-                if (mships[i].id==people[friend_ind].mships[j].id){ // group is common
-                    mships[i].loyalty_to+=1.0f; // So socializing increases loyalty to the group
-                    people[friend_ind].mships[j].loyalty_to+=1.0f;
-                    break;
-                }
-            }
+        }
+    }
+
+    void purge_memberships(std::vector<Group>& groups){
+        // Remove membership if no loyalty
+        for (int i=(int)(mships.size())-1;i>=0;i--){
             if (mships[i].loyalty_to<=0.0f){
                 if (watch) printf("\n%s left %s", names[name].c_str(),gnames[groups[mships[i].id].name].c_str());
                 mships.erase(mships.begin() + i); // Remove membership if no loyalty

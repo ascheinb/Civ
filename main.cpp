@@ -73,6 +73,7 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
         p.feed_friends();
 
         p.socialize();
+        p.purge_memberships();
 
         int nexb=p.get_nextant();
         p.update_memberlists();
@@ -124,8 +125,6 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
         if (i_turn%480==1 || i_turn==n_turns){
             int extant_groups = p.get_nextant();
             printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
-            printf("\nAverage agreeableness: %.1f", p.avg([](Person& h){return h.agreeableness;}));
-            printf("\nAverage conscientiousness: %.1f", p.avg([](Person& h){return h.conscientiousness;}));
             printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
             printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}));
             map_by_geogroup(p,nature);
@@ -141,7 +140,6 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
     printf("\nAverage age at final step: %.1f", p.avg([](Person& h){return h.age;})/4);
     printf("\nGender ratio at final step: %.1f%% women", p.frac([](Person& h){return h.female;})*100);
     float avg_ex=p.avg([](Person& h){return h.extroversion;});
-    printf("\nAverage extroversion at final step: %.1f", avg_ex);
     printf("\nPercent intraverts: %.1f%%", p.frac(avg_ex-2,[](int x,Person& h){return h.extroversion<x;})*100);
     printf("\nPercent extroverts: %.1f%%", p.frac(avg_ex+2,[](int x,Person& h){return h.extroversion>x;})*100);
     printf("\nAverage #rships for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){return std::make_tuple(h.rships.size(),h.extroversion<x);}));
