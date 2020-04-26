@@ -25,7 +25,6 @@ struct Control{
 
 Control ctrl;
 
-#include "person.hpp"
 #include "population.hpp"
 #include "nature.hpp"
 #include "graphics.hpp"
@@ -58,6 +57,7 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
 
         p.evaluate_choices();
 
+        p.leadership();
         p.task_requests(i_turn);
 
         p.do_long_actions(nature);

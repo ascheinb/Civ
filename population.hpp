@@ -4,8 +4,11 @@
 #include <string.h>
 #include "random.hpp"
 #include "myutils.hpp"
+#include "fwd_class_defs.hpp"
 #include "group.hpp"
 #include "person.hpp"
+#include "group.impl.cpp"
+#include "person.impl.cpp"
 
 class Population{
     int n_ids;
@@ -115,6 +118,12 @@ class Population{
     void evaluate_choices() {
         for(int i = 0; i<person.size();i++)
             person[i].evaluate_choices();
+    }
+
+    void leadership() {
+        // Leadership model: popularity contest
+        for (int i=0;i<groups.size();i++)
+            groups[i].choose_leadership(person);
     }
 
     void do_long_actions(Nature &nature) {
