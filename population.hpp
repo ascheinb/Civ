@@ -55,7 +55,7 @@ class Population{
 
     void task_requests(int i_turn) {
         for(int i = 0; i<groups.size();i++)
-            groups[i].set_task_request();
+            if(groups[i].memberlist.size()>0) groups[i].set_task_request(person[groups[i].memberlist[groups[i].leader]]);
 
         // Reply from members: randomized
         RandPerm rp(person.size());
@@ -65,7 +65,7 @@ class Population{
         }
 
         for(int i = 0; i<groups.size();i++)
-            groups[i].set_tasks();
+            if(groups[i].memberlist.size()>0) groups[i].set_tasks(person[groups[i].memberlist[groups[i].leader]]);
     }
 
     void assess_defence() {

@@ -188,6 +188,11 @@ class Person{
 
     bool will_bump_workrate();
 
+    // Leadership decisions
+    float how_much_will_skim(Group& group);
+
+    int how_many_attackers(Group& group);
+
     // Actions
 
     void evaluate_choices();

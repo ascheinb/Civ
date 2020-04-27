@@ -62,9 +62,9 @@ int Group::will_request_how_many_guards(){
     return (int)(wealth/guard_cost); // rounds down
 }
 
-void Group::set_tasks(){
+void Group::set_tasks(Person& pleader){
     // Set some to attack
-    int nattacks=2; // or less
+    int nattacks=pleader.how_many_attackers(*this); // or less
     for (int i=0;i<guards.size();i++){
         if (i<nattacks){
             guards[i].task=ATTACK;
@@ -106,7 +106,12 @@ void Group::assess_wealth_request(){
     received = 0.0f;
 }
 
-void Group::set_task_request(){
+void Group::set_task_request(Person& pleader){
+    // Since this is also the budgeting function for now...
+    float paycheck = pleader.how_much_will_skim(*this);
+    pleader.wealth+=paycheck;
+    wealth-=paycheck;
+
     guard_request = will_request_how_many_guards(); // Find this many people to hire
     nguards=0; // Assume have to rehire all guards each turn
     guards.resize(0);

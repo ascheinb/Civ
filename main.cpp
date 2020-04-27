@@ -170,7 +170,7 @@ struct Model{
     {
         carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
         n_turns = n_years*4; // A turn is one season
-        watch = false;
+        watch = true;
         watch_start_year=500;
     }
 };
@@ -195,15 +195,19 @@ bool more_info(std::string& input, Model& model){
         }
         printf("\n");
     }else if(input.compare("groups")==0){
-        printf("\n#\tName\t\tLoyalty to\tSize\tWealth");
-        printf("\n______________________________________________________");
+        printf("\n#\tName\t\tLoyalty to\tSize\tWealth\tLeader");
+        printf("\n______________________________________________________________");
         for (int i=0;i<p->mships.size();i++){
             int ind = p->mships[i].id;
             char atab[2];
             std::strcpy(atab,gnames[model.p.groups[ind].name].length()<8 ? "\t" : "");
-            printf("\n%d.\t%s%s\t%.2f\t\t%lu\t%.2f",i,gnames[model.p.groups[ind].name].c_str(),atab,p->mships[i].loyalty_to,model.p.groups[ind].memberlist.size(),model.p.groups[ind].wealth);
+            printf("\n%d.\t%s%s\t%.2f\t\t%lu\t%.2f\t%s",i,gnames[model.p.groups[ind].name].c_str(),atab,p->mships[i].loyalty_to,model.p.groups[ind].memberlist.size(),model.p.groups[ind].wealth,names[model.p.person[model.p.groups[ind].memberlist[model.p.groups[ind].leader]].name].c_str());
         }
         printf("\n");
+    }else if(input.compare("map")==0){
+        map_by_geogroup(model.p,model.nature);
+    }else if(input.compare("popmap")==0){
+        map_by_population(model.p,model.nature);
     }else{
         return false;
     }

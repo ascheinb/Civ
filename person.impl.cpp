@@ -210,6 +210,21 @@ bool Person::will_bump_workrate(){
     return (agreeableness>KIDCARE);
 }
 
+// Leadership decisions
+
+float Person::how_much_will_skim(Group& group){
+    if (play) return decision<float>("How much to skim off this group?");
+    // Leader takes 10% over 20 people
+    int nmembers = group.memberlist.size();
+    float skim = group.wealth*std::max(0,nmembers-20)*0.10;
+    return skim;
+}
+
+int Person::how_many_attackers(Group& group){
+    if (play) return decision<int>("How many attackers?");
+    return 2;
+}
+
 // Actions
 
 void Person::evaluate_choices(){

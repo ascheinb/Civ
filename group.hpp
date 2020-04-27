@@ -65,7 +65,7 @@ class Group{
 
     int will_request_how_many_guards();
 
-    void set_tasks();
+    void set_tasks(Person& pleader);
 
     bool will_try_to_defend();
 
@@ -79,7 +79,7 @@ class Group{
 
     void assess_wealth_request();
 
-    void set_task_request();
+    void set_task_request(Person& pleader);
 
     std::tuple<float,int> provide_defense(int victim_ind, int location);
 };
