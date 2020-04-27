@@ -4,6 +4,8 @@
 #include <string.h>
 #include "random.hpp"
 
+using std::vector;
+
 #define GRASS 0
 #define WATER 1
 
@@ -17,7 +19,7 @@ struct HexTile{
     int owner;
     char letter[4]="";
 
-    std::vector<int> residents;
+    vector<int> residents;
 
     int neighbor (int ncol, int nrow, int w){
         int row = id/ncol;
@@ -41,7 +43,7 @@ class Nature{
     public:
     float food_available;
 
-    std::vector<HexTile> map;
+    vector<HexTile> map;
     int ncol;
     int nrow;
 

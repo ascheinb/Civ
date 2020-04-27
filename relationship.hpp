@@ -5,6 +5,8 @@
 #include <numeric>
 #include "random.hpp"
 
+using std::vector;
+
 class Relationship{
     public:
     int person_id;
@@ -26,10 +28,10 @@ class Relationship{
 */
 //template <typename Proc>
 struct Perm{
-    std::vector<int> x;
+    vector<int> x;
 
-//    Perm(std::vector<Relationship>& rships, Proc p) : x(rships.size()) {
-    Perm(std::vector<Relationship>& rships) : x(rships.size()) {
+//    Perm(vector<Relationship>& rships, Proc p) : x(rships.size()) {
+    Perm(vector<Relationship>& rships) : x(rships.size()) {
         // initialize original index locations
         std::iota(x.begin(), x.end(), 0);
 

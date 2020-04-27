@@ -10,6 +10,15 @@
 #include "group.impl.cpp"
 #include "person.impl.cpp"
 
+using std::vector;
+using std::string;
+using std::to_string;
+using std::min;
+using std::max;
+using std::make_tuple;
+using std::tie;
+using std::tuple;
+
 class Population{
     int n_ids;
     int lifespan;
@@ -23,10 +32,10 @@ class Population{
     int sum_dage;
     int sum_nage;
 
-    std::vector<Person> person; // Public so people can see each other (use friend instead?)
-    std::vector<int> id2ind; // map from id to index
+    vector<Person> person; // Public so people can see each other (use friend instead?)
+    vector<int> id2ind; // map from id to index
 
-    std::vector<Group> groups;
+    vector<Group> groups;
 
     Population(int initial_n_ppl, int map_size) : n_ids(initial_n_ppl) {
         // Population-wide traits
@@ -71,9 +80,9 @@ class Population{
     void assess_defence() {
         for(int i = 0; i<groups.size();i++){
             // Convert from people to tiles
-            std::vector<int> victim_homes;
-            std::vector<int> lused;
-            std::vector<int> lundefended;
+            vector<int> victim_homes;
+            vector<int> lused;
+            vector<int> lundefended;
             for (int j=0;j<groups[i].used.size();j++){
                 int victim_home=person[groups[i].used[j]].home;
                 int vhome_ind = get_index(victim_homes,victim_home);
@@ -96,7 +105,7 @@ class Population{
                 }
                 lundefended[vhome_ind]++;
             }
-            std::vector<int> guards_left(victim_homes.size(),0);
+            vector<int> guards_left(victim_homes.size(),0);
             for (int j=0;j<groups[i].guards.size();j++){
                 if (groups[i].guards[j].nactions==0 && groups[i].guards[j].task==DEFEND) continue; // Guard defended 
                 int guard_station=groups[i].guards[j].station;
@@ -137,7 +146,7 @@ class Population{
     void take_by_force(int i_turn,Nature& nature) {
         RandPerm rp(person.size());
         int ramp = person.size()*((i_turn-240.0f)/4000.0f);
-        ramp = std::min((int)(person.size()),std::max(0,ramp));
+        ramp = min((int)(person.size()),max(0,ramp));
         for(int i = 0; i<ramp;i++){
             int ri = rp.x[i];
             person[ri].take_by_force(person, groups, nature);
@@ -163,8 +172,8 @@ class Population{
     }
 
     void update_memberlists(){
-        std::vector<int> old_nmembers(groups.size());
-        std::vector<int> nmembers(groups.size(),0);
+        vector<int> old_nmembers(groups.size());
+        vector<int> nmembers(groups.size(),0);
         // Get old group size
         for(int i = 0; i<groups.size();i++){
             old_nmembers[i]=groups[i].memberlist.size();
@@ -188,8 +197,8 @@ class Population{
     }
 
     void update_residents(Nature& nature){
-        std::vector<int> old_nresidents(nature.map.size());
-        std::vector<int> nresidents(nature.map.size(),0);
+        vector<int> old_nresidents(nature.map.size());
+        vector<int> nresidents(nature.map.size(),0);
         // Get old #residents
         for(int i = 0; i<nature.map.size();i++){
             old_nresidents[i]=nature.map[i].residents.size();
@@ -256,7 +265,7 @@ class Population{
     void survive() {
         for(int i = 0; i<person.size();i++){
             if (person[i].wealth<FOOD_TO_SURVIVE) person[i].will_starve=true;
-            float to_eat = std::min(person[i].wealth,FOOD_TO_SURVIVE);
+            float to_eat = min(person[i].wealth,FOOD_TO_SURVIVE);
             person[i].wealth-=to_eat;
             person[i].contentedness+=to_eat;
             //if (person[i].watch) printf("\n%s's cness after surviving: %.3f", names[person[i].name].c_str(),person[i].contentedness);
@@ -293,7 +302,7 @@ class Population{
         }
     }
 
-    std::tuple<int,int> die() {
+    tuple<int,int> die() {
         // Check deaths twice, first in forward order to adjust id2ind...
         int deaths_so_far=0;
         for(int i = 0; i<person.size();i++){
@@ -324,7 +333,7 @@ class Population{
                 person.erase(person.begin() + i);
             }
         }
-        return std::make_tuple(n_died,n_starved);
+        return make_tuple(n_died,n_starved);
     }
 
     void purge_rships(){
@@ -345,7 +354,7 @@ class Population{
         return n_kids;
     }
 
-    void find_potential_group(std::vector<int>& new_group, Person& p1, int ip1, int j){
+    void find_potential_group(vector<int>& new_group, Person& p1, int ip1, int j){
         int ip2=id2ind[p1.rships[j].person_id]; // ind of P2
         new_group.push_back(ip1);
         new_group.push_back(ip2);
@@ -364,7 +373,7 @@ class Population{
         }
     }
 
-    int find_similar_group(std::vector<int>& new_group, int thisgroupid){
+    int find_similar_group(vector<int>& new_group, int thisgroupid){
         int groupsize = new_group.size();
         for (int g=0;g<groupsize;g++){ // Loop over new group members
             int ind = new_group[g];
@@ -405,7 +414,7 @@ class Population{
                     // P2 doesn't have enough friends
                     //if (person[id2ind[person[ri].rships[j].person_id]].rships.size()+1<SIZEFORMGROUP) continue;
 
-                    std::vector<int> new_group;
+                    vector<int> new_group;
                     find_potential_group(new_group,person[ri],ri,j);
                     int groupsize = new_group.size();
                     if (groupsize>=SIZEFORMGROUP) {
@@ -461,7 +470,7 @@ class Population{
         bool use;
         int count=0;
         for(int i = 0; i<person.size();i++){
-            std::tie(x,use) = p(person[i]);
+            tie(x,use) = p(person[i]);
             if (use){
                 sum+=x;
                 count+=1;
@@ -477,7 +486,7 @@ class Population{
         bool use;
         int count=0;
         for(int i = 0; i<person.size();i++){
-            std::tie(tmp,use) = p(x,person[i]);
+            tie(tmp,use) = p(x,person[i]);
             if (use){
                 sum+=tmp;
                 count+=1;
@@ -490,7 +499,7 @@ class Population{
 
     // Write properties to file
     void snap_age(const char* filebase, int i_turn){
-        std::string turn_str = std::to_string(i_turn);
+        string turn_str = to_string(i_turn);
         char filename[256]="";
         strcat(filename, filebase);
         strcat(filename, turn_str.c_str());

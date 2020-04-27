@@ -35,6 +35,10 @@
 // Food to survive
 #define FOOD_TO_SURVIVE 1.0f
 
+using std::vector;
+using std::max;
+using std::min;
+
 class Population;
 
 class Person{
@@ -67,8 +71,8 @@ class Person{
     int openness; // Controls willingness to move
 
     // Relationships
-    std::vector<Relationship> rships;
-    std::vector<Membership> mships;
+    vector<Relationship> rships;
+    vector<Membership> mships;
 
     float wealth; // temporary
 
@@ -107,11 +111,11 @@ class Person{
         openness =  (mom->openness+dad.openness+rand_int(2))/2 + rand_int(1+2*mutation_rate)-mutation_rate;
 
         // Stay in range
-        extroversion=std::max(std::min(extroversion,TRAITMAX),0);
-        agreeableness=std::max(std::min(agreeableness,TRAITMAX),0);
-        conscientiousness=std::max(std::min(conscientiousness,TRAITMAX),0);
-        neuroticism=std::max(std::min(neuroticism,TRAITMAX),0);
-        openness=std::max(std::min(openness,TRAITMAX),0);
+        extroversion=max(min(extroversion,TRAITMAX),0);
+        agreeableness=max(min(agreeableness,TRAITMAX),0);
+        conscientiousness=max(min(conscientiousness,TRAITMAX),0);
+        neuroticism=max(min(neuroticism,TRAITMAX),0);
+        openness=max(min(openness,TRAITMAX),0);
 
         // Home
         home = dad.home; // Patrilineal home for now
@@ -156,7 +160,7 @@ class Person{
 
     // Decisions
 
-    int will_choose_which_father(int fertility_age, std::vector<Person>& people, std::vector<int>& id2ind,Nature& nature);
+    int will_choose_which_father(int fertility_age, vector<Person>& people, vector<int>& id2ind,Nature& nature);
 
     float how_hard_will_work();
 
@@ -166,7 +170,7 @@ class Person{
 
     bool will_take(bool ordered);
 
-    int whom_will_take_from(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature, int ordered);
+    int whom_will_take_from(vector<Person>& people, vector<Group>& groups,Nature& nature, int ordered);
 
     bool will_risk_taking(float amt_to_steal, float success_rate, bool ordered);
 
@@ -174,9 +178,9 @@ class Person{
 
     float how_much_food_will_give(Person& p);
 
-    int choose_local_friend(std::vector<Person>& people, std::vector<int>& id2ind);
+    int choose_local_friend(vector<Person>& people, vector<int>& id2ind);
 
-    int will_choose_which_friend(std::vector<Person>& people, std::vector<int>& id2ind);
+    int will_choose_which_friend(vector<Person>& people, vector<int>& id2ind);
 
     bool will_branch_out();
 
@@ -201,25 +205,25 @@ class Person{
 
     void do_long_action(Nature& nature);
 
-    void take_by_force(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature);
+    void take_by_force(vector<Person>& people, vector<Group>& groups,Nature& nature);
 
-    void feed_friends(std::vector<Person>& people, std::vector<int>& id2ind);
+    void feed_friends(vector<Person>& people, vector<int>& id2ind);
 
-    void socialize(std::vector<Person>& people, std::vector<int>& id2ind, std::vector<Group>& groups);
+    void socialize(vector<Person>& people, vector<int>& id2ind, vector<Group>& groups);
 
     void erode_loyalty();
 
-    void purge_memberships(std::vector<Group>& groups);
+    void purge_memberships(vector<Group>& groups);
 
     void luxury();
 
-    void respond_to_wealth_requests(std::vector<Group>& groups);
+    void respond_to_wealth_requests(vector<Group>& groups);
 
-    void respond_to_task_requests(std::vector<Group>& groups,int this_ind);
+    void respond_to_task_requests(vector<Group>& groups,int this_ind);
 
-    void purge_rships(int max_rships, std::vector<Person>& people, std::vector<int>& id2ind);
+    void purge_rships(int max_rships, vector<Person>& people, vector<int>& id2ind);
 
-    int breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people, std::vector<int>& id2ind, Nature& nature);
+    int breed(int next_id, int fertility_age, float fertility_rate, vector<Person>& people, vector<int>& id2ind, Nature& nature);
 
 };
 

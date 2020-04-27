@@ -30,6 +30,17 @@ Control ctrl;
 #include "graphics.hpp"
 #include "interface.hpp"
 
+using std::vector;
+using std::string;
+using std::tuple;
+using std::make_tuple;
+using std::tie;
+using std::strcpy;
+using std::cin;
+using std::is_same;
+using std::stoi;
+using std::stof;
+
 void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<int>& nstarved, SimVar<int>& ndied, SimVar<int>& nppl, int n_turns, float carrying_capacity, bool watch, int watch_start_year){
     int ncreated=0; int nextant=0; int nmerged=0; p.sum_nage=0; p.sum_dage=0;
     printf("\n ******** SIMULATION BEGINS ******* \n");
@@ -101,7 +112,7 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
         // Deaths
         int n_died;
         int n_starved;
-        std::tie(n_died,n_starved) = p.die();
+        tie(n_died,n_starved) = p.die();
         nstarved.add(i_turn,n_starved);
         ndied.add(i_turn,n_died);
 
@@ -142,10 +153,10 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
     float avg_ex=p.avg([](Person& h){return h.extroversion;});
     printf("\nPercent intraverts: %.1f%%", p.frac(avg_ex-2,[](int x,Person& h){return h.extroversion<x;})*100);
     printf("\nPercent extroverts: %.1f%%", p.frac(avg_ex+2,[](int x,Person& h){return h.extroversion>x;})*100);
-    printf("\nAverage #rships for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){return std::make_tuple(h.rships.size(),h.extroversion<x);}));
-    printf("\nAverage fondness for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion<x);}));
-    printf("\nAverage #rships for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){return std::make_tuple(h.rships.size(),h.extroversion>x);}));
-    printf("\nAverage fondness for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return std::make_tuple(tfond/h.rships.size(),h.extroversion>x);}));
+    printf("\nAverage #rships for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){return make_tuple(h.rships.size(),h.extroversion<x);}));
+    printf("\nAverage fondness for intraverts: %.1f", p.avg_in(avg_ex-2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return make_tuple(tfond/h.rships.size(),h.extroversion<x);}));
+    printf("\nAverage #rships for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){return make_tuple(h.rships.size(),h.extroversion>x);}));
+    printf("\nAverage fondness for extroverts: %.1f", p.avg_in(avg_ex+2,[](int x,Person& h){float tfond=0.0; for (int i=0;i<h.rships.size();i++){tfond+=h.rships[i].fondness_to;} return make_tuple(tfond/h.rships.size(),h.extroversion>x);}));
     printf("\nAverage population: %.0f (%.1f%% of carrying capacity)",nppl.eq_avg(),100*nppl.eq_avg()/carrying_capacity);
     printf("\nAverage deaths/turn: %.3f, starvation: %.0f%%\n",ndied.eq_avg(), 100*nstarved.eq_avg()/ndied.eq_avg());
     //nkids.write("nkids.txt");
@@ -176,7 +187,7 @@ struct Model{
 };
 
 
-bool more_info(std::string& input, Model& model){
+bool more_info(string& input, Model& model){
     Person* p=&model.p.person[model.p.id2ind[ctrl.info_id]];
     if(input.compare("status")==0){
         printf("\nAge: %d",p->age/4);
@@ -190,7 +201,7 @@ bool more_info(std::string& input, Model& model){
         for (int i=0;i<p->rships.size();i++){
             int ind = model.p.id2ind[p->rships[i].person_id];
             char atab[2];
-            std::strcpy(atab,names[model.p.person[ind].name].length()<8 ? "\t" : "");
+            strcpy(atab,names[model.p.person[ind].name].length()<8 ? "\t" : "");
             printf("\n%d.\t%s%s\t%d\t\t%d\t%.2f",i,names[model.p.person[ind].name].c_str(),atab,p->rships[i].fondness_to,model.p.person[ind].age/4,model.p.person[ind].wealth);
         }
         printf("\n");
@@ -200,7 +211,7 @@ bool more_info(std::string& input, Model& model){
         for (int i=0;i<p->mships.size();i++){
             int ind = p->mships[i].id;
             char atab[2];
-            std::strcpy(atab,gnames[model.p.groups[ind].name].length()<8 ? "\t" : "");
+            strcpy(atab,gnames[model.p.groups[ind].name].length()<8 ? "\t" : "");
             printf("\n%d.\t%s%s\t%.2f\t\t%lu\t%.2f\t%s",i,gnames[model.p.groups[ind].name].c_str(),atab,p->mships[i].loyalty_to,model.p.groups[ind].memberlist.size(),model.p.groups[ind].wealth,names[model.p.person[model.p.groups[ind].memberlist[model.p.groups[ind].leader]].name].c_str());
         }
         printf("\n");
@@ -215,7 +226,7 @@ bool more_info(std::string& input, Model& model){
 }
 
 
-bool yes_or_no(std::string& input){
+bool yes_or_no(string& input){
     if ((input.compare("y")==0) || (input.compare("n")==0)){
         return (input.compare("y")==0);
     }
@@ -225,15 +236,15 @@ bool yes_or_no(std::string& input){
 template<typename T>
 T get_answer(Model& model){
         T num;
-        std::string input;
+        string input;
         bool no_answer=true;
         while (no_answer){
-            getline(std::cin, input);
+            getline(cin, input);
             if(more_info(input,model)) continue;
             try {
-                if (std::is_same<T, float>::value) num = std::stof(input);
-                if (std::is_same<T, int>::value)   num = std::stoi(input);
-                if (std::is_same<T, bool>::value)  num = yes_or_no(input);
+                if (is_same<T, float>::value) num = stof(input);
+                if (is_same<T, int>::value)   num = stoi(input);
+                if (is_same<T, bool>::value)  num = yes_or_no(input);
                 no_answer=false;
             } catch (...) {
                 printf("Not a valid input. ");

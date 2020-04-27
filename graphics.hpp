@@ -6,6 +6,10 @@
 #include "nature.hpp"
 #include "population.hpp"
 
+using std::vector;
+using std::string;
+using std::to_string;
+
 const char* diag_border(int ind, Nature &n){
     int nw_ind = n.neighbor(ind,1);
     int ne_ind = n.neighbor(ind,2);
@@ -87,7 +91,7 @@ void print_map(Nature &n){
 // Assumes even number of columns
 void map_by_groups(Population &p, Nature &n){
     // Determine # tiles per group
-    std::vector<int> extant_groups;
+    vector<int> extant_groups;
     printf("\nGroups: ");
     int nameless=0;
     for (int i=0;i<p.person.size();i++){
@@ -113,8 +117,8 @@ void map_by_groups(Population &p, Nature &n){
         printf("\nNo groups, skipping map");
         return;
     }
-    std::vector<float> frac(ngroups);
-    std::vector<int> intfrac(ngroups);
+    vector<float> frac(ngroups);
+    vector<int> intfrac(ngroups);
     int filled_frac = 0;
     for (int i=0;i<ngroups;i++){
         int gi = extant_groups[i];
@@ -155,7 +159,7 @@ void map_by_groups(Population &p, Nature &n){
         }
     }
 
-    std::string abbrev;
+    string abbrev;
     // Fill map
     int half_ncol = n.ncol/2;
     char letts[4] = " A ";
@@ -209,7 +213,7 @@ void map_by_groups(Population &p, Nature &n){
 
 void map_by_population(Population &p, Nature &n){
     // Determine # ppl/tile
-    std::vector<int> tilepop(n.map.size(),0);
+    vector<int> tilepop(n.map.size(),0);
     for (int i=0;i<p.person.size();i++){
         tilepop[p.person[i].home]+=1;
     }
@@ -218,14 +222,14 @@ void map_by_population(Population &p, Nature &n){
     for (int i=0;i<tilepop.size();i++){
         if (tilepop[i]>maxpop) maxpop=tilepop[i];
     }
-    std::string letts;
+    string letts;
     // Now fill map
     for (int i=0;i<n.map.size();i++){
         int lpop=tilepop[i];
         if (lpop>999) lpop=999; // Cap at 999
         letts=" ";
         if (lpop>99) letts="";
-        letts+=std::to_string(lpop);
+        letts+=to_string(lpop);
         if (lpop<=9) letts+=" ";
         int gid=(4*lpop)/maxpop; // Creates four density contours
         if (gid==0) letts="   ";
@@ -253,8 +257,8 @@ void map_by_population(Population &p, Nature &n){
 void map_by_geogroup(Population &p, Nature &n){
     for (int itile=0;itile<n.map.size();itile++){
         // Determine dominant group in each tile 
-        std::vector<int> groups;
-        std::vector<int> group_pop;
+        vector<int> groups;
+        vector<int> group_pop;
         for(int ires = 0; ires<n.map[itile].residents.size();ires++){
             // Loop over residents in tile, determine their top loyalty
             int res_id=n.map[itile].residents[ires];
@@ -297,7 +301,7 @@ void map_by_geogroup(Population &p, Nature &n){
             }
         }
 
-        std::string abbrev;
+        string abbrev;
         if (gid==-1){ // If most have no loyalty
             abbrev = "NLo";
             gid=-3; // since -1 is used for the map edge
@@ -326,14 +330,14 @@ void map_by_geogroup(Population &p, Nature &n){
 }
 
 void map_resources(Nature &n){
-    std::string letts;
+    string letts;
     // Now fill map
     for (int i=0;i<n.map.size();i++){
         int lpop=n.map[i].food_min;
         if (lpop>999) lpop=999; // Cap at 999
         letts=" ";
         if (lpop>99) letts="";
-        letts+=std::to_string(lpop);
+        letts+=to_string(lpop);
         if (lpop<=9) letts+=" ";
         if (lpop==0) letts="   ";
         strcpy(n.map[i].letter,letts.c_str());
@@ -344,9 +348,9 @@ void map_resources(Nature &n){
     print_map(n);
 }
 
-void print_histogram(std::vector<float> fracs){
+void print_histogram(vector<float> fracs){
     int hist_height=10;
-    std::vector<int> heights(fracs.size());
+    vector<int> heights(fracs.size());
     float maxheight=0.0f;
     for (int i=0;i<fracs.size();i++){
         if (fracs[i]>maxheight) maxheight=fracs[i];
@@ -378,7 +382,7 @@ void print_histogram(std::vector<float> fracs){
 
 void histograms(Population& p){
     // Extroversion
-    std::vector<float> fracs(33);
+    vector<float> fracs(33);
     for (int i=0;i<fracs.size();i++){
         fracs[i] = p.frac(i,[](int i,Person& h){return h.extroversion==i;});
     }

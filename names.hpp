@@ -10,8 +10,13 @@
 
 #include "random.hpp"
 
-std::vector<std::string> names;
-std::vector<std::string> gnames; // groups
+using std::vector;
+using std::string;
+using std::ifstream;
+using std::getline;
+
+vector<string> names;
+vector<string> gnames; // groups
 
 float v_cumul_freq[6];
 float c_cumul_freq[20];
@@ -21,14 +26,14 @@ char uvows[7] = "AEIOUY";
 char lvows[7] = "aeiouy";
 
 void fill_names(){
-	std::ifstream file("names.txt");
-	std::string line;
-	while(std::getline(file, line)) {
+	ifstream file("names.txt");
+	string line;
+	while(getline(file, line)) {
         names.push_back(line);
     }
 
-    std::ifstream file2("gnames.txt");
-    while(std::getline(file2, line)) {
+    ifstream file2("gnames.txt");
+    while(getline(file2, line)) {
         gnames.push_back(line);
     }
 
@@ -65,8 +70,8 @@ int generate_letter(int nletters,float* cumul_freq){
     return nletters-1;
 }
 
-std::string generate_name(){
-    std::string new_name;
+string generate_name(){
+    string new_name;
     int namelength=5+rand_int(3);
     bool wasvow=true;
     bool isvow=false;

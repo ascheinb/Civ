@@ -7,6 +7,10 @@
 #include "names.hpp"
 #include "guard.hpp"
 
+using std::vector;
+using std::string;
+using std::tuple;
+
 class Group{
     public:
     // fixed
@@ -21,10 +25,10 @@ class Group{
     int nguards;
     int nused;
     int nundefended;
-    std::vector<int> used;
-    std::vector<int> undefended;
-    std::vector<int> nguards_desired;
-    std::vector<int> guards_desired_loc;
+    vector<int> used;
+    vector<int> undefended;
+    vector<int> nguards_desired;
+    vector<int> guards_desired_loc;
     int npaying;
     float req_to_rec; // ratio of requested/received
 
@@ -32,13 +36,13 @@ class Group{
     int prevsize;
 
     // Member list (index in person list)
-    std::vector<int> memberlist;
+    vector<int> memberlist;
 
     // Tentative: leader
     int leader; // index in memberlist
 
     // Guard list
-    std::vector<Guard> guards;
+    vector<Guard> guards;
 
     // Will be a function later
     float wealth_request;
@@ -52,14 +56,14 @@ class Group{
     {
         name = id;
         if (id>=NGROUP_NAMES){
-            std::string new_gname = generate_name();
+            string new_gname = generate_name();
             gnames.push_back(new_gname);
         }
     }
 
     // Decisions
 
-    void will_desire_how_many_guards(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left);
+    void will_desire_how_many_guards(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left);
 
     float will_try_to_raise_how_much();
 
@@ -71,9 +75,9 @@ class Group{
 
     // Actions
 
-    void choose_leadership(std::vector<Person>& people);
+    void choose_leadership(vector<Person>& people);
 
-    void assess_defence(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left);
+    void assess_defence(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left);
 
     void set_wealth_request();
 
@@ -81,7 +85,7 @@ class Group{
 
     void set_task_request(Person& pleader);
 
-    std::tuple<float,int> provide_defense(int victim_ind, int location);
+    tuple<float,int> provide_defense(int victim_ind, int location);
 };
 
 #endif

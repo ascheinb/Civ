@@ -11,6 +11,12 @@
 #include "nature.hpp"
 #include "names.hpp"
 
+using std::vector;
+using std::min;
+using std::max;
+using std::is_same;
+using std::tie;
+using std::cin;
 
 // Useful utilities
 bool Person::is_member(int group_id){
@@ -48,21 +54,21 @@ T Person::decision(const char* question){
 
     T num;
     ctrl.info_id = id; // Localize on this person
-    if (std::is_same<T, float>::value){
+    if (is_same<T, float>::value){
         ctrl.needs_float=true;
         while (ctrl.needs_float){
             usleep(50); // Check for updates every 50 ms
         }
         return ctrl.input_float;
     }
-    if (std::is_same<T, int>::value){
+    if (is_same<T, int>::value){
         ctrl.needs_int=true;
         while (ctrl.needs_int){
             usleep(50); // Check for updates every 50 ms
         }
         return ctrl.input_int;
     }
-    if (std::is_same<T, bool>::value){
+    if (is_same<T, bool>::value){
         ctrl.needs_bool=true;
         while (ctrl.needs_bool){
             usleep(50); // Check for updates every 50 ms
@@ -75,7 +81,7 @@ T Person::decision(const char* question){
 
 // Decisions
 
-int Person::will_choose_which_father(int fertility_age, std::vector<Person>& people, std::vector<int>& id2ind,Nature& nature){
+int Person::will_choose_which_father(int fertility_age, vector<Person>& people, vector<int>& id2ind,Nature& nature){
     if (play) return decision<int>("Which person do you choose?");
     if (true){ // Method 2: Choose randomly among pre-existing relationships
         if (rships.size()>0){
@@ -107,7 +113,7 @@ float Person::how_hard_will_work(){
 
     // Try a bit more or less work
     float new_workrate = old_workrate+rand_f1()*0.1f-0.05f;
-    return std::min(1.0f,std::max(0.0f,new_workrate));
+    return min(1.0f,max(0.0f,new_workrate));
 }
 
 bool Person::will_move(){
@@ -125,7 +131,7 @@ bool Person::will_take(bool ordered){
     return agreeableness<=THIEF || ordered;
 }
 
-int Person::whom_will_take_from(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature, int ordered){
+int Person::whom_will_take_from(vector<Person>& people, vector<Group>& groups,Nature& nature, int ordered){
     if (play) return decision<int>("Who to target?");
     if (false){ // Take from someone anywhere
         return rand_int(people.size());
@@ -162,10 +168,10 @@ bool Person::will_give_food(int i_rship){
 float Person::how_much_food_will_give(Person& p){
 //        if (play) return decision<float>("How much to give to ___?");
     float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
-    return std::min(wealth-(FOOD_TO_SURVIVE+std_lux),FOOD_TO_SURVIVE-p.wealth);
+    return min(wealth-(FOOD_TO_SURVIVE+std_lux),FOOD_TO_SURVIVE-p.wealth);
 }
 
-int Person::choose_local_friend(std::vector<Person>& people, std::vector<int>& id2ind){
+int Person::choose_local_friend(vector<Person>& people, vector<int>& id2ind){
     RandPerm rp(rships.size());
     for (int i=0;i<rships.size();i++){
         int ri=rp.x[i];
@@ -175,7 +181,7 @@ int Person::choose_local_friend(std::vector<Person>& people, std::vector<int>& i
     return -1;
 }
 
-int Person::will_choose_which_friend(std::vector<Person>& people, std::vector<int>& id2ind){
+int Person::will_choose_which_friend(vector<Person>& people, vector<int>& id2ind){
     if (play) return decision<int>("Which friend to hang out with?");
     // Choose a pre-existing relationship at random
     if (false){ // Doesn't matter where friend is
@@ -197,7 +203,7 @@ float Person::how_much_will_consume(){
 
 float Person::how_much_will_tithe(float req){
     if (play) return decision<float>("How much to give to this group?");
-    return std::min(wealth,req);
+    return min(wealth,req);
 }
 
 bool Person::will_accept_task(){
@@ -216,7 +222,7 @@ float Person::how_much_will_skim(Group& group){
     if (play) return decision<float>("How much to skim off this group?");
     // Leader takes 10% over 20 people
     int nmembers = group.memberlist.size();
-    float skim = group.wealth*std::max(0,nmembers-20)*0.10;
+    float skim = group.wealth*max(0,nmembers-20)*0.10;
     return skim;
 }
 
@@ -260,7 +266,7 @@ void Person::do_long_action(Nature& nature){
         // Do nothing, you're growing!
     } else if (worktype==FORAGE){
         // Find food
-        float food_haul=std::min(nature.map[home].food_available, 3.0f*workrate);
+        float food_haul=min(nature.map[home].food_available, 3.0f*workrate);
         if (nature.map[home].food_available<FOOD_TO_SURVIVE) {
             if (watch) printf("\nUh oh, %s didn't find enough food!",names[name].c_str());
             if (will_move()){
@@ -278,7 +284,7 @@ void Person::do_long_action(Nature& nature){
     }
 }
 
-void Person::take_by_force(std::vector<Person>& people, std::vector<Group>& groups,Nature& nature){
+void Person::take_by_force(vector<Person>& people, vector<Group>& groups,Nature& nature){
     bool ordered=false;
     if (worktype==GUARD){
         int task = groups[employer].guards[employee_id].task;
@@ -299,7 +305,7 @@ void Person::take_by_force(std::vector<Person>& people, std::vector<Group>& grou
         int group_id=people[target_ind].mships[i].id;
         int local_guard =-1;
         float gdefense;
-        std::tie(gdefense,local_guard) = groups[group_id].provide_defense(target_ind,home);
+        tie(gdefense,local_guard) = groups[group_id].provide_defense(target_ind,home);
         if (local_guard>=0){ // If local defender is available, have them defend
             defense+=gdefense;
             defender=i;
@@ -343,7 +349,7 @@ void Person::take_by_force(std::vector<Person>& people, std::vector<Group>& grou
     }
 }
 
-void Person::feed_friends(std::vector<Person>& people, std::vector<int>& id2ind){
+void Person::feed_friends(vector<Person>& people, vector<int>& id2ind){
     for (int i_rship=0;i_rship<rships.size();i_rship++){
         if (!will_give_food(i_rship)) continue; // Skip not fond friends unless its your kid
         float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
@@ -372,7 +378,7 @@ void Person::feed_friends(std::vector<Person>& people, std::vector<int>& id2ind)
     }
 }
 
-void Person::socialize(std::vector<Person>& people, std::vector<int>& id2ind, std::vector<Group>& groups){
+void Person::socialize(vector<Person>& people, vector<int>& id2ind, vector<Group>& groups){
 //        if (play) printf("\nentered socialize");
     if (rships.size()==0) return; // Skip if no existing relationships
     // Strategy 1: Spend time with a friend
@@ -382,10 +388,10 @@ void Person::socialize(std::vector<Person>& people, std::vector<int>& id2ind, st
     int this_rind = people[friend_ind].rship_index(id);
 
     // Strengthen relationship with friend
-    rships[friend_rind].fondness_to = std::min(rships[friend_rind].fondness_to+1,TRAITMAX);
-    rships[friend_rind].fondness_of = std::min(rships[friend_rind].fondness_of+1,TRAITMAX);
-    people[friend_ind].rships[this_rind].fondness_to = std::min(people[friend_ind].rships[this_rind].fondness_to+1,TRAITMAX);
-    people[friend_ind].rships[this_rind].fondness_of = std::min(people[friend_ind].rships[this_rind].fondness_of+1,TRAITMAX);
+    rships[friend_rind].fondness_to = min(rships[friend_rind].fondness_to+1,TRAITMAX);
+    rships[friend_rind].fondness_of = min(rships[friend_rind].fondness_of+1,TRAITMAX);
+    people[friend_ind].rships[this_rind].fondness_to = min(people[friend_ind].rships[this_rind].fondness_to+1,TRAITMAX);
+    people[friend_ind].rships[this_rind].fondness_of = min(people[friend_ind].rships[this_rind].fondness_of+1,TRAITMAX);
 
     // Join a random group of your friends but at low loyalty
     if (people[friend_ind].mships.size()>0){
@@ -434,7 +440,7 @@ void Person::erode_loyalty(){
     }
 }
 
-void Person::purge_memberships(std::vector<Group>& groups){
+void Person::purge_memberships(vector<Group>& groups){
     // Remove membership if no loyalty
     for (int i=(int)(mships.size())-1;i>=0;i--){
         if (mships[i].loyalty_to<=0.0f){
@@ -452,7 +458,7 @@ void Person::luxury(){
     //if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
 }
 
-void Person::respond_to_wealth_requests(std::vector<Group>& groups){
+void Person::respond_to_wealth_requests(vector<Group>& groups){
     for (int i=0;i<mships.size();i++){
         float req = groups[mships[i].id].wealth_request;
 
@@ -464,7 +470,7 @@ void Person::respond_to_wealth_requests(std::vector<Group>& groups){
     }
 }
 
-void Person::respond_to_task_requests(std::vector<Group>& groups,int this_ind){
+void Person::respond_to_task_requests(vector<Group>& groups,int this_ind){
     if (age<ADULT) return; // Only adults
     for (int i=0;i<mships.size();i++){
         int gid = mships[i].id;
@@ -493,7 +499,7 @@ void Person::respond_to_task_requests(std::vector<Group>& groups,int this_ind){
     }
 }
 
-void Person::purge_rships(int max_rships, std::vector<Person>& people, std::vector<int>& id2ind){
+void Person::purge_rships(int max_rships, vector<Person>& people, vector<int>& id2ind){
     // Remove dead friends
     int n_rships = rships.size();
     for(int i_rship = n_rships-1; i_rship>=0;i_rship--){
@@ -515,7 +521,7 @@ void Person::purge_rships(int max_rships, std::vector<Person>& people, std::vect
     }
 }
 
-int Person::breed(int next_id, int fertility_age, float fertility_rate, std::vector<Person>& people, std::vector<int>& id2ind, Nature& nature) {
+int Person::breed(int next_id, int fertility_age, float fertility_rate, vector<Person>& people, vector<int>& id2ind, Nature& nature) {
     if (female && age>=fertility_age){ // If female and old enough
         if (chance(fertility_rate)){ // If having children
             if (watch) printf("\n%s wants a kid.", names[name].c_str());
@@ -549,7 +555,7 @@ int Person::breed(int next_id, int fertility_age, float fertility_rate, std::vec
                         printf("\n%s had a kid with %s! They named %s %s.", names[people[dad_ind].name].c_str(), names[name].c_str(), him_or_her, names[people[people.size()-1].name].c_str());
                     char yn[2];
                     printf("\nFollow %s? (y/n)",names[people[people.size()-1].name].c_str());
-                    std::cin >> yn;
+                    cin >> yn;
                     people[people.size()-1].watch=(strcmp(yn,"y")==0);
                 }
                 return 1;

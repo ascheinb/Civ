@@ -6,7 +6,14 @@
 #include "names.hpp"
 #include "guard.hpp"
 
-void Group::choose_leadership(std::vector<Person>& people){
+using std::vector;
+using std::string;
+using std::tuple;
+using std::make_tuple;
+using std::min;
+using std::max;
+
+void Group::choose_leadership(vector<Person>& people){
     int nmembers = memberlist.size();
     if (nmembers==0) return;
     int max_popularity = -1;
@@ -29,7 +36,7 @@ void Group::choose_leadership(std::vector<Person>& people){
     leader = max_id;
 }
 
-void Group::will_desire_how_many_guards(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left){
+void Group::will_desire_how_many_guards(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left){
     nguards_desired.resize(0);
     guards_desired_loc.resize(0);
     // Great, now have a list of used/defended, by tile
@@ -55,7 +62,7 @@ float Group::will_try_to_raise_how_much(){
         nguards_desired_total+=nguards_desired[i];
     }
     float desired_expenditure=guard_cost*nguards_desired_total;
-    return std::max(desired_expenditure-wealth,0.0f);
+    return max(desired_expenditure-wealth,0.0f);
 }
 
 int Group::will_request_how_many_guards(){
@@ -79,7 +86,7 @@ bool Group::will_try_to_defend(){
 
 // Actions
 
-void Group::assess_defence(std::vector<int> victim_homes,std::vector<int> lused, std::vector<int> lundefended,std::vector<int> guards_left){
+void Group::assess_defence(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left){
     // Updates nguards_desired and guards_desired_loc
     will_desire_how_many_guards(victim_homes,lused,lundefended,guards_left);
 
@@ -100,7 +107,7 @@ void Group::assess_wealth_request(){
     if (received == 0.0f){
         req_to_rec = 1.0f;
     }else{
-        req_to_rec = std::min(wealth_request/received*npaying,10.0f);
+        req_to_rec = min(wealth_request/received*npaying,10.0f);
     }
     wealth += received;
     received = 0.0f;
@@ -117,7 +124,7 @@ void Group::set_task_request(Person& pleader){
     guards.resize(0);
 }
 
-std::tuple<float,int> Group::provide_defense(int victim_ind, int location){
+tuple<float,int> Group::provide_defense(int victim_ind, int location){
     if (will_try_to_defend()){
         // Check if local defender available
         for (int j=0;j<guards.size();j++){
@@ -128,10 +135,10 @@ std::tuple<float,int> Group::provide_defense(int victim_ind, int location){
                 nused +=1;
                 used.push_back(victim_ind);
                 guards[j].nactions--;
-                return std::make_tuple(guard_strength,j);
+                return make_tuple(guard_strength,j);
             }
         }
     }
-    return std::make_tuple(0.0f,-1); // Couldn't provide defense
+    return make_tuple(0.0f,-1); // Couldn't provide defense
 }
 #endif
