@@ -9,11 +9,13 @@
 using std::vector;
 using std::string;
 using std::to_string;
+using std::strcat;
 using std::make_tuple;
 using std::tuple;
 using std::tie;
 
-const char* diag_border(int ind, Nature &n){
+string diag_border(int ind, Nature &n){
+    string diags="";
     int nw_ind = n.neighbor(ind,NW);
     int ne_ind = n.neighbor(ind,NE);
     int owner = n.map[ind].owner;
@@ -23,22 +25,44 @@ const char* diag_border(int ind, Nature &n){
     int e_ind = n.neighbor(ind,E);
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
     int e_owner = (e_ind==-1 ? -1 : n.map[e_ind].owner);
-    bool all_mountains=(n.map[ind].terrain==MOUNTAIN && n.map[ne_ind].terrain==MOUNTAIN && n.map[nw_ind].terrain==MOUNTAIN);
-    if (owner==nw_owner && owner==ne_owner && all_mountains) return "^^^^";
-    if (owner==nw_owner && owner==ne_owner) return "    ";
-    if (owner==nw_owner) return "   \\";
-    if (owner==ne_owner) return " /  ";
-    if (ne_owner==nw_owner && nw_owner==w_owner && ne_owner==e_owner) return " / \\";
-    if (ne_owner==nw_owner && nw_owner==w_owner) return " / -";
-    if (ne_owner==nw_owner && ne_owner==e_owner) return " - \\";
-    if (ne_owner==nw_owner) return " ---";
-    if (owner==w_owner && owner==e_owner) return " ---";
-    if (owner==w_owner ) return " - \\";
-    if (owner==e_owner ) return " / -";
-    return " / \\";
+    bool mtn=(n.map[ind].terrain==MOUNTAIN);
+    bool nw_mtn=(n.map[nw_ind].terrain==MOUNTAIN);
+    bool ne_mtn=(n.map[ne_ind].terrain==MOUNTAIN);
+    bool wtr=(n.map[ind].terrain==WATER);
+    bool nw_wtr=(n.map[nw_ind].terrain==WATER || nw_ind==-1);
+    bool ne_wtr=(n.map[ne_ind].terrain==WATER || ne_ind==-1);
+
+    diags+=" ";
+    if ((mtn && !nw_wtr) || (nw_mtn && !wtr) ){
+        diags+="^";
+    }else if (owner==nw_owner){
+        diags+=" ";
+    }else if (ne_owner==nw_owner && nw_owner!=w_owner){
+        diags+="-";
+    }else{
+        diags+="/";
+    }
+    if ((mtn && !nw_wtr && !ne_wtr) || (nw_mtn && ne_mtn && !wtr)){
+        diags+="^";
+    }else if (owner!=nw_owner && nw_owner!=w_owner & owner!=ne_owner && ne_owner==nw_owner && ne_owner!=e_owner){
+        diags+="-";
+    }else{
+        diags+=" ";
+    }
+    if ((mtn && !ne_wtr) || (ne_mtn && !wtr)){
+        diags+="^";
+    }else if (owner==ne_owner){
+        diags+=" ";
+    }else if (ne_owner==nw_owner && ne_owner!=e_owner){
+        diags+="-";
+    }else{
+        diags+="\\";
+    }
+    return diags;
 }
 
-const char* diag_border2(int ind, Nature &n){
+string diag_border2(int ind, Nature &n){
+    string diags="";
     int sw_ind = n.neighbor(ind,SW);
     int se_ind = n.neighbor(ind,SE);
     int owner = n.map[ind].owner;
@@ -48,45 +72,82 @@ const char* diag_border2(int ind, Nature &n){
     int e_ind = n.neighbor(ind,E);
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
     int e_owner = (e_ind==-1 ? -1 : n.map[e_ind].owner);
-    bool all_mountains=(n.map[ind].terrain==MOUNTAIN && n.map[se_ind].terrain==MOUNTAIN && n.map[sw_ind].terrain==MOUNTAIN);
-    if (owner==sw_owner && owner==se_owner && all_mountains) return "^^^^";
-    if (owner==sw_owner && owner==se_owner) return "    ";
-    if (owner==se_owner) return " \\  ";
-    if (owner==sw_owner) return "   /";
-    if (se_owner==sw_owner && sw_owner==w_owner && se_owner==e_owner) return " \\ /";
-    if (se_owner==sw_owner && sw_owner==w_owner) return " \\ -";
-    if (se_owner==sw_owner && se_owner==e_owner) return " - /";
-    if (se_owner==sw_owner) return " ---";
-    if (owner==w_owner && owner==e_owner) return " ---";
-    if (owner==w_owner ) return " - /";
-    if (owner==e_owner ) return " \\ -";
-    return " \\ /";
+    bool mtn=(n.map[ind].terrain==MOUNTAIN);
+    bool sw_mtn=(n.map[sw_ind].terrain==MOUNTAIN);
+    bool se_mtn=(n.map[se_ind].terrain==MOUNTAIN);
+    bool wtr=(n.map[ind].terrain==WATER);
+    bool sw_wtr=(n.map[sw_ind].terrain==WATER || sw_ind==-1);
+    bool se_wtr=(n.map[se_ind].terrain==WATER || se_ind==-1);
+
+    diags+=" ";
+    if ((mtn && !sw_wtr) || (sw_mtn && !wtr) ){
+        diags+="^";
+    }else if (owner==sw_owner){
+        diags+=" ";
+    }else if (se_owner==sw_owner && sw_owner!=w_owner){
+        diags+="-";
+    }else{
+        diags+="\\";
+    }
+    if ((mtn && !sw_wtr && !se_wtr) || (sw_mtn && se_mtn && !wtr)){
+        diags+="^";
+    }else if (owner!=sw_owner && sw_owner!=w_owner & owner!=se_owner && se_owner==sw_owner && se_owner!=e_owner){
+        diags+="-";
+    }else{
+        diags+=" ";
+    }
+    if ((mtn && !se_wtr) || (se_mtn && !wtr)){
+        diags+="^";
+    }else if (owner==se_owner){
+        diags+=" ";
+    }else if (se_owner==sw_owner && se_owner!=e_owner){
+        diags+="-";
+    }else{
+        diags+="/";
+    }
+    return diags;
 }
 
-const char* vert_border(int ind, Nature &n){
+string vert_border(int ind, Nature &n){
+    string verts="";
     int w_ind = n.neighbor(ind,W);
     int owner = n.map[ind].owner;
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
-    if (owner==w_owner) return " ";
-    return "|";
+    bool mtn=(n.map[ind].terrain==MOUNTAIN);
+    bool w_mtn=(n.map[w_ind].terrain==MOUNTAIN);
+    bool wtr=(n.map[ind].terrain==WATER);
+    bool w_wtr=(n.map[w_ind].terrain==WATER || w_ind==-1);
+
+    if ((mtn && !w_wtr) || (w_mtn && !wtr)){
+        verts+="^";
+    }else if (owner==w_owner){
+        verts+=" ";
+    }else{
+        verts="|";
+    }
+    return verts;
 }
 
 void print_map(Nature &n){
     for (int i=0;i<n.nrow;i++){
         printf("\n");
         if (i%2==0){
-            for (int j=0;j<n.ncol;j++) printf("%s",diag_border(i*n.ncol+j,n));
+            string line("");
+            for (int j=0;j<n.ncol;j++) line+=diag_border(i*n.ncol+j,n);
+            printf("%s",line.c_str());
             if (i>0) printf(" /");
             printf("\n");
-            for (int j=0;j<n.ncol;j++) printf("%s%s",vert_border(i*n.ncol+j,n),n.map[i*n.ncol+j].letter);
-            printf("|\n");
-            for (int j=0;j<n.ncol;j++) printf("%s",diag_border2(i*n.ncol+j,n));
-            if (n.nrow%2==0 || i<n.nrow-1) printf(" \\");
         } else {
-            printf("  ");
-            for (int j=0;j<n.ncol;j++) printf("%s%s",vert_border(i*n.ncol+j,n),n.map[i*n.ncol+j].letter);
-            printf("|");
+            string line("");
+            for (int j=0;j<n.ncol;j++) line+=diag_border2((i-1)*n.ncol+j,n);
+            printf("%s",line.c_str());
+            if (n.nrow%2==0 || i<n.nrow) printf(" \\");
+            printf("\n  ");
         }
+        string line("");
+        for (int j=0;j<n.ncol;j++) line+=vert_border(i*n.ncol+j,n)+n.map[i*n.ncol+j].letter;
+        printf("%s",line.c_str());
+        printf("|");
     }
     if (n.nrow%2==0){
         printf("\n   \\");
@@ -258,7 +319,7 @@ void map_by_population(Population &p, Nature &n, int group_focus=-1){
                 letts=" ~~";
                 gid=-3;
             }else{ // mountain
-                letts="^^^";
+                letts=" ^^";
                 gid=-4;
             }
         }
@@ -338,7 +399,7 @@ void map_by_geogroup(Population &p, Nature &n, int mark_spot=-1){
                 abbrev=" ~~";
                 gid=-4;
             }else{ // mountain
-                abbrev="^^^";
+                abbrev=" ^^";
             }
         } else if (gid>=0) { // If group gid has most loyalty
             abbrev=gnames[p.groups[gid].name].substr(0,3);
