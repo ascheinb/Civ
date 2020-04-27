@@ -237,14 +237,49 @@ bool more_info(string& input, Model& model, int& focus_id){
             printf("\n%d.\t%s%s\t%.2f\t\t%lu\t%.2f\t%s",i,gnames[model.p.groups[ind].name].c_str(),atab,p->mships[i].loyalty_to,model.p.groups[ind].memberlist.size(),model.p.groups[ind].wealth,names[model.p.person[model.p.groups[ind].memberlist[model.p.groups[ind].leader]].name].c_str());
         }
         printf("\n");
+    }else if(input.compare("tile")==0){
+        int itile = p->home;
+        string terrain("Grass");
+        if (model.nature.map[itile].terrain==WATER) terrain="Water";
+        if (model.nature.map[itile].terrain==MOUNTAIN) terrain="Mountain";
+        printf("\nTerrain: %s", terrain.c_str());
+        printf("\nPopulation: %lu", model.nature.map[itile].residents.size());
+        printf("\nGroups\t\tLocal members");
+        printf("\n_____________________________");
+        vector<int> groups;
+        vector<int> group_pop;
+        tie(groups,group_pop)=get_geogroup(model.p,model.nature,itile);
+        for (int i=0;i<groups.size();i++){
+            int ind = groups[i];
+            char atab[2];
+            strcpy(atab,gnames[model.p.groups[ind].name].length()<8 ? "\t" : "");
+            printf("\n%s%s\t%d",gnames[model.p.groups[ind].name].c_str(),atab,group_pop[i]);
+        }
+        printf("\n");
     }else if(input.compare("map")==0){
         map_by_geogroup(model.p,model.nature);
+    }else if(input.compare("mapme")==0){
+        map_by_geogroup(model.p,model.nature,p->home);
     }else if(input.compare("popmap")==0){
         map_by_population(model.p,model.nature);
+    }else if(input.compare("mapgroup")==0){
+        string input_sw;
+        int switch_num;
+        printf("\nChoose mship: ");
+        getline(cin, input_sw);
+        try {
+            switch_num = stoi(input_sw);
+            if (switch_num<0 || switch_num>=p->mships.size()) throw -1;
+            int mapgroup_focus = p->mships[switch_num].id;
+            printf("\nPopulation distribution of %s:",gnames[model.p.groups[mapgroup_focus].name].c_str());
+            map_by_population(model.p,model.nature, mapgroup_focus);
+        } catch (...) {
+            printf("Not a valid input. ");
+        }
     }else if(input.compare("switch")==0){
         string input_sw;
         int switch_num;
-        printf("\nChoose rship?");
+        printf("\nChoose rship: ");
         getline(cin, input_sw);
         try {
             switch_num = stoi(input_sw);
@@ -253,6 +288,8 @@ bool more_info(string& input, Model& model, int& focus_id){
         } catch (...) {
             printf("Not a valid input. ");
         }
+    }else if(input.compare("reset")==0){
+        focus_id = ctrl.info_id;
     }else{
         return false;
     }
@@ -342,10 +379,10 @@ int main(){
 
     int initial_n_ppl = 2000;
     int n_years = 2000;
-    float min_food_gen=10000;
-    float max_food_gen=10000;
+    float min_food_gen=5000;
+    float max_food_gen=5000;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=400; // Must be divisible by mapwidth
+    int mapsize=200; // Must be divisible by mapwidth
     int mapwidth=20; // Keep even for map_by_groups to work
 
     // Initialize model

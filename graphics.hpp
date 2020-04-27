@@ -9,6 +9,9 @@
 using std::vector;
 using std::string;
 using std::to_string;
+using std::make_tuple;
+using std::tuple;
+using std::tie;
 
 const char* diag_border(int ind, Nature &n){
     int nw_ind = n.neighbor(ind,NW);
@@ -20,6 +23,8 @@ const char* diag_border(int ind, Nature &n){
     int e_ind = n.neighbor(ind,E);
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
     int e_owner = (e_ind==-1 ? -1 : n.map[e_ind].owner);
+    bool all_mountains=(n.map[ind].terrain==MOUNTAIN && n.map[ne_ind].terrain==MOUNTAIN && n.map[nw_ind].terrain==MOUNTAIN);
+    if (owner==nw_owner && owner==ne_owner && all_mountains) return "^^^^";
     if (owner==nw_owner && owner==ne_owner) return "    ";
     if (owner==nw_owner) return "   \\";
     if (owner==ne_owner) return " /  ";
@@ -43,6 +48,8 @@ const char* diag_border2(int ind, Nature &n){
     int e_ind = n.neighbor(ind,E);
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
     int e_owner = (e_ind==-1 ? -1 : n.map[e_ind].owner);
+    bool all_mountains=(n.map[ind].terrain==MOUNTAIN && n.map[se_ind].terrain==MOUNTAIN && n.map[sw_ind].terrain==MOUNTAIN);
+    if (owner==sw_owner && owner==se_owner && all_mountains) return "^^^^";
     if (owner==sw_owner && owner==se_owner) return "    ";
     if (owner==se_owner) return " \\  ";
     if (owner==sw_owner) return "   /";
@@ -211,11 +218,15 @@ void map_by_groups(Population &p, Nature &n){
     print_map(n);
 }
 
-void map_by_population(Population &p, Nature &n){
+void map_by_population(Population &p, Nature &n, int group_focus=-1){
     // Determine # ppl/tile
     vector<int> tilepop(n.map.size(),0);
     for (int i=0;i<p.person.size();i++){
-        tilepop[p.person[i].home]+=1;
+        if (group_focus==-1){
+            tilepop[p.person[i].home]+=1;
+        } else { // Count only members of group_focus
+            if (p.person[i].is_member(group_focus)) tilepop[p.person[i].home]+=1;
+        }
     }
     // Get max population
     int maxpop=0;
@@ -232,10 +243,12 @@ void map_by_population(Population &p, Nature &n){
         letts+=to_string(lpop);
         if (lpop<=9) letts+=" ";
         int gid=(4*lpop)/maxpop; // Creates four density contours
-        if (gid==0) letts="   ";
-        if (gid==1) letts=" + ";
-        if (gid==2) letts="+ +";
-        if (gid>=3) letts="+++";
+        if (group_focus==-1){ // Keep details if doing group_focus
+            if (gid==0) letts="   ";
+            if (gid==1) letts=" + ";
+            if (gid==2) letts="+ +";
+            if (gid>=3) letts="+++";
+        }
 
         if (lpop==0){
             if (n.map[i].terrain==GRASS){
@@ -257,8 +270,9 @@ void map_by_population(Population &p, Nature &n){
     print_map(n);
 }
 
-void map_by_geogroup(Population &p, Nature &n){
-    for (int itile=0;itile<n.map.size();itile++){
+
+
+tuple<vector<int>,vector<int>> get_geogroup(Population &p, Nature &n, int itile){
         // Determine dominant group in each tile 
         vector<int> groups;
         vector<int> group_pop;
@@ -294,6 +308,15 @@ void map_by_geogroup(Population &p, Nature &n){
             // Count resident towards this group
             group_pop[which_group]+=1;
         }
+        return make_tuple(groups,group_pop);
+    }
+
+void map_by_geogroup(Population &p, Nature &n, int mark_spot=-1){
+    for (int itile=0;itile<n.map.size();itile++){
+        // Determine dominant group in each tile 
+        vector<int> groups;
+        vector<int> group_pop;
+        tie(groups,group_pop)=get_geogroup(p,n,itile);
         // Finally, determine which group is dominant in this tile
         int max_nres=0;
         int gid=-2;
@@ -334,6 +357,11 @@ void map_by_geogroup(Population &p, Nature &n){
         
         strcpy(n.map[itile].letter,abbrev.c_str());
         n.map[itile].owner=gid;
+    }
+
+    // Add * to mark a location if sent
+    if (mark_spot>=0){
+        strcpy(n.map[mark_spot].letter," * ");
     }
 
     // Print map
