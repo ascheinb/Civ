@@ -285,7 +285,7 @@ void Person::evaluate_choices(){
 
 void Person::move_tiles(Nature& nature, int new_home){
     if (new_home!=-1){
-        if (nature.map[new_home].terrain!=WATER){
+        if (nature.map[new_home].terrain!=WATER && nature.map[new_home].terrain!=MOUNTAIN){
             if (watch){
                 char him_or_her[3]=""; strcpy(him_or_her, female ? "She" : "He");
                 printf("\n%s moved from Tile %d to Tile %d",him_or_her,home,new_home);

@@ -197,11 +197,13 @@ class Population{
     }
 
     void update_residents(Nature& nature){
+//        printf ("\nX4 %d, %lu",13,nature.map[13].residents.size()); fflush(stdout);
         vector<int> old_nresidents(nature.map.size());
         vector<int> nresidents(nature.map.size(),0);
         // Get old #residents
         for(int i = 0; i<nature.map.size();i++){
             old_nresidents[i]=nature.map[i].residents.size();
+//            printf ("\nX1 %d, %d",i,old_nresidents[i]); fflush(stdout);
         }
         // Get new resident list
         for (int i=0;i<person.size();i++){
@@ -212,10 +214,13 @@ class Population{
                 nature.map[h].residents.push_back(i);
             }
             nresidents[h]++;
+//            printf ("\nX2 %d",i); fflush(stdout);
         }
         // If smaller, free up remaining memory
         for(int i = 0; i<nature.map.size();i++){
+//            printf ("\nX3 %d, %d, %lu, %d",i,old_nresidents[i], nature.map[i].residents.size(),nresidents[i]); fflush(stdout);
             nature.map[i].residents.resize(nresidents[i]);
+//            printf ("\nX4 %d, %lu",i,nature.map[i].residents.size()); fflush(stdout);
         }
     }
 

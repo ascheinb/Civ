@@ -8,6 +8,7 @@ using std::vector;
 
 #define GRASS 0
 #define WATER 1
+#define MOUNTAIN 2
 
 enum Direction { W, NW, NE, E, SE, SW };
 
@@ -33,6 +34,8 @@ struct HexTile{
     char letter[4]="";
 
     vector<int> residents;
+
+    HexTile() : residents(0,0) {}
 
     int neighbor (int ncol, int nrow, Direction w){
         int row = id/ncol;
@@ -83,6 +86,21 @@ class Nature{
             wtile = cand;
         }
 
+        // Add mountains
+        int nmountains=map.size()/8;
+        int imountains=0;
+        int mtile=rand_int(map.size());
+        while (imountains<nmountains){
+            if (map[mtile].terrain==GRASS){
+                imountains++;
+                map[mtile].terrain=MOUNTAIN;
+            }
+            int cand=-1;
+            while (cand==-1)
+                cand = map[mtile].neighbor(ncol,nrow,random_dir());
+            mtile = cand;
+        }
+
 
         // "CLIMATE": Available food distribution
         // OPTION 1: Evenly distribute food among tiles
@@ -97,6 +115,9 @@ class Nature{
             // OPTION 2: Icy poles have less food
             for (int i=0;i<map.size();i++){
                 if (map[i].terrain==WATER){ // water has no food
+                    map[i].food_min=0;
+                    map[i].food_max=0;
+                }else if (map[i].terrain==MOUNTAIN){ // mountain has no food
                     map[i].food_min=0;
                     map[i].food_max=0;
                 }else{

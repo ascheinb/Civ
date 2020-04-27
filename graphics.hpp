@@ -241,9 +241,12 @@ void map_by_population(Population &p, Nature &n){
             if (n.map[i].terrain==GRASS){
                 letts="  '";
                 gid=-2;
-            }else{ // water
+            }else if (n.map[i].terrain==WATER){ // water
                 letts=" ~~";
                 gid=-3;
+            }else{ // mountain
+                letts="^^^";
+                gid=-4;
             }
         }
         strcpy(n.map[i].letter,letts.c_str());
@@ -308,14 +311,16 @@ void map_by_geogroup(Population &p, Nature &n){
         } else if (gid==-2){ // If no people
             if (n.map[itile].terrain==GRASS){
                 abbrev="  '";
-            }else{ // water
+            }else if (n.map[itile].terrain==WATER){ // water
                 abbrev=" ~~";
                 gid=-4;
+            }else{ // mountain
+                abbrev="^^^";
             }
         } else if (gid>=0) { // If group gid has most loyalty
             abbrev=gnames[p.groups[gid].name].substr(0,3);
         }
-        if (gid>=-1){
+        if (gid>=0 || gid==-3){
             // Make map cleaner: don't print name if adjacent tile is same group
             for (int i_neigh=0;i_neigh<3;i_neigh++){
                 Direction direction;
