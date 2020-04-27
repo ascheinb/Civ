@@ -17,6 +17,7 @@ using std::max;
 using std::is_same;
 using std::tie;
 using std::cin;
+using std::strcat;
 
 // Useful utilities
 bool Person::is_member(int group_id){
@@ -79,6 +80,39 @@ T Person::decision(const char* question){
     return num;
 }
 
+// UI with acceptable range
+template<typename T>
+T Person::decision(const char* question, T tmin, T tmax){
+    printf("\n%s ",question);
+    
+    T num;
+    ctrl.info_id = id; // Localize on this person
+    if (is_same<T, float>::value){
+        ctrl.floatmin=tmin;
+        ctrl.floatmax=tmax;
+        ctrl.range=true;
+        ctrl.needs_float=true;
+        while (ctrl.needs_float){
+            usleep(50); // Check for updates every 50 ms
+        }
+        ctrl.range=false;
+        return ctrl.input_float;
+    }
+    if (is_same<T, int>::value){
+        ctrl.intmin=tmin;
+        ctrl.intmax=tmax;
+        ctrl.range=true;
+        ctrl.needs_int=true;
+        while (ctrl.needs_int){
+            usleep(50); // Check for updates every 50 ms
+        }
+        ctrl.range=false;
+        return ctrl.input_int;
+    }
+    
+    return num;
+}
+
 // Decisions
 
 int Person::will_choose_which_father(int fertility_age, vector<Person>& people, vector<int>& id2ind,Nature& nature){
@@ -105,7 +139,7 @@ int Person::will_choose_which_father(int fertility_age, vector<Person>& people, 
 }
 
 float Person::how_hard_will_work(){
-    if (play) return decision<float>("How hard do you want to work this turn? (Scale of 0 to 1)");
+    if (play) return decision<float>("How hard do you want to work this turn? (Scale of 0 to 1)",0.0,1.0);
     if (contentedness > old_contentedness){
         // Last turn was happy, so use last turn's workrate as the new base workrate
         old_workrate=workrate;
@@ -201,8 +235,8 @@ float Person::how_much_will_consume(){
     return wealth*((float)(TRAITMAX-neuroticism)/TRAITMAX);
 }
 
-float Person::how_much_will_tithe(float req){
-    if (play) return decision<float>("How much to give to this group?");
+float Person::how_much_will_tithe(float req, Group& group){
+    if (play){string str("How much will you give to "); str+=gnames[group.name]+"?"; return decision<float>(str.c_str(),0.0,wealth);}
     return min(wealth,req);
 }
 
@@ -219,15 +253,15 @@ bool Person::will_bump_workrate(){
 // Leadership decisions
 
 float Person::how_much_will_skim(Group& group){
-    if (play) return decision<float>("How much to skim off this group?");
+    if (play){string str("How much to skim off "); str+=gnames[group.name]+"?"; return decision<float>(str.c_str(),0.0,group.wealth);}
     // Leader takes 10% over 20 people
     int nmembers = group.memberlist.size();
-    float skim = group.wealth*max(0,nmembers-20)*0.10;
+    float skim = group.wealth*(float)(max(0,nmembers-20))/nmembers*0.10;
     return skim;
 }
 
 int Person::how_many_attackers(Group& group){
-    if (play) return decision<int>("How many attackers?");
+    if (play){string str("How many of "); str+=gnames[group.name]+"'s forces should attack?"; return decision<int>(str.c_str(),0,(int)group.guards.size());}
     return 2;
 }
 
@@ -462,7 +496,7 @@ void Person::respond_to_wealth_requests(vector<Group>& groups){
     for (int i=0;i<mships.size();i++){
         float req = groups[mships[i].id].wealth_request;
 
-        float transfer_amt = how_much_will_tithe(req);
+        float transfer_amt = how_much_will_tithe(req, groups[mships[i].id]);
 
         wealth-=transfer_amt;
         groups[mships[i].id].received+=transfer_amt;

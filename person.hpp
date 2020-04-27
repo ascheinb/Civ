@@ -158,6 +158,9 @@ class Person{
     template<typename T>
     T decision(const char* question);
 
+    template<typename T>
+    T decision(const char* question, T tmin, T tmax);
+
     // Decisions
 
     int will_choose_which_father(int fertility_age, vector<Person>& people, vector<int>& id2ind,Nature& nature);
@@ -186,7 +189,7 @@ class Person{
 
     float how_much_will_consume();
 
-    float how_much_will_tithe(float req);
+    float how_much_will_tithe(float req, Group& group);
 
     bool will_accept_task();
 

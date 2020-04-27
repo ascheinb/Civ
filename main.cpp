@@ -16,8 +16,13 @@ struct Control{
     bool active=true;
     bool needs_float=false;
     float input_float=0.0f;
+    float floatmin=0.0f;
+    float floatmax=0.0f;
     bool needs_int=false;
     int input_int=0;
+    int intmin=0;
+    int intmax=0;
+    bool range=false;
     bool needs_bool=false;
     bool input_bool=false;
     int info_id=0; // Which person we're focused on
@@ -47,8 +52,24 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
     for (int i_turn = 1; i_turn <= n_turns; i_turn++){
         // Check watch
         if (watch && i_turn==(watch_start_year*4-3)){
-            // Choose who to watch; start with someone middleaged
-            int first_watch=p.person.size()/2;
+            int first_watch;
+            if (false){
+                // Option 1:
+                // Choose someone random of median age
+                first_watch=p.person.size()/2;
+            } else {
+                // Option 2:
+                // Find biggest group
+                int max_size=0;
+                int max_id=0;
+                for (int i=0; i<p.groups.size();i++){
+                    if(p.groups[i].memberlist.size()>max_size){
+                        max_id=i;
+                        max_size=p.groups[i].memberlist.size();
+                    }
+                }
+                first_watch=p.groups[max_id].memberlist[p.groups[max_id].leader];
+            }
             p.person[first_watch].watch=true;
             p.person[first_watch].play=true;
         }
@@ -248,6 +269,16 @@ T get_answer(Model& model){
                 no_answer=false;
             } catch (...) {
                 printf("Not a valid input. ");
+            }
+
+            if (no_answer==false && ctrl.range){
+                try {
+                    if (is_same<T, float>::value) if (num<ctrl.floatmin || num>ctrl.floatmax) throw -1;
+                    if (is_same<T, int>::value)   if (num<ctrl.intmin || num>ctrl.intmax) throw -1;
+                } catch (...) {
+                    printf("Out of range. ");
+                    no_answer=true;
+                }
             }
         }
         return num;

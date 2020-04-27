@@ -99,7 +99,7 @@ void Group::assess_defence(vector<int> victim_homes,vector<int> lused, vector<in
 
 void Group::set_wealth_request(){
     float amt_to_raise = will_try_to_raise_how_much();
-    wealth_request=req_to_rec*amt_to_raise/npaying; // Requests going out to each member
+    wealth_request=req_to_rec*amt_to_raise/max(npaying,1); // Requests going out to each member
     npaying=0; // Set this to zero to get an accurate count next time
 }
 
@@ -118,7 +118,6 @@ void Group::set_task_request(Person& pleader){
     float paycheck = pleader.how_much_will_skim(*this);
     pleader.wealth+=paycheck;
     wealth-=paycheck;
-
     guard_request = will_request_how_many_guards(); // Find this many people to hire
     nguards=0; // Assume have to rehire all guards each turn
     guards.resize(0);
