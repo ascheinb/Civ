@@ -157,7 +157,7 @@ bool Person::will_move(){
 
 int Person::where_will_move(Nature& nature){
     if (play) return decision<int>("Where to move? (0-5)");
-    return nature.neighbor(home,rand_int(6));
+    return nature.neighbor(home,random_dir());
 }
 
 bool Person::will_take(bool ordered){

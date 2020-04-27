@@ -11,13 +11,13 @@ using std::string;
 using std::to_string;
 
 const char* diag_border(int ind, Nature &n){
-    int nw_ind = n.neighbor(ind,1);
-    int ne_ind = n.neighbor(ind,2);
+    int nw_ind = n.neighbor(ind,NW);
+    int ne_ind = n.neighbor(ind,NE);
     int owner = n.map[ind].owner;
     int nw_owner = (nw_ind==-1 ? -1 : n.map[nw_ind].owner);
     int ne_owner = (ne_ind==-1 ? -1 : n.map[ne_ind].owner);
-    int w_ind = n.neighbor(ind,0);
-    int e_ind = n.neighbor(ind,3);
+    int w_ind = n.neighbor(ind,W);
+    int e_ind = n.neighbor(ind,E);
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
     int e_owner = (e_ind==-1 ? -1 : n.map[e_ind].owner);
     if (owner==nw_owner && owner==ne_owner) return "    ";
@@ -34,13 +34,13 @@ const char* diag_border(int ind, Nature &n){
 }
 
 const char* diag_border2(int ind, Nature &n){
-    int sw_ind = n.neighbor(ind,5);
-    int se_ind = n.neighbor(ind,4);
+    int sw_ind = n.neighbor(ind,SW);
+    int se_ind = n.neighbor(ind,SE);
     int owner = n.map[ind].owner;
     int sw_owner = (sw_ind==-1 ? -1 : n.map[sw_ind].owner);
     int se_owner = (se_ind==-1 ? -1 : n.map[se_ind].owner);
-    int w_ind = n.neighbor(ind,0);
-    int e_ind = n.neighbor(ind,3);
+    int w_ind = n.neighbor(ind,W);
+    int e_ind = n.neighbor(ind,E);
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
     int e_owner = (e_ind==-1 ? -1 : n.map[e_ind].owner);
     if (owner==sw_owner && owner==se_owner) return "    ";
@@ -57,7 +57,7 @@ const char* diag_border2(int ind, Nature &n){
 }
 
 const char* vert_border(int ind, Nature &n){
-    int w_ind = n.neighbor(ind,0);
+    int w_ind = n.neighbor(ind,W);
     int owner = n.map[ind].owner;
     int w_owner = (w_ind==-1 ? -1 : n.map[w_ind].owner);
     if (owner==w_owner) return " ";
@@ -314,9 +314,15 @@ void map_by_geogroup(Population &p, Nature &n){
             }
         } else if (gid>=0) { // If group gid has most loyalty
             abbrev=gnames[p.groups[gid].name].substr(0,3);
+        }
+        if (gid>=-1){
             // Make map cleaner: don't print name if adjacent tile is same group
             for (int i_neigh=0;i_neigh<3;i_neigh++){
-                int neighbor_tile = n.neighbor(itile,i_neigh);
+                Direction direction;
+                if (i_neigh==0) direction=W;
+                if (i_neigh==1) direction=NW;
+                if (i_neigh==2) direction=NE;
+                int neighbor_tile = n.neighbor(itile,direction);
                 if (neighbor_tile>=0 && n.map[neighbor_tile].owner==gid) abbrev="   "; // Make a little cleaner
             }
         }

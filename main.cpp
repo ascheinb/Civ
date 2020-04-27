@@ -208,9 +208,10 @@ struct Model{
 };
 
 
-bool more_info(string& input, Model& model){
-    Person* p=&model.p.person[model.p.id2ind[ctrl.info_id]];
+bool more_info(string& input, Model& model, int& focus_id){
+    Person* p=&model.p.person[model.p.id2ind[focus_id]];
     if(input.compare("status")==0){
+        printf("\nName: %s %s", names[p->name].c_str(), p->mships.size()>0 ? gnames[model.p.groups[p->mships[0].id].name].c_str() : "" );
         printf("\nAge: %d",p->age/4);
         printf("\nWealth: %.2f",p->wealth);
         printf("\n# of relationships: %lu",p->rships.size());
@@ -240,6 +241,18 @@ bool more_info(string& input, Model& model){
         map_by_geogroup(model.p,model.nature);
     }else if(input.compare("popmap")==0){
         map_by_population(model.p,model.nature);
+    }else if(input.compare("switch")==0){
+        string input_sw;
+        int switch_num;
+        printf("\nChoose rship?");
+        getline(cin, input_sw);
+        try {
+            switch_num = stoi(input_sw);
+            if (switch_num<0 || switch_num>=p->rships.size()) throw -1;
+            focus_id = p->rships[switch_num].person_id;
+        } catch (...) {
+            printf("Not a valid input. ");
+        }
     }else{
         return false;
     }
@@ -258,10 +271,11 @@ template<typename T>
 T get_answer(Model& model){
         T num;
         string input;
+        int focus_id = ctrl.info_id;
         bool no_answer=true;
         while (no_answer){
             getline(cin, input);
-            if(more_info(input,model)) continue;
+            if(more_info(input,model,focus_id)) continue;
             try {
                 if (is_same<T, float>::value) num = stof(input);
                 if (is_same<T, int>::value)   num = stoi(input);

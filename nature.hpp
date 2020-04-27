@@ -9,6 +9,19 @@ using std::vector;
 #define GRASS 0
 #define WATER 1
 
+enum Direction { W, NW, NE, E, SE, SW };
+
+Direction random_dir(){
+    int intdir = rand_int(6);
+    if(intdir==0) return W;
+    if(intdir==1) return NW;
+    if(intdir==2) return NE;
+    if(intdir==3) return E;
+    if(intdir==4) return SE;
+    if(intdir==5) return SW;
+    return W;
+}
+
 struct HexTile{
     int id;
     int terrain;
@@ -21,17 +34,17 @@ struct HexTile{
 
     vector<int> residents;
 
-    int neighbor (int ncol, int nrow, int w){
+    int neighbor (int ncol, int nrow, Direction w){
         int row = id/ncol;
         int col = id-row*ncol;
         bool l = (row%2==0);
         int shift = (row+1)%2;
-        if (w==0) return (col==0)                             ? -1 : id-1; // West
-        if (w==1) return (row==0 || (l && col==0))            ? -1 : id-ncol-shift; // Northwest
-        if (w==2) return (row==0 || (!l && col==ncol-1))      ? -1 : id-ncol+1-shift; // Northeast
-        if (w==3) return (col==ncol-1)                        ? -1 : id+1; // East
-        if (w==4) return (row==nrow-1 || (!l && col==ncol-1)) ? -1 : id+ncol+1-shift; // Southeast
-        if (w==5) return (row==nrow-1 || (l && col==0))       ? -1 : id+ncol-shift; // Southwest
+        if (w==W ) return (col==0)                             ? -1 : id-1; // West
+        if (w==NW) return (row==0 || (l && col==0))            ? -1 : id-ncol-shift; // Northwest
+        if (w==NE) return (row==0 || (!l && col==ncol-1))      ? -1 : id-ncol+1-shift; // Northeast
+        if (w==E ) return (col==ncol-1)                        ? -1 : id+1; // East
+        if (w==SE) return (row==nrow-1 || (!l && col==ncol-1)) ? -1 : id+ncol+1-shift; // Southeast
+        if (w==SW) return (row==nrow-1 || (l && col==0))       ? -1 : id+ncol-shift; // Southwest
         return -1;
     }
 };
@@ -66,7 +79,7 @@ class Nature{
             map[wtile].terrain=WATER;
             int cand=-1;
             while (cand==-1)
-                cand = map[wtile].neighbor(ncol,nrow,rand_int(6));
+                cand = map[wtile].neighbor(ncol,nrow,random_dir());
             wtile = cand;
         }
 
@@ -119,7 +132,7 @@ class Nature{
         }
     }
 
-    int neighbor (int ind, int w){
+    int neighbor (int ind, Direction w){
         return map[ind].neighbor(ncol,nrow,w);
     }
 };
