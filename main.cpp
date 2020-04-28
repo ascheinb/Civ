@@ -202,7 +202,7 @@ struct Model{
     {
         carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
         n_turns = n_years*4; // A turn is one season
-        watch = true;
+        watch = false;
         watch_start_year=500;
     }
 };
@@ -382,8 +382,8 @@ int main(){
     float min_food_gen=5000;
     float max_food_gen=5000;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=200; // Must be divisible by mapwidth
-    int mapwidth=20; // Keep even for map_by_groups to work
+    int mapsize=110; // Must be divisible by mapwidth
+    int mapwidth=10; // Keep even for map_by_groups to work
 
     // Initialize model
     Model model(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth);

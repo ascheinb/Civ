@@ -2,6 +2,7 @@
 #define GRAPHICS_HPP
 #include <vector>
 #include <string.h>
+#include <cmath>
 #include "random.hpp"
 #include "nature.hpp"
 #include "population.hpp"
@@ -149,11 +150,11 @@ void print_map(Nature &n){
         printf("%s",line.c_str());
         printf("|");
     }
-    if (n.nrow%2==0){
-        printf("\n   \\");
-        for (int j=0;j<n.ncol-1;j++) printf("--- ");
-        printf("-/");
-    }
+    printf("\n ");
+    if (n.nrow%2==0) printf("  ");
+    printf("\\");
+    for (int j=0;j<n.ncol-1;j++) printf("--- ");
+    printf("-/");
 }
 
 // Assumes even number of columns
@@ -516,6 +517,40 @@ void histograms(Population& p){
     }
     printf("\nOpenness: (average: %.1f)", p.avg([](Person& h){return h.openness;}));
     print_histogram(fracs);
+    fflush(stdout);
+
+    // Wealth
+    // First sort people by wealth
+    vector<float> wealth(p.person.size());
+    for (int i=0;i<p.person.size();i++) {wealth[i]=p.person[i].wealth;}
+    std::sort(wealth.begin(), wealth.end());
+    float max_wealth=wealth[wealth.size()-1];
+    float median_wealth=wealth[wealth.size()/2];
+    float mean_wealth=0; for (int i=0;i<wealth.size();i++) mean_wealth+=wealth[i]; mean_wealth/=wealth.size();
+    // Calculate Gini coefficient
+    // Step 1: Get cumulative wealth (Lorenz curve)
+    vector<float> cumul_wealth(wealth.size());
+    cumul_wealth[0]=wealth[0];
+    for (int i=1;i<wealth.size();i++) cumul_wealth[i]=cumul_wealth[i-1]+wealth[i];
+    // Step 2: Calculate area under Lorenz curve
+    float area=0;
+    for (int i=0;i<wealth.size();i++){
+        area+=cumul_wealth[i];
+    }
+    area/=(cumul_wealth[wealth.size()-1]*wealth.size());
+    float gini=1.0 - 2*area;
+    // Resize for plot
+    vector<float> wealthbars(33,0);
+    for (int i=0;i<wealth.size();i++){
+        wealthbars[(i*wealthbars.size())/wealth.size()]+=wealth[i];
+    }
+    // Take logarithm for readability
+    for (int i=0;i<wealthbars.size();i++){
+        if (wealthbars[i]>0.0) wealthbars[i]=std::log10f(wealthbars[i]);
+    }
+    
+    printf("\nWealth: Median: %.1f, Mean: %.1f, Top: %.1f, Gini: %.2f",median_wealth, mean_wealth, max_wealth, gini);
+    print_histogram(wealthbars);
     fflush(stdout);
 }
 
