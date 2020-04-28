@@ -7,14 +7,17 @@
 
 using std::vector;
 
+enum RelType { Parent, Child, Sibling, Friend };
+
 class Relationship{
     public:
     int person_id;
     int fondness_to;
     int fondness_of;
-    bool child;
+    RelType reltype;
 
-    Relationship(int person_id) : person_id(person_id), child(false), fondness_to(0), fondness_of(0) {}
+    Relationship(int person_id) : person_id(person_id), reltype(Friend), fondness_to(0), fondness_of(0) {}
+    Relationship(int person_id, RelType reltype) : person_id(person_id), reltype(reltype), fondness_to(0), fondness_of(0) {}
 };
 
 /*template <typename Proc>

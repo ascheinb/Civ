@@ -129,13 +129,10 @@ class Person{
         old_contentedness=0.0f;
 
         // Create relationships
-        rships.push_back(Relationship(mom->id));
-        mom->rships.push_back(Relationship(id));
-        rships.push_back(Relationship(dad.id));
-        dad.rships.push_back(Relationship(id));
-
-        mom->rships[mom->rships.size()-1].child=true;
-        dad.rships[dad.rships.size()-1].child=true;
+        rships.push_back(Relationship(mom->id,Parent));
+        mom->rships.push_back(Relationship(id,Child));
+        rships.push_back(Relationship(dad.id,Parent));
+        dad.rships.push_back(Relationship(id,Child));
 
         // Set group membership: dad's last name, affiliation from both
         for (int i=0;i<dad.mships.size();i++){

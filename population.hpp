@@ -308,11 +308,42 @@ class Population{
     }
 
     tuple<int,int> die() {
-        // Check deaths twice, first in forward order to adjust id2ind...
-        int deaths_so_far=0;
+        vector<bool> will_die(person.size(),false);
         for(int i = 0; i<person.size();i++){
             if (     person[i].age>person[i].lifespan // Old age
                   || person[i].will_starve  ){        // Starvation
+                will_die[i]=true;
+            }
+        }
+        // Inheritance
+        for(int i = 0; i<person.size();i++){
+            if (will_die[i]==true){
+                float inheritance=person[i].wealth;
+                if (inheritance==0.0f) continue; // skip if no inheritance
+                int n_kids=0;
+                for (int j = 0; j<person[i].rships.size();j++){
+                    if (person[i].rships[j].reltype==Child){
+                        n_kids+=1;
+                    }
+                }
+                if (n_kids>0){ // Even distribution to kids
+                    for (int j = 0; j<person[i].rships.size();j++)
+                        if (person[i].rships[j].reltype==Child)
+                            person[id2ind[person[i].rships[j].person_id]].wealth+=inheritance/n_kids;
+                } else if (person[i].rships.size()>0) { // No kids? Give to random surviving friend for now
+                    int friend_ind = id2ind[person[i].rships[rand_int(person[i].rships.size())].person_id];
+                    if (!will_die[friend_ind])
+                        person[friend_ind].wealth+=inheritance;
+                }
+                // Wealth disappears if no kids and no friends (or randomly selected friend also died this turn)
+            }
+        }
+
+
+        // Check deaths twice, first in forward order to adjust id2ind...
+        int deaths_so_far=0;
+        for(int i = 0; i<person.size();i++){
+            if (will_die[i]){
                 deaths_so_far++;
                 id2ind[person[i].id] = -1;
             } else {

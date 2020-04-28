@@ -206,7 +206,7 @@ bool Person::will_risk_taking(float amt_to_steal, float success_rate, bool order
 
 bool Person::will_give_food(int i_rship,Person& p){
     if (play) {string str("Give food to "); str+=names[p.name]+"? (y/n)"; return decision<bool>(str.c_str());}
-    return (rships[i_rship].fondness_to>=FONDSHARE || rships[i_rship].child);
+    return (rships[i_rship].fondness_to>=FONDSHARE || rships[i_rship].reltype==Child);
 }
 
 float Person::how_much_food_will_give(Person& p){
@@ -394,13 +394,13 @@ void Person::feed_friends(vector<Person>& people, vector<int>& id2ind){
                 people[friend_ind].wealth+=transfer_amt;
 
                 // Feel good about it
-                if (rships[i_rship].child){
+                if (rships[i_rship].reltype==Child){
                     contentedness+=2*transfer_amt*(float)agreeableness/TRAITMAX;
                 }else{
                     contentedness+=transfer_amt*(float)agreeableness/TRAITMAX;
                 }
 
-                if ((watch || people[friend_ind].watch) && !(rships[i_rship].child && people[friend_ind].age<ADULT))
+                if ((watch || people[friend_ind].watch) && !(rships[i_rship].reltype==Child && people[friend_ind].age<ADULT))
                     printf("\n%s gave food to %s!",names[name].c_str(),names[people[friend_ind].name].c_str());
             }
         }else{
