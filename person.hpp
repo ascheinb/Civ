@@ -34,6 +34,8 @@
 #define ACTIONS_PER_GUARD 1
 // Food to survive
 #define FOOD_TO_SURVIVE 1.0f
+// Minimum kept for oneself rather than giving away food
+#define STD_LUX 0.5f
 
 using std::vector;
 using std::max;
@@ -154,6 +156,8 @@ class Person{
 
     int rship_index(int person_id);
 
+    int random_local_friend(vector<Person>& people, vector<int>& id2ind);
+
     // Ask question and wait for UI thread to get answer
     template<typename T>
     T decision(const char* question);
@@ -177,11 +181,9 @@ class Person{
 
     bool will_risk_taking(float amt_to_steal, float success_rate, bool ordered);
 
-    bool will_give_food(int i_rship);
+    bool will_give_food(int i_rship, Person& p);
 
     float how_much_food_will_give(Person& p);
-
-    int choose_local_friend(vector<Person>& people, vector<int>& id2ind);
 
     int will_choose_which_friend(vector<Person>& people, vector<int>& id2ind);
 

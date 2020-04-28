@@ -48,6 +48,16 @@ int Person::rship_index(int person_id){
     return -1;
 }
 
+int Person::random_local_friend(vector<Person>& people, vector<int>& id2ind){
+    RandPerm rp(rships.size());
+    for (int i=0;i<rships.size();i++){
+        int ri=rp.x[i];
+        int friend_ind = id2ind[rships[ri].person_id];
+        if (people[friend_ind].home==home) return ri;
+    }
+    return -1;
+}
+
 // Ask question and wait for UI thread to get answer
 template<typename T>
 T Person::decision(const char* question){
@@ -194,25 +204,14 @@ bool Person::will_risk_taking(float amt_to_steal, float success_rate, bool order
     return (expected_value>0.0f || ordered);
 }
 
-bool Person::will_give_food(int i_rship){
-//        if (play) return decision<bool>("Give food to ___? (y/n)");
+bool Person::will_give_food(int i_rship,Person& p){
+    if (play) {string str("Give food to "); str+=names[p.name]+"? (y/n)"; return decision<bool>(str.c_str());}
     return (rships[i_rship].fondness_to>=FONDSHARE || rships[i_rship].child);
 }
 
 float Person::how_much_food_will_give(Person& p){
-//        if (play) return decision<float>("How much to give to ___?");
-    float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
-    return min(wealth-(FOOD_TO_SURVIVE+std_lux),FOOD_TO_SURVIVE-p.wealth);
-}
-
-int Person::choose_local_friend(vector<Person>& people, vector<int>& id2ind){
-    RandPerm rp(rships.size());
-    for (int i=0;i<rships.size();i++){
-        int ri=rp.x[i];
-        int friend_ind = id2ind[rships[ri].person_id];
-        if (people[friend_ind].home==home) return ri;
-    }
-    return -1;
+    if (play) {string str("How much to give to "); str+=names[p.name]+"?"; return decision<float>(str.c_str(),0.0,wealth);}
+    return min(wealth-(FOOD_TO_SURVIVE+STD_LUX),FOOD_TO_SURVIVE-p.wealth);
 }
 
 int Person::will_choose_which_friend(vector<Person>& people, vector<int>& id2ind){
@@ -221,7 +220,7 @@ int Person::will_choose_which_friend(vector<Person>& people, vector<int>& id2ind
     if (false){ // Doesn't matter where friend is
         return rand_int(rships.size());
     }else{ // Only socialize with locals
-        return choose_local_friend(people,id2ind);
+        return random_local_friend(people,id2ind);
     }
 }
 
@@ -378,19 +377,17 @@ void Person::take_by_force(vector<Person>& people, vector<Group>& groups,Nature&
                 people[target_ind].mships[defender].loyalty_to+=4.0f; // Person is more loyal to group!
             }
         }
-        wealth=0.0f;
+        wealth=0.0f; // BUG: Wealth not conserved if ordered is true
         if (watch || people[target_ind].watch) printf("\n%s was caught stealing from %s %s by %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str(),gnames[groups[people[target_ind].mships[defender].id].name].c_str());
     }
 }
 
 void Person::feed_friends(vector<Person>& people, vector<int>& id2ind){
     for (int i_rship=0;i_rship<rships.size();i_rship++){
-        if (!will_give_food(i_rship)) continue; // Skip not fond friends unless its your kid
-        float std_lux = 0.5f; // Arbitrary buffer between what you give and what you need
-        if (wealth>FOOD_TO_SURVIVE+std_lux){ // If you have extra food
-            int friend_id = rships[i_rship].person_id;
-            int friend_ind = id2ind[friend_id];
-            if (people[friend_ind].wealth<FOOD_TO_SURVIVE){ // And a friend is hungry
+        if (wealth>FOOD_TO_SURVIVE+STD_LUX){ // If you have extra food
+            int friend_ind = id2ind[rships[i_rship].person_id];
+            if (people[friend_ind].wealth<FOOD_TO_SURVIVE // And a friend is hungry
+                    && will_give_food(i_rship,people[friend_ind])){ // and you're willing to give
                 // Feed friend
                 float transfer_amt = how_much_food_will_give(people[friend_ind]);
                 wealth-=transfer_amt;
