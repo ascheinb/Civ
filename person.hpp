@@ -36,6 +36,8 @@
 #define FOOD_TO_SURVIVE 1.0f
 // Minimum kept for oneself rather than giving away food
 #define STD_LUX 0.5f
+// Max luxury
+#define MAX_LUX 10.0f
 
 using std::vector;
 using std::max;
@@ -58,9 +60,11 @@ class Person{
     int home;
     int worktype;
     float old_contentedness;
+    float contentedness;
     float old_workrate;
     float workrate;
-    float contentedness;
+    float old_luxrate;
+    float luxrate;
 
     int employer;
     int employee_id;
@@ -93,7 +97,9 @@ class Person{
         openness = 8 + rand_int(16);
         worktype=FORAGE;
         workrate=1.0f;
+        luxrate=0.0f;
         old_workrate=1.0f;
+        old_luxrate=0.0f;
         old_contentedness=0.0f;
     }
 
@@ -125,7 +131,9 @@ class Person{
         // Learn work habits from parents
         worktype=GROW;
         workrate=(mom->workrate + dad.workrate)/2.0f;
+        luxrate=(mom->luxrate + dad.luxrate)/2.0f;
         old_workrate=workrate;
+        old_luxrate=luxrate;
         old_contentedness=0.0f;
 
         // Create relationships

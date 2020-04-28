@@ -157,6 +157,7 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
         if (i_turn%480==1 || i_turn==n_turns){
             int extant_groups = p.get_nextant();
             printf("\nAverage workrate: %.3f", p.avg([](Person& h){return h.workrate;}));
+            printf("\nAverage luxrate: %.3f", p.avg([](Person& h){return h.luxrate;}));
             printf("\nPercent thieves: %.1f%%", p.frac([](Person& h){return h.agreeableness<=9;})*100);
             printf("\nAverage #mships: %.1f", p.avg([](Person& h){return h.mships.size();}));
             map_by_geogroup(p,nature);

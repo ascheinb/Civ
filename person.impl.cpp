@@ -153,6 +153,7 @@ float Person::how_hard_will_work(){
     if (contentedness > old_contentedness){
         // Last turn was happy, so use last turn's workrate as the new base workrate
         old_workrate=workrate;
+        //old_luxrate=luxrate;
     }
 
     // Try a bit more or less work
@@ -230,12 +231,15 @@ bool Person::will_branch_out(){
 }
 
 float Person::how_much_will_consume(){
-    if (play) return decision<float>("How much to consume?");
-    return wealth*((float)(TRAITMAX-neuroticism)/TRAITMAX);
+    if (play) return decision<float>("How much to spend on luxury?",0.0f,wealth);
+    // Try a bit more or less luxury
+//    luxrate = max(0.0f,old_luxrate+rand_f1()*0.1f-0.05f);
+    luxrate = min(MAX_LUX,wealth*((float)(TRAITMAX-neuroticism)/TRAITMAX));
+    return min(wealth,luxrate);
 }
 
 float Person::how_much_will_tithe(float req, Group& group){
-    if (play){string str("How much will you give to "); str+=gnames[group.name]+"?"; return decision<float>(str.c_str(),0.0,wealth);}
+    if (play){string str("How much will you give to "); str+=gnames[group.name]+"?"; return decision<float>(str.c_str(),0.0f,wealth);}
     return min(wealth,req);
 }
 
@@ -252,7 +256,7 @@ bool Person::will_bump_workrate(){
 // Leadership decisions
 
 float Person::how_much_will_skim(Group& group){
-    if (play){string str("How much to skim off "); str+=gnames[group.name]+"?"; return decision<float>(str.c_str(),0.0,group.wealth);}
+    if (play){string str("How much to skim off "); str+=gnames[group.name]+"?"; return decision<float>(str.c_str(),0.0f,group.wealth);}
     // Leader takes 10% over 20 people
     int nmembers = group.memberlist.size();
     float skim = group.wealth*(float)(max(0,nmembers-20))/nmembers*0.10;
@@ -485,7 +489,7 @@ void Person::luxury(){
     // Function to determine how much to spend vs save: save all if neurotic, spend all if not
     float to_enjoy = how_much_will_consume();
     wealth-=to_enjoy;
-    contentedness+=to_enjoy;
+    contentedness+=to_enjoy;//*((float)(TRAITMAX-neuroticism)/TRAITMAX);
     //if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
 }
 
