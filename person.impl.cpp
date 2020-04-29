@@ -437,6 +437,7 @@ void Person::socialize(vector<Person>& people, vector<int>& id2ind, vector<Group
             mships.push_back(Membership(rand_id,1));
         }
     }
+
     // Adjust loyalty to groups
     for (int i=0;i<mships.size();i++){
         for (int j=0;j<people[friend_ind].mships.size();j++){
@@ -454,6 +455,7 @@ void Person::socialize(vector<Person>& people, vector<int>& id2ind, vector<Group
     int fof_rind = rand_int(people[friend_ind].rships.size());
     if (fof_rind == this_rind) return; // Chose yourself, whatever
     int fof_ind = id2ind[people[friend_ind].rships[fof_rind].person_id];
+    if (!people[fof_ind].will_branch_out()) return; // Friend is too shy
 
     // Create relationship with the friend of friend
     // Check if relationship already exists
@@ -461,7 +463,6 @@ void Person::socialize(vector<Person>& people, vector<int>& id2ind, vector<Group
         if (rships[i_rship].person_id==people[fof_ind].id) return;
     }
     // Otherwise, create the relationship
-    if (!people[fof_ind].will_branch_out()) return; // Friend is too shy
     rships.push_back(Relationship(people[fof_ind].id));
     people[fof_ind].rships.push_back(Relationship(id));
 

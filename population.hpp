@@ -64,7 +64,7 @@ class Population{
 
     void task_requests(int i_turn) {
         for(int i = 0; i<groups.size();i++)
-            if(groups[i].memberlist.size()>0) groups[i].set_task_request(person[groups[i].memberlist[groups[i].leader]]);
+            if(groups[i].memberlist.size()>0) groups[i].set_task_request(person[id2ind[groups[i].leader]]);
 
         // Reply from members: randomized
         RandPerm rp(person.size());
@@ -74,7 +74,7 @@ class Population{
         }
 
         for(int i = 0; i<groups.size();i++)
-            if(groups[i].memberlist.size()>0) groups[i].set_tasks(person[groups[i].memberlist[groups[i].leader]]);
+            if(groups[i].memberlist.size()>0) groups[i].set_tasks(person[id2ind[groups[i].leader]]);
     }
 
     void assess_defence() {
@@ -132,7 +132,10 @@ class Population{
     void leadership() {
         // Leadership model: popularity contest
         for (int i=0;i<groups.size();i++)
-            groups[i].choose_leadership(person);
+            // Leadership for life, popularity contest for next leader
+            if (id2ind[groups[i].leader]==-1){ // Leader is dead
+                groups[i].choose_leadership(person);
+            }
     }
 
     void do_long_actions(Nature &nature) {
@@ -157,10 +160,13 @@ class Population{
     }
 
     void socialize() {
-        for(int i = 0; i<person.size();i++){
+        for(int i = 0; i<person.size();i++)
             person[i].socialize(person,id2ind,groups);
+    }
+
+    void erode_loyalty() {
+        for(int i = 0; i<person.size();i++)
             person[i].erode_loyalty();
-        }
     }
 
     void purge_memberships() {
@@ -439,6 +445,8 @@ class Population{
         // Have a random 10% of the population look for groups to cut down on run time
         int n_group_checkers = person.size()/10;
         RandPerm rp(person.size());
+        vector<int> new_group;
+        new_group.reserve(person.size());
         for(int i = 0; i<n_group_checkers;i++){
             int ri = rp.x[i];
             // P1 doesn't have enough friends
@@ -448,7 +456,7 @@ class Population{
                     // P2 doesn't have enough friends
                     //if (person[id2ind[person[ri].rships[j].person_id]].rships.size()+1<SIZEFORMGROUP) continue;
 
-                    vector<int> new_group;
+                    new_group.resize(0);
                     find_potential_group(new_group,person[ri],ri,j);
                     int groupsize = new_group.size();
                     if (groupsize>=SIZEFORMGROUP) {
@@ -459,9 +467,10 @@ class Population{
                             groups.push_back(Group(newgroup_id,0,groupsize));
                             for (int g=0;g<groupsize;g++){ // Loop over new group members
                                 person[new_group[g]].mships.push_back(Membership(newgroup_id,INITLOYALTY));
-                                groups[newgroup_id].memberlist.push_back(new_group[g]);
+                                groups[newgroup_id].memberlist[g]=new_group[g];
                                 if (person[new_group[g]].watch) printf("\n%s joined a new group called %s", names[person[new_group[g]].name].c_str(),gnames[groups[newgroup_id].name].c_str());
                             }
+                            groups[newgroup_id].choose_leadership(person);
                         }
                     }
                 }

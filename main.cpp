@@ -48,8 +48,11 @@ using std::stof;
 
 void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<int>& nstarved, SimVar<int>& ndied, SimVar<int>& nppl, int n_turns, float carrying_capacity, bool watch, int watch_start_year){
     int ncreated=0; int nextant=0; int nmerged=0; p.sum_nage=0; p.sum_dage=0;
+    TimerManager timer;
     printf("\n ******** SIMULATION BEGINS ******* \n");
     for (int i_turn = 1; i_turn <= n_turns; i_turn++){
+        timer.scope();
+        timer.start("watch and gen_food");
         // Check watch
         if (watch && i_turn==(watch_start_year*4-3)){
             int first_watch;
@@ -68,7 +71,7 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
                         max_size=p.groups[i].memberlist.size();
                     }
                 }
-                first_watch=p.groups[max_id].memberlist[p.groups[max_id].leader];
+                first_watch=p.id2ind[p.groups[max_id].leader];
             }
             p.person[first_watch].watch=true;
             p.person[first_watch].play=true;
@@ -86,35 +89,41 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
             }
             printf("\n      (%.0f food this season)",nature.food_available);
         }
-
+    timer.stop(); timer.start("eval_choices");
         p.evaluate_choices();
-
+    timer.stop(); timer.start("new_groups");
         ncreated+=p.new_groups();
+    timer.stop(); timer.start("leadership");
         p.leadership();
+    timer.stop(); timer.start("wealth requests");
         p.wealth_requests();
+    timer.stop(); timer.start("task requests");
         p.task_requests(i_turn);
-
+    timer.stop(); timer.start("long_actions");
         p.do_long_actions(nature);
+    timer.stop(); timer.start("update_residents");
         p.update_residents(nature);
-
-
+    timer.stop(); timer.start("Steal");
         p.take_by_force(i_turn,nature);
-
+    timer.stop(); timer.start("Assess defense");
         p.assess_defence();
-
+    timer.stop(); timer.start("feed");
         p.feed_friends();
-
+    timer.stop(); timer.start("socialize");
         p.socialize();
+    timer.stop(); timer.start("erode loyalty");
+        p.erode_loyalty();
+    timer.stop(); timer.start("purge");
         p.purge_memberships();
-
+    timer.stop(); timer.start("merge_groups");
         int nexb=p.get_nextant();
         p.update_memberlists();
         p.merge_groups();
         nmerged=nexb-p.get_nextant();
-
+    timer.stop(); timer.start("eat/enjoy");
         p.survive();
         p.luxury();
-
+    timer.stop(); timer.start("age");
         p.age();
         if (i_turn%480==1 || i_turn==n_turns){
             printf("\n\nYear: %d, Population: %lu",i_turn/4,p.person.size());
@@ -135,16 +144,16 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
 
         // Exit simulation if no people
         if (p.person.size()==0) {printf("\nPopulation went extinct! :("); break;}
-
+    timer.stop(); timer.start("clean up");
         // Clean up relationships, memberlists, residence lists
         p.purge_rships();
         p.update_residents(nature);
         p.update_memberlists();
-
+    timer.stop(); timer.start("breed");
         // Breed
         int n_kids = p.breed(nature);
         nkids.add(i_turn,n_kids);
-
+    timer.stop();
         int n_ppl = p.person.size();
         nppl.add(i_turn,n_ppl);
 
@@ -162,6 +171,7 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
     }
     ctrl.active=false; // Exit UI
 
+    timer.print();
     if (p.person.size()==0) return; // If no population, no final stats
     map_by_geogroup(p,nature);
     map_by_groups(p,nature);
@@ -231,7 +241,7 @@ bool more_info(string& input, Model& model, int& focus_id){
             int ind = p->mships[i].id;
             char atab[2];
             strcpy(atab,gnames[model.p.groups[ind].name].length()<8 ? "\t" : "");
-            printf("\n%d.\t%s%s\t%.2f\t\t%lu\t%.2f\t%s",i,gnames[model.p.groups[ind].name].c_str(),atab,p->mships[i].loyalty_to,model.p.groups[ind].memberlist.size(),model.p.groups[ind].wealth,names[model.p.person[model.p.groups[ind].memberlist[model.p.groups[ind].leader]].name].c_str());
+            printf("\n%d.\t%s%s\t%.2f\t\t%lu\t%.2f\t%s",i,gnames[model.p.groups[ind].name].c_str(),atab,p->mships[i].loyalty_to,model.p.groups[ind].memberlist.size(),model.p.groups[ind].wealth,names[model.p.person[model.p.id2ind[model.p.groups[ind].leader]].name].c_str());
         }
         printf("\n");
     }else if(input.compare("tile")==0){
@@ -376,11 +386,11 @@ int main(){
 
     int initial_n_ppl = 1000;
     int n_years = 2000;
-    float min_food_gen=10000;
-    float max_food_gen=10000;
+    float min_food_gen=2500;
+    float max_food_gen=2500;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=400; // Must be divisible by mapwidth
-    int mapwidth=20; // Keep even for map_by_groups to work
+    int mapsize=100; // Must be divisible by mapwidth
+    int mapwidth=10; // Keep even for map_by_groups to work
 
     // Initialize model
     Model model(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth);

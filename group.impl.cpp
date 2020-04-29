@@ -29,7 +29,7 @@ void Group::choose_leadership(vector<Person>& people){
             }
         }
         if (popularity>max_popularity){// (implicit tiebreaker goes to age)
-            max_id=j;
+            max_id=people[memberlist[j]].id;
             max_popularity=popularity;
         }
     }

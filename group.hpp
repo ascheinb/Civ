@@ -50,9 +50,10 @@ class Group{
 
     int guard_request;
 
-    Group(int id, int land, int npaying) : age(0), id(id), wealth(0), land(land), npaying(npaying),
+    Group(int id, int land, int groupsize) : age(0), id(id), wealth(0), land(land), npaying(groupsize),
         guard_strength(20),guard_cost(2),nguards(0),nused(0),nundefended(0),req_to_rec(0.0f),received(0.0f),
-        guard_request(0)
+        guard_request(0),
+        memberlist(groupsize)
     {
         name = id;
         if (id>=NGROUP_NAMES){
