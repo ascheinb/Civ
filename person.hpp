@@ -34,6 +34,11 @@
 #define LOYALTY_DEFENDED 4.0f
 #define INTRO_LOYALTY 1.0f
 #define INIT_LOYALTY 24.0f
+// CONTENTEDNESS
+#define FREE_TIME_CNTDNESS 2.0f
+#define LUX_CNTDNESS 1.0f
+#define FRIEND_FEED_CNTDNESS 1.0f
+#define CHILD_FEED_CNTDNESS 2.0f
 //  Buggy, must be 1 for now:
 #define ACTIONS_PER_GUARD 1
 // Food to survive

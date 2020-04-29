@@ -276,7 +276,6 @@ class Population{
             if (person[i].wealth<FOOD_TO_SURVIVE) person[i].will_starve=true;
             float to_eat = min(person[i].wealth,FOOD_TO_SURVIVE);
             person[i].wealth-=to_eat;
-            person[i].contentedness+=to_eat;
             //if (person[i].watch) printf("\n%s's cness after surviving: %.3f", names[person[i].name].c_str(),person[i].contentedness);
         }
     }

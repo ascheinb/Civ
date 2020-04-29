@@ -314,7 +314,7 @@ void Person::do_long_action(Nature& nature){
         nature.map[home].food_available-=food_haul;
 
         // ENJOY FREE TIME
-        contentedness+=(1.0f-workrate)*2.0;
+        contentedness+=(1.0f-workrate)*FREE_TIME_CNTDNESS;
         //if (watch) printf("\n%s's cness after workrate %.3f: %.3f", names[name].c_str(),workrate, contentedness);
     } else if (worktype==GUARD){
         // Nothing in here yet, just responds to take_by_force
@@ -373,15 +373,16 @@ void Person::take_by_force(vector<Person>& people, vector<Group>& groups,Nature&
     } else { // Caught
         if (defender==-1){
             people[target_ind].wealth += wealth; // If no defenders, target gets the cash
+            wealth=0.0f;
         } else {
             if (ordered){
                 // No exchange
             } else {
                 groups[people[target_ind].mships[defender].id].wealth += wealth; // Defending group gets all, for now
+                wealth=0.0f;
                 people[target_ind].mships[defender].loyalty_to+=LOYALTY_DEFENDED; // Person is more loyal to group!
             }
         }
-        wealth=0.0f; // BUG: Wealth not conserved if ordered is true
         if (watch || people[target_ind].watch) printf("\n%s was caught stealing from %s %s by %s",names[name].c_str(),names[people[target_ind].name].c_str(), gnames[groups[people[target_ind].mships[0].id].name].c_str(),gnames[groups[people[target_ind].mships[defender].id].name].c_str());
     }
 }
@@ -399,9 +400,9 @@ void Person::feed_friends(vector<Person>& people, vector<int>& id2ind){
 
                 // Feel good about it
                 if (rships[i_rship].reltype==Child){
-                    contentedness+=2*transfer_amt*(float)agreeableness/TRAITMAX;
+                    contentedness+=transfer_amt*CHILD_FEED_CNTDNESS*(float)agreeableness/TRAITMAX;
                 }else{
-                    contentedness+=transfer_amt*(float)agreeableness/TRAITMAX;
+                    contentedness+=transfer_amt*FRIEND_FEED_CNTDNESS*(float)agreeableness/TRAITMAX;
                 }
 
                 if ((watch || people[friend_ind].watch) && !(rships[i_rship].reltype==Child && people[friend_ind].age<ADULT))
@@ -490,7 +491,7 @@ void Person::luxury(){
     // Function to determine how much to spend vs save: save all if neurotic, spend all if not
     float to_enjoy = how_much_will_consume();
     wealth-=to_enjoy;
-    contentedness+=to_enjoy;//*((float)(TRAITMAX-neuroticism)/TRAITMAX);
+    contentedness+=to_enjoy*LUX_CNTDNESS;//*((float)(TRAITMAX-neuroticism)/TRAITMAX);
     //if (person[i].watch) printf("\n%s's cness after luxury: %.3f", names[person[i].name].c_str(),person[i].contentedness);
 }
 
