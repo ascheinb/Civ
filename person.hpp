@@ -91,7 +91,7 @@ class Person{
         female = chance(0.5); // 50% chance of being female
         name = female ? rand_int(NF_NAMES) : NF_NAMES + rand_int(NM_NAMES);
         extroversion = 16 + rand_int(16);
-        agreeableness = 8 + rand_int(16);
+        agreeableness = 16 + rand_int(16);
         conscientiousness = 8 + rand_int(16);
         neuroticism = 8 + rand_int(16);
         openness = 8 + rand_int(16);

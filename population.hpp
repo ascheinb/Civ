@@ -145,9 +145,7 @@ class Population{
 
     void take_by_force(int i_turn,Nature& nature) {
         RandPerm rp(person.size());
-        int ramp = person.size()*((i_turn-240.0f)/4000.0f);
-        ramp = min((int)(person.size()),max(0,ramp));
-        for(int i = 0; i<ramp;i++){
+        for(int i = 0; i<person.size();i++){
             int ri = rp.x[i];
             person[ri].take_by_force(person, groups, nature);
         }

@@ -89,16 +89,16 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
 
         p.evaluate_choices();
 
+        ncreated+=p.new_groups();
         p.leadership();
+        p.wealth_requests();
         p.task_requests(i_turn);
 
         p.do_long_actions(nature);
         p.update_residents(nature);
 
 
-        if (i_turn>240){
-            p.take_by_force(i_turn,nature);
-        }
+        p.take_by_force(i_turn,nature);
 
         p.assess_defence();
 
@@ -114,10 +114,6 @@ void run_simulation(Nature& nature, Population& p, SimVar<int>& nkids, SimVar<in
 
         p.survive();
         p.luxury();
-
-        p.wealth_requests();
-
-        ncreated+=p.new_groups(); // Move before wealth request
 
         p.age();
         if (i_turn%480==1 || i_turn==n_turns){
@@ -378,13 +374,13 @@ int main(){
     // Read in names
     fill_names();
 
-    int initial_n_ppl = 2000;
+    int initial_n_ppl = 1000;
     int n_years = 2000;
-    float min_food_gen=5000;
-    float max_food_gen=5000;
+    float min_food_gen=10000;
+    float max_food_gen=10000;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=110; // Must be divisible by mapwidth
-    int mapwidth=10; // Keep even for map_by_groups to work
+    int mapsize=400; // Must be divisible by mapwidth
+    int mapwidth=20; // Keep even for map_by_groups to work
 
     // Initialize model
     Model model(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth);
