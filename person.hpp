@@ -28,8 +28,12 @@
 #define SIZEFORMGROUP 15
 // Level of fondness required to qualify as friend group
 #define FONDFORMGROUP 6 //4
-// Initial level of loyalty for a group (1-32) (Expires after 6 years)
-#define INITLOYALTY 24.0f
+// LOYALTY
+#define SOCIAL_LOYALTY 1.0f
+#define LOYALTY_EROSION 3.0f
+#define LOYALTY_DEFENDED 4.0f
+#define INTRO_LOYALTY 1.0f
+#define INIT_LOYALTY 24.0f
 //  Buggy, must be 1 for now:
 #define ACTIONS_PER_GUARD 1
 // Food to survive
@@ -144,11 +148,11 @@ class Person{
 
         // Set group membership: dad's last name, affiliation from both
         for (int i=0;i<dad.mships.size();i++){
-            mships.push_back(Membership(dad.mships[i].id,INITLOYALTY));
+            mships.push_back(Membership(dad.mships[i].id,INIT_LOYALTY));
         }
         // Join mom's groups if not already in them
         for (int i=0;i<mom->mships.size();i++){
-            if (!is_member(mom->mships[i].id)) mships.push_back(Membership(mom->mships[i].id,INITLOYALTY));
+            if (!is_member(mom->mships[i].id)) mships.push_back(Membership(mom->mships[i].id,INIT_LOYALTY));
         }
     }
 

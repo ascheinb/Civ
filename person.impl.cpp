@@ -378,7 +378,7 @@ void Person::take_by_force(vector<Person>& people, vector<Group>& groups,Nature&
                 // No exchange
             } else {
                 groups[people[target_ind].mships[defender].id].wealth += wealth; // Defending group gets all, for now
-                people[target_ind].mships[defender].loyalty_to+=4.0f; // Person is more loyal to group!
+                people[target_ind].mships[defender].loyalty_to+=LOYALTY_DEFENDED; // Person is more loyal to group!
             }
         }
         wealth=0.0f; // BUG: Wealth not conserved if ordered is true
@@ -434,7 +434,7 @@ void Person::socialize(vector<Person>& people, vector<int>& id2ind, vector<Group
         int rand_id = people[friend_ind].mships[rand_ind].id;
         if (!is_member(rand_id)){ // If not already member
             if (watch) printf("\n%s joined %s", names[name].c_str(),gnames[groups[rand_id].name].c_str());
-            mships.push_back(Membership(rand_id,1));
+            mships.push_back(Membership(rand_id,INTRO_LOYALTY));
         }
     }
 
@@ -442,8 +442,8 @@ void Person::socialize(vector<Person>& people, vector<int>& id2ind, vector<Group
     for (int i=0;i<mships.size();i++){
         for (int j=0;j<people[friend_ind].mships.size();j++){
             if (mships[i].id==people[friend_ind].mships[j].id){ // group is common
-                mships[i].loyalty_to+=1.0f; // So socializing increases loyalty to the group
-                people[friend_ind].mships[j].loyalty_to+=1.0f;
+                mships[i].loyalty_to+=SOCIAL_LOYALTY; // So socializing increases loyalty to the group
+                people[friend_ind].mships[j].loyalty_to+=SOCIAL_LOYALTY;
                 break;
             }
         }
@@ -472,7 +472,7 @@ void Person::socialize(vector<Person>& people, vector<int>& id2ind, vector<Group
 
 void Person::erode_loyalty(){
     for (int i=0;i<mships.size();i++){
-        mships[i].loyalty_to-=3.0f*(float)(TRAITMAX-conscientiousness)/TRAITMAX; // Reduce loyalty to all groups as time passes
+        mships[i].loyalty_to-=LOYALTY_EROSION*(float)(TRAITMAX-conscientiousness)/TRAITMAX; // Reduce loyalty to all groups as time passes
     }
 }
 
