@@ -36,7 +36,8 @@ void Group::choose_leadership(vector<Person>& people){
     leader = max_id;
 }
 
-void Group::will_desire_how_many_guards(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left){
+void Group::will_desire_how_many_guards(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left,
+                                        vector<int> lused_soldier, vector<int> lunused_soldier){
     nguards_desired.resize(0);
     nsoldiers_desired.resize(0);
     tile_inds.resize(0);
@@ -56,7 +57,11 @@ void Group::will_desire_how_many_guards(vector<int> victim_homes,vector<int> lus
         tile_inds.push_back(victim_homes[j]);
 
         // Desire one attacker as well
-        nsoldiers_desired.push_back(1);
+        if (lunused_soldier[j]>0) { // too many soldiers here
+            nsoldiers_desired.push_back(lused_soldier[j]);
+        } else { // Add another soldier here
+            nsoldiers_desired.push_back(lused_soldier[j]+1);
+        }
     }
 }
 
@@ -96,15 +101,20 @@ bool Group::will_try_to_defend(){
 
 // Actions
 
-void Group::assess_defence(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left){
+void Group::assess_defence(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left,
+                           vector<int> lused_soldier, vector<int> lunused_soldier){
     // Updates nguards_desired, nsoldiers_desired and tile_inds
-    will_desire_how_many_guards(victim_homes,lused,lundefended,guards_left);
+    will_desire_how_many_guards(victim_homes,lused,lundefended,guards_left, lused_soldier, lunused_soldier);
 
     // Reset defence assessment monitoring data
     nused=0;
     nundefended=0;
     used.resize(0);
     undefended.resize(0);
+
+    // Reset attack assessment
+    unused_soldier.resize(0);
+    used_soldier.resize(0);
 }
 
 void Group::set_wealth_request(){

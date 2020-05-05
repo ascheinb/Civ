@@ -28,6 +28,8 @@ class Group{
     vector<int> used;
     vector<int> undefended;
     vector<int> nguards_desired;
+    vector<int> used_soldier;
+    vector<int> unused_soldier;
     vector<int> nsoldiers_desired;
     vector<int> tile_inds;
     int npaying;
@@ -65,7 +67,8 @@ class Group{
 
     // Decisions
 
-    void will_desire_how_many_guards(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left);
+    void will_desire_how_many_guards(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left,
+                                     vector<int> lused_soldier, vector<int> lunused_soldier);
 
     float will_try_to_raise_how_much();
 
@@ -79,7 +82,8 @@ class Group{
 
     void choose_leadership(vector<Person>& people);
 
-    void assess_defence(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left);
+    void assess_defence(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left,
+                        vector<int> lused_soldier, vector<int> lunused_soldier);
 
     void set_wealth_request();
 

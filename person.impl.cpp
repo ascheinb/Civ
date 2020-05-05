@@ -183,16 +183,20 @@ int Person::whom_will_take_from(vector<Person>& people, vector<Group>& groups,Na
     } else { // Take from someone local
         int nlocals = nature.map[home].residents.size();
         if (ordered){ // Attack whoever your employer wants you to
-            if (groups[employer].guards[employee_id].target==-1) { // Anyone not in your group
+            if (groups[employer].guards[employee_id].target==-1) { // If target not specified
+                // Target anyone not in your group
                 RandPerm rp(nlocals);
                 for (int i=0;i<nlocals;i++){ // Loop randomly over residents
                     int ptarget = nature.map[home].residents[rp.x[i]];
                     if (!people[ptarget].is_member(employer)){ // Check they're not in your group
+                        groups[employer].used_soldier.push_back(home);
                         return ptarget;
                     }
                 }
             }
-        } else {
+            // If no target found, note as unused soldier
+            groups[employer].unused_soldier.push_back(home);
+        } else { // Attack random local resident
             return nature.map[home].residents[rand_int(nlocals)];
         }
     }

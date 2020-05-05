@@ -120,7 +120,38 @@ class Population{
                 guards_left[ghome_ind]++;
             }
 
-            groups[i].assess_defence(victim_homes,lused,lundefended,guards_left);
+            // Assess offence:
+            vector<int> lused_soldier(victim_homes.size(),0);
+            for (int j=0;j<groups[i].used_soldier.size();j++){
+                int victim_home=groups[i].used_soldier[j];
+                int vhome_ind = get_index(victim_homes,victim_home);
+                if (vhome_ind==-1){ // Add to list of tiles
+                    vhome_ind=victim_homes.size();
+                    victim_homes.push_back(victim_home);
+                    lused.push_back(0);
+                    lundefended.push_back(0);
+                    guards_left.push_back(0);
+                    lused_soldier.push_back(0);
+                }
+                lused_soldier[vhome_ind]++;
+            }
+            vector<int> lunused_soldier(victim_homes.size(),0);
+            for (int j=0;j<groups[i].unused_soldier.size();j++){
+                int victim_home=groups[i].unused_soldier[j];
+                int vhome_ind = get_index(victim_homes,victim_home);
+                if (vhome_ind==-1){ // Add to list of tiles
+                    vhome_ind=victim_homes.size();
+                    victim_homes.push_back(victim_home);
+                    lused.push_back(0);
+                    lundefended.push_back(0);
+                    guards_left.push_back(0);
+                    lused_soldier.push_back(0);
+                    lunused_soldier.push_back(0);
+                }
+                lunused_soldier[vhome_ind]++;
+            }
+
+            groups[i].assess_defence(victim_homes,lused,lundefended,guards_left,  lused_soldier, lunused_soldier);
         }
     }
 
