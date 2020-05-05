@@ -28,7 +28,8 @@ class Group{
     vector<int> used;
     vector<int> undefended;
     vector<int> nguards_desired;
-    vector<int> guards_desired_loc;
+    vector<int> nsoldiers_desired;
+    vector<int> tile_inds;
     int npaying;
     float req_to_rec; // ratio of requested/received
 

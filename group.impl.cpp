@@ -38,7 +38,8 @@ void Group::choose_leadership(vector<Person>& people){
 
 void Group::will_desire_how_many_guards(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left){
     nguards_desired.resize(0);
-    guards_desired_loc.resize(0);
+    nsoldiers_desired.resize(0);
+    tile_inds.resize(0);
     // Great, now have a list of used/defended, by tile
     for (int j=0;j<victim_homes.size();j++){
         // Apply the adjustments to decide how many guards to request in each location
@@ -52,14 +53,22 @@ void Group::will_desire_how_many_guards(vector<int> victim_homes,vector<int> lus
             }
         }
         nguards_desired.push_back(nlast_turn + adjustment);
-        guards_desired_loc.push_back(victim_homes[j]);
+        tile_inds.push_back(victim_homes[j]);
+
+        // Desire one attacker as well
+        nsoldiers_desired.push_back(1);
     }
 }
 
 float Group::will_try_to_raise_how_much(){
     int nguards_desired_total=0;
+    // Defense
     for (int i=0;i<nguards_desired.size();i++){
         nguards_desired_total+=nguards_desired[i];
+    }
+    // Offense
+    for (int i=0;i<nsoldiers_desired.size();i++){
+        nguards_desired_total+=nsoldiers_desired[i];
     }
     float desired_expenditure=guard_cost*nguards_desired_total;
     return max(desired_expenditure-wealth,0.0f);
@@ -71,13 +80,14 @@ int Group::will_request_how_many_guards(){
 
 void Group::set_tasks(Person& pleader){
     // Set some to attack
-    int nattacks=pleader.how_many_attackers(*this); // or less
+/*    int nattacks=pleader.how_many_attackers(*this); // or less
     for (int i=0;i<guards.size();i++){
         if (i<nattacks){
             guards[i].task=ATTACK;
             guards[i].target=-1;
         }
     }
+    */
 }
 
 bool Group::will_try_to_defend(){
@@ -87,7 +97,7 @@ bool Group::will_try_to_defend(){
 // Actions
 
 void Group::assess_defence(vector<int> victim_homes,vector<int> lused, vector<int> lundefended,vector<int> guards_left){
-    // Updates nguards_desired and guards_desired_loc
+    // Updates nguards_desired, nsoldiers_desired and tile_inds
     will_desire_how_many_guards(victim_homes,lused,lundefended,guards_left);
 
     // Reset defence assessment monitoring data

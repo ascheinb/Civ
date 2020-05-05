@@ -514,22 +514,32 @@ void Person::respond_to_task_requests(vector<Group>& groups,int this_ind){
         if (groups[gid].nguards<groups[gid].guard_request){ // need more guards
             // Check if guards needed in your area
             int area_gid=-1;
-            for (int j=0;j<groups[gid].guards_desired_loc.size();j++){
-                if (groups[gid].guards_desired_loc[j]==home)
+            for (int j=0;j<groups[gid].tile_inds.size();j++){
+                if (groups[gid].tile_inds[j]==home)
                     {area_gid=j; break;}
             }
             if (area_gid==-1) continue;
+
+            // No guards needed on this tile
+            if ((groups[gid].nguards_desired[area_gid]<=0) && (groups[gid].nsoldiers_desired[area_gid]<=0)) continue;
 
             if(will_accept_task()){
                 worktype = GUARD;
                 employer = gid;
                 groups[gid].nguards++;
-                groups[gid].guards.push_back(Guard(this_ind,ACTIONS_PER_GUARD,DEFEND,home));
+                if (groups[gid].nguards_desired[area_gid]>0){ // If defense needed on this tile
+                    groups[gid].guards.push_back(Guard(this_ind,ACTIONS_PER_GUARD,DEFEND,home));
+                    groups[gid].nguards_desired[area_gid]--;
+                } else if (groups[gid].nsoldiers_desired[area_gid]>0){ // If defense no longer needed, move to offense
+                    groups[gid].guards.push_back(Guard(this_ind,ACTIONS_PER_GUARD,ATTACK,home));
+                    groups[gid].nsoldiers_desired[area_gid]--;
+                }
+
                 employee_id = groups[gid].guards.size();
                 groups[gid].wealth-=groups[gid].guard_cost;
                 wealth+=groups[gid].guard_cost;
 
-                // Localality info
+                // Locality info
                 groups[gid].nguards_desired[area_gid]--;
             }
         }
