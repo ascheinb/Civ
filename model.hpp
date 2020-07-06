@@ -151,6 +151,9 @@ struct Model{
         // Breed
         int n_kids = p.breed(nature);
         nkids.add(i_turn,n_kids);
+    timer.stop(); timer.start("tile ownership");
+        // Determine tile ownership (for map viewing - rate could be less)
+        determine_owners(p,nature);
     timer.stop();
         int n_ppl = p.person.size();
         nppl.add(i_turn,n_ppl);

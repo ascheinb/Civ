@@ -373,7 +373,7 @@ tuple<vector<int>,vector<int>> get_geogroup(Population &p, Nature &n, int itile)
         return make_tuple(groups,group_pop);
     }
 
-void map_by_geogroup(Population &p, Nature &n, int mark_spot=-1){
+void determine_owners(Population &p, Nature &n){
     for (int itile=0;itile<n.map.size();itile++){
         // Determine dominant group in each tile 
         vector<int> groups;
@@ -420,6 +420,11 @@ void map_by_geogroup(Population &p, Nature &n, int mark_spot=-1){
         strcpy(n.map[itile].letter,abbrev.c_str());
         n.map[itile].owner=gid;
     }
+}
+
+void map_by_geogroup(Population &p, Nature &n, int mark_spot=-1){
+
+    determine_owners(p,n);
 
     // Add * to mark a location if sent
     if (mark_spot>=0){

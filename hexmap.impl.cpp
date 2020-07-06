@@ -30,6 +30,29 @@ void draw_hexagon(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, f
 //    cr->stroke_preserve();
 }
 
+void draw_hexline(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y, Direction direction){
+    const float hex_radius=29;
+    const float sin60 = 0.8660254;
+    const int linewidth = 2;
+
+    cr->set_line_width(linewidth);
+    cr->set_source_rgba(0.5, 0.1, 0.6, 0.4);   // purple
+    cr->move_to(hex_center_x + 0.0f, hex_center_y + hex_radius); // Start at top (bottom?)
+    if (direction==SE) cr->rel_line_to(hex_radius*sin60, -hex_radius*0.5f);
+    else cr->rel_move_to(hex_radius*sin60, -hex_radius*0.5f);
+    if (direction==E) cr->rel_line_to(0.0f,-hex_radius);
+    else cr->rel_move_to(0.0f,-hex_radius);
+    if (direction==NE) cr->rel_line_to(-hex_radius*sin60, -hex_radius*0.5f);
+    else cr->rel_move_to(-hex_radius*sin60, -hex_radius*0.5f);
+    if (direction==NW) cr->rel_line_to(-hex_radius*sin60, hex_radius*0.5f);
+    else cr->rel_move_to(-hex_radius*sin60, hex_radius*0.5f);
+    if (direction==W) cr->rel_line_to(0.0f,hex_radius);
+    else cr->rel_move_to(0.0f,hex_radius);
+    if (direction==SW) cr->rel_line_to(hex_radius*sin60, hex_radius*0.5f);
+    else cr->rel_move_to(hex_radius*sin60, hex_radius*0.5f);
+    cr->stroke();
+}
+
 void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
     const float hex_radius=30;
     cr->set_line_width(3);
@@ -47,6 +70,18 @@ void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x,
     cr->stroke();
 }
 
+void draw_waves(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
+    const float hex_radius=30;
+    cr->set_line_width(3);
+    cr->set_source_rgba(88.0f/256, 110.0f/256, 119.0f/256, 0.3); // Blue
+    cr->move_to(hex_center_x - hex_radius*0.5, hex_center_y + hex_radius*0.5); // Start at lower left
+    cr->rel_curve_to(0.25*hex_radius, -0.15*hex_radius, 0.25*hex_radius, 0.1*hex_radius, 0.5*hex_radius, -0.05*hex_radius);
+    cr->move_to(hex_center_x + hex_radius*0.1, hex_center_y - hex_radius*0.25); // Start at upper right
+    cr->rel_curve_to(0.25*hex_radius, -0.15*hex_radius, 0.25*hex_radius, 0.1*hex_radius, 0.5*hex_radius, -0.05*hex_radius);
+
+    cr->stroke();
+}
+
 void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
     const float hex_radius=30;
     const float sin60 = 0.8660254;
@@ -61,12 +96,13 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
         //    if (p.person[i].is_member(group_focus)) tilepop[p.person[i].home]+=1;
         //}
     }
-    Cairo::TextExtents extents;
 
-    for (int j = 0; j < model.nature.ncol; j++){
+    Cairo::TextExtents extents; // for centering text
+
+    for (int j = 0; j < model.nature.nrow; j++){
         float offset = (j%2==0 ? 0 : hex_width/2);
-        for (int i = 0; i < model.nature.nrow; i++){
-            int itile = j*model.nature.nrow + i;
+        for (int i = 0; i < model.nature.ncol; i++){
+            int itile = j*model.nature.ncol + i;
             float tile_center_x = 50.0f + hex_width*i + offset;
             float tile_center_y = 50.0f + 1.5*hex_radius*j;
             draw_hexagon(cr, tile_center_x, tile_center_y);
@@ -77,8 +113,9 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
             if(model.nature.map[itile].terrain==MOUNTAIN) cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0); // Brown
             cr->fill();
 
-            // Draw mountains
+            // Draw mountains or waves
             if(model.nature.map[itile].terrain==MOUNTAIN) draw_mountains(cr,tile_center_x, tile_center_y);
+            if(model.nature.map[itile].terrain==WATER) draw_waves(cr,tile_center_x, tile_center_y);
 
             // Write population
             if(model.nature.map[itile].terrain==GRASS && tilepop[itile]>0){
@@ -87,9 +124,78 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
                 cr->set_font_size(13);
                 string pop_str = std::to_string(tilepop[itile]);
                 cr->get_text_extents(pop_str, extents);
-                cr->move_to(tile_center_x - extents.width/2, tile_center_y+hex_radius*0.1f);
+                cr->move_to(tile_center_x - extents.width/2, tile_center_y+hex_radius*0.6f);
 
                 cr->show_text(pop_str.c_str());
+            }
+/*
+            // Draw population
+            for (int i_pop = 0; i_pop < tilepop[itile]; i_pop++){
+                // Choose a random point inside hexagon (the square part for now)
+                float rand_x = (rand_f1()-0.5f)*hex_radius;
+                float rand_y = (rand_f1()-0.5f)*hex_radius;
+                cr->set_line_width(5);
+                cr->set_source_rgba(0.0, 0.0, 0.0, 1.0);   // black
+//                cr->move_to(tile_center_x + rand_x, tile_center_y + rand_y); // Start at top (bottom?)
+//                cr->rel_line_to(hex_radius*0.01, 0);
+                cr->arc(tile_center_x+rand_x, tile_center_y+rand_y,  1.0, 0, 2 * M_PI);
+                cr->fill();
+            }*/
+        }
+    }
+
+    for (int j = 0; j < model.nature.nrow; j++){
+        float offset = (j%2==0 ? 0 : hex_width/2);
+        for (int i = 0; i < model.nature.ncol; i++){
+            int itile = j*model.nature.ncol + i;
+            float tile_center_x = 50.0f + hex_width*i + offset;
+            float tile_center_y = 50.0f + 1.5*hex_radius*j;
+
+            // Add borders
+            int gid = model.nature.map[itile].owner;
+            if (gid>=0){
+                bool ul = true;
+                int neighbor_tile = model.nature.neighbor(itile,W);
+                if (neighbor_tile>=0){
+                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,W);
+                    else ul = false;
+                } else draw_hexline(cr,tile_center_x, tile_center_y,W);
+                
+                neighbor_tile = model.nature.neighbor(itile,NW);
+                if (neighbor_tile>=0){
+                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,NW);
+                    else ul = false;
+                } else draw_hexline(cr,tile_center_x, tile_center_y,NW);
+                
+                neighbor_tile = model.nature.neighbor(itile,NE);
+                if (neighbor_tile>=0){
+                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,NE);
+                    else ul = false;
+                } else draw_hexline(cr,tile_center_x, tile_center_y,NE);
+                
+                neighbor_tile = model.nature.neighbor(itile,E);
+                if (neighbor_tile>=0){
+                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,E);
+                } else draw_hexline(cr,tile_center_x, tile_center_y,E);
+                
+                neighbor_tile = model.nature.neighbor(itile,SE);
+                if (neighbor_tile>=0){
+                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,SE);
+                } else draw_hexline(cr,tile_center_x, tile_center_y,SE);
+                
+                neighbor_tile = model.nature.neighbor(itile,SW);
+                if (neighbor_tile>=0){
+                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,SW);
+                } else draw_hexline(cr,tile_center_x, tile_center_y,SW);
+
+                if (ul){ // Quick way to clean up names - only put name in upper left corner tile
+                    cr->set_source_rgba(0.0, 0.0, 0.0, 1.0);
+                    cr->set_font_size(13);
+                    string group_name = gnames[model.p.groups[gid].name];
+                    cr->get_text_extents(group_name, extents);
+                    cr->move_to(tile_center_x - extents.width/2, tile_center_y+hex_radius*0.0f);
+                    cr->show_text(group_name.c_str());
+                }
             }
         }
     }

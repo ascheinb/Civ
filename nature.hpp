@@ -68,6 +68,7 @@ class Nature{
             strcpy(map[i].letter, "   ");
             map[i].id=i;
             map[i].terrain=GRASS;
+            map[i].owner=-1;
         }
         ncol=mapwidth;
         nrow=mapsize/mapwidth;
