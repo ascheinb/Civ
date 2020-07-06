@@ -28,6 +28,8 @@ struct Model{
     bool watch;
     int watch_start_year;
 
+    int i_turn;
+
     Model(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth)
         : nkids(n_years*4),nstarved(n_years*4),ndied(n_years*4),nppl(n_years*4),
           nature(min_food_gen,max_food_gen,climate_type,mapsize,mapwidth),
@@ -35,6 +37,7 @@ struct Model{
     {
         carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
         n_turns = n_years*4; // A turn is one season
+        i_turn = 1;
         watch = false;
         watch_start_year=500;
 
@@ -45,7 +48,7 @@ struct Model{
         printf("\n ******** SIMULATION BEGINS ******* \n");
     }
 
-    void advance(int i_turn){
+    void advance(){
         timer.scope();
         timer.start("watch and gen_food");
         // Check watch

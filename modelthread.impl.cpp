@@ -50,16 +50,17 @@ void ModelThread::do_work(CivWindow* caller)
   int milestone_dist=5;
 
   // Advance to next turn
-  for (int i_turn = 1; i_turn <= model.n_turns; i_turn++)
+  while (model.i_turn <= model.n_turns)
   {
-      model.advance(i_turn);
+      model.advance();
+      model.i_turn++;
       if (model.p.person.size()==0) {printf("\nEnding simulation early..."); break;}
 //    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     {
       std::lock_guard<std::mutex> lock(m_Mutex);
 
-      m_fraction_done = float(i_turn)/float(model.n_turns);
+      m_fraction_done = float(model.i_turn)/float(model.n_turns);
 
       if (int(100*m_fraction_done) >= next_milestone)
       {
@@ -82,9 +83,11 @@ void ModelThread::do_work(CivWindow* caller)
     }
 
     caller->notify();
+
   }
 
-  model.conclusions();
+  // Finished
+  if (model.i_turn > model.n_turns) model.conclusions();
 
   {
     std::lock_guard<std::mutex> lock(m_Mutex);

@@ -31,14 +31,14 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_HexMap.show();
 
   // Add the TextView, inside a ScrolledWindow.
-  m_ScrolledWindow.add(m_TextView);
+//  m_ScrolledWindow.add(m_TextView);
 
   // Only show the scrollbars when they are necessary.
-  m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+//  m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
-  m_VBox.pack_start(m_ScrolledWindow);
+//  m_VBox.pack_start(m_ScrolledWindow);
 
-  m_TextView.set_editable(false);
+//  m_TextView.set_editable(false);
 
   // Add the buttons to the ButtonBox.
   m_VBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
@@ -59,8 +59,8 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_Dispatcher.connect(sigc::mem_fun(*this, &CivWindow::on_notification_from_worker_thread));
 
   // Create a text buffer mark for use in update_widgets().
-  auto buffer = m_TextView.get_buffer();
-  buffer->create_mark("last_line", buffer->end(), /* left_gravity= */ true);
+//  auto buffer = m_TextView.get_buffer();
+//  buffer->create_mark("last_line", buffer->end(), /* left_gravity= */ true);
 
   update_start_stop_buttons();
 
@@ -115,6 +115,7 @@ void CivWindow::update_widgets()
 
   m_ProgressBar.set_fraction(fraction_done);
 
+  /*
   if (message_from_worker_thread != m_TextView.get_buffer()->get_text())
   {
     auto buffer = m_TextView.get_buffer();
@@ -128,7 +129,7 @@ void CivWindow::update_widgets()
     m_TextView.scroll_to(mark);
     // TextView::scroll_to(iter) is not perfect.
     // We do need a TextMark to always get the last line into view.
-  }
+  }*/
 }
 
 void CivWindow::on_quit_button_clicked()
