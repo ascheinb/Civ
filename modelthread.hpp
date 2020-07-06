@@ -21,6 +21,8 @@ public:
   void stop_work();
   bool has_stopped() const;
 
+  Model model;
+
 private:
   // Synchronizes access to member data.
   mutable std::mutex m_Mutex;
@@ -31,7 +33,6 @@ private:
   double m_fraction_done;
   Glib::ustring m_message;
 
-  Model model;
 };
 
 #endif

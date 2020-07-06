@@ -11,6 +11,7 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_TextView(),
   m_Dispatcher(),
   m_Worker(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth),
+  m_HexMap(m_Worker.model),
   m_WorkerThread(nullptr)
 {
   set_title("HomoSapiens");
@@ -24,6 +25,10 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
 
   m_ProgressBar.set_text("Fraction done");
   m_ProgressBar.set_show_text();
+
+  // Add the HexMap
+  m_VBox.pack_start(m_HexMap);
+  m_HexMap.show();
 
   // Add the TextView, inside a ScrolledWindow.
   m_ScrolledWindow.add(m_TextView);

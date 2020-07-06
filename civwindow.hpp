@@ -3,6 +3,7 @@
 
 #include <gtkmm.h>
 #include "modelthread.hpp"
+#include "hexmap.hpp"
 
 class CivWindow : public Gtk::Window
 {
@@ -34,6 +35,7 @@ private:
   Gtk::ProgressBar m_ProgressBar;
   Gtk::ScrolledWindow m_ScrolledWindow;
   Gtk::TextView m_TextView;
+  HexMap m_HexMap;
 
   Glib::Dispatcher m_Dispatcher;
   ModelThread m_Worker;
