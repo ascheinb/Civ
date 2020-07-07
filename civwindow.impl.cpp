@@ -2,6 +2,8 @@
 
 CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth) :
   m_VBox(Gtk::ORIENTATION_VERTICAL, 5),
+  m_HBox(Gtk::ORIENTATION_HORIZONTAL),
+  m_SideVBox(Gtk::ORIENTATION_VERTICAL),
   m_ButtonBox(Gtk::ORIENTATION_HORIZONTAL),
   m_ButtonStart("Start work"),
   m_ButtonStop("Stop work"),
@@ -11,7 +13,9 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_TextView(),
   m_Dispatcher(),
   m_Worker(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth),
+  m_YearView(m_Worker.model),
   m_HexMap(m_Worker.model),
+  m_PlotView(m_Worker.model),
   m_WorkerThread(nullptr)
 {
   set_title("HomoSapiens");
@@ -26,10 +30,16 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_ProgressBar.set_text("Fraction done");
   m_ProgressBar.set_show_text();
 
+  // Add the horizontal box
+  m_VBox.pack_start(m_HBox);
+
   // Add the HexMap
-  m_VBox.pack_start(m_HexMap);
+  m_HBox.pack_start(m_HexMap, Gtk::PACK_EXPAND_WIDGET);
   m_HexMap.show();
 
+  m_HBox.pack_start(m_SideVBox, Gtk::PACK_SHRINK);
+
+  m_SideVBox.set_size_request(350,-1);
   // Add the TextView, inside a ScrolledWindow.
 //  m_ScrolledWindow.add(m_TextView);
 
@@ -40,8 +50,11 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
 
 //  m_TextView.set_editable(false);
 
+  m_SideVBox.pack_start(m_YearView);
+  m_YearView.show();
+
   // Add the buttons to the ButtonBox.
-  m_VBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
+  m_SideVBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
 
   m_ButtonBox.pack_start(m_ButtonStart, Gtk::PACK_SHRINK);
   m_ButtonBox.pack_start(m_ButtonStop, Gtk::PACK_SHRINK);
@@ -65,6 +78,9 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   update_start_stop_buttons();
 
   show_all_children();
+
+  m_SideVBox.pack_start(m_PlotView, Gtk::PACK_EXPAND_WIDGET);
+  m_PlotView.show();
 }
 
 void CivWindow::on_start_button_clicked()

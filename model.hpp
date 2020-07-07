@@ -15,6 +15,8 @@ struct Model{
     SimVar<int> nstarved;
     SimVar<int> ndied;
     SimVar<int> nppl;
+    vector<float> plot_fracs;
+    float plot_avg;
 
     // Group-checking diagnostics
     int ncreated;
@@ -33,7 +35,8 @@ struct Model{
     Model(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth)
         : nkids(n_years*4),nstarved(n_years*4),ndied(n_years*4),nppl(n_years*4),
           nature(min_food_gen,max_food_gen,climate_type,mapsize,mapwidth),
-          p(initial_n_ppl,mapsize)
+          p(initial_n_ppl,mapsize),
+          plot_fracs(33)
     {
         carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
         n_turns = n_years*4; // A turn is one season
@@ -46,6 +49,14 @@ struct Model{
         p.sum_nage=0; p.sum_dage=0;
 
         printf("\n ******** SIMULATION BEGINS ******* \n");
+    }
+
+    void set_fracs(vector<float>& fracs, float& avg){
+        // Extroversion
+        for (int i=0;i<fracs.size();i++){
+            fracs[i] = p.frac(i,[](int i,Person& h){return h.extroversion==i;});
+        }
+        avg = p.avg([](Person& h){return h.extroversion;});
     }
 
     void advance(){
@@ -154,6 +165,8 @@ struct Model{
     timer.stop(); timer.start("tile ownership");
         // Determine tile ownership (for map viewing - rate could be less)
         determine_owners(p,nature);
+    timer.stop(); timer.start("plotting");
+        set_fracs(plot_fracs, plot_avg);
     timer.stop();
         int n_ppl = p.person.size();
         nppl.add(i_turn,n_ppl);

@@ -4,6 +4,8 @@
 #include <gtkmm.h>
 #include "modelthread.hpp"
 #include "hexmap.hpp"
+#include "yearview.hpp"
+#include "plotview.hpp"
 
 class CivWindow : public Gtk::Window
 {
@@ -28,6 +30,8 @@ private:
 
   // Member data.
   Gtk::Box m_VBox;
+  Gtk::Box m_HBox;
+  Gtk::Box m_SideVBox;
   Gtk::ButtonBox m_ButtonBox;
   Gtk::Button m_ButtonStart;
   Gtk::Button m_ButtonStop;
@@ -36,6 +40,8 @@ private:
   Gtk::ScrolledWindow m_ScrolledWindow;
   Gtk::TextView m_TextView;
   HexMap m_HexMap;
+  YearView m_YearView;
+  PlotView m_PlotView;
 
   Glib::Dispatcher m_Dispatcher;
   ModelThread m_Worker;
