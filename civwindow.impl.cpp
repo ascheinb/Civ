@@ -5,8 +5,9 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_HBox(Gtk::ORIENTATION_HORIZONTAL),
   m_SideVBox(Gtk::ORIENTATION_VERTICAL),
   m_ButtonBox(Gtk::ORIENTATION_HORIZONTAL),
-  m_ButtonStart("Start work"),
-  m_ButtonStop("Stop work"),
+  m_ButtonNext("Next turn"),
+  m_ButtonStart("Run"),
+  m_ButtonStop("Pause"),
   m_ButtonQuit("_Quit", /* mnemonic= */ true),
   m_ProgressBar(),
   m_ScrolledWindow(),
@@ -56,6 +57,7 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   // Add the buttons to the ButtonBox.
   m_SideVBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
 
+  m_ButtonBox.pack_start(m_ButtonNext, Gtk::PACK_SHRINK);
   m_ButtonBox.pack_start(m_ButtonStart, Gtk::PACK_SHRINK);
   m_ButtonBox.pack_start(m_ButtonStop, Gtk::PACK_SHRINK);
   m_ButtonBox.pack_start(m_ButtonQuit, Gtk::PACK_SHRINK);
@@ -64,6 +66,7 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_ButtonBox.set_layout(Gtk::BUTTONBOX_END);
 
   // Connect the signal handlers to the buttons.
+  m_ButtonNext.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_next_button_clicked));
   m_ButtonStart.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_start_button_clicked));
   m_ButtonStop.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_stop_button_clicked));
   m_ButtonQuit.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_quit_button_clicked));
@@ -81,6 +84,24 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
 
   m_SideVBox.pack_start(m_PlotView, Gtk::PACK_EXPAND_WIDGET);
   m_PlotView.show();
+}
+
+void CivWindow::on_next_button_clicked()
+{
+  if (m_WorkerThread)
+  {
+    std::cout << "Can't start a worker thread while another one is running." << std::endl;
+  }
+  else
+  {
+    // Start a new worker thread.
+    m_WorkerThread = new std::thread(
+      [this]
+      {
+        m_Worker.do_one_turn(this);
+      });
+  }
+  // update_start_stop_buttons();
 }
 
 void CivWindow::on_start_button_clicked()

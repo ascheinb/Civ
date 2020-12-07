@@ -189,13 +189,14 @@ int main(){
     // Read in names
     fill_names();
 
-    int initial_n_ppl = 2000;
+    int initial_n_ppl = 10000;
     int n_years = 2000;
     float min_food_gen=10000;
     float max_food_gen=10000;
     int climate_type = 1; // 0 is uniform; 1 has cold poles
-    int mapsize=216; // Must be divisible by mapwidth
-    int mapwidth=18; // Keep even for map_by_groups to work
+    int mapheight=3;
+    int mapwidth=3;
+    int mapsize = mapwidth*mapheight;
 
     auto app = Gtk::Application::create();
     CivWindow window(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth);

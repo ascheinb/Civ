@@ -37,6 +37,39 @@ bool ModelThread::has_stopped() const
   return m_has_stopped;
 }
 
+void ModelThread::do_one_turn(CivWindow* caller)
+{
+  {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    m_has_stopped = false;
+    m_message = "";
+  } // The mutex is unlocked here by lock's destructor.
+
+      model.advance();
+      model.i_turn++;
+      if (model.p.person.size()==0) {printf("\nEnding simulation early...");}
+
+    {
+      std::lock_guard<std::mutex> lock(m_Mutex);
+
+      m_fraction_done = float(model.i_turn)/float(model.n_turns);
+
+    }
+
+    caller->notify();
+
+  // Finished
+  if (model.i_turn > model.n_turns) model.conclusions();
+
+  {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    m_shall_stop = false;
+    m_has_stopped = true;
+  }
+
+  caller->notify();
+}
+
 void ModelThread::do_work(CivWindow* caller)
 {
   {

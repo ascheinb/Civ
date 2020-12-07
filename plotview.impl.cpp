@@ -54,12 +54,13 @@ void draw_hexline_plot(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center
 }
 
 void draw_plot(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
-    const float plot_height = 150;
+    const float plot_height = 120;
+    const float top_padding = 30;
     cr->set_line_width(1);
     cr->set_source_rgba(0.0, 0.0, 0.0, 1.0);   // black
 
     // x-axis
-    cr->move_to(0,plot_height);
+    cr->move_to(0,plot_height+top_padding);
     cr->rel_line_to(330,0);
     cr->stroke();
 
@@ -68,7 +69,7 @@ void draw_plot(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
         if (model.plot_fracs[i]>maxheight) maxheight=model.plot_fracs[i];
     }
 
-    cr->move_to(0,plot_height);
+    cr->move_to(0,plot_height+top_padding);
     for (int i = 0; i<model.plot_fracs.size(); i++){
         cr->rel_line_to(0,-plot_height*model.plot_fracs[i]/maxheight);
         cr->rel_line_to(10,0);
@@ -82,19 +83,19 @@ void draw_plot(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
     string pop_str = std::to_string(model.plot_avg);
     pop_str = pop_str.substr(0,4);
     cr->get_text_extents(pop_str, extents);
-    cr->move_to(10*model.plot_avg - extents.width/2, plot_height + 20);
+    cr->move_to(10*model.plot_avg - extents.width/2, plot_height + top_padding + 20);
     cr->show_text(pop_str.c_str());
 
     // Line marker
     cr->set_source_rgba(0.6, 0.0, 0.0, 1.0);
-    cr->move_to(10*model.plot_avg, plot_height);
+    cr->move_to(10*model.plot_avg, plot_height+ top_padding);
     cr->rel_line_to(0,8);
     cr->stroke();
 
     cr->set_source_rgba(0.0, 0.0, 0.0, 1.0);   // black
     //cr->get_text_extents("Extroversion", extents);
     //cr->move_to(265 - extents.width/2, plot_height + 20);
-    cr->move_to(10, plot_height + 20);
+    cr->move_to(10, plot_height + top_padding + 20);
     cr->show_text("Extroversion");
 }
 

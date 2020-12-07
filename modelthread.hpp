@@ -16,6 +16,7 @@ public:
 
   // Thread function.
   void do_work(CivWindow* caller);
+  void do_one_turn(CivWindow* caller);
 
   void get_data(double* fraction_done, Glib::ustring* message) const;
   void stop_work();

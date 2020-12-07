@@ -18,6 +18,7 @@ public:
 
 private:
   // Signal handlers.
+  void on_next_button_clicked();
   void on_start_button_clicked();
   void on_stop_button_clicked();
   void on_quit_button_clicked();
@@ -33,6 +34,7 @@ private:
   Gtk::Box m_HBox;
   Gtk::Box m_SideVBox;
   Gtk::ButtonBox m_ButtonBox;
+  Gtk::Button m_ButtonNext;
   Gtk::Button m_ButtonStart;
   Gtk::Button m_ButtonStop;
   Gtk::Button m_ButtonQuit;

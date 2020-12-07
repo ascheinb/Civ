@@ -53,6 +53,8 @@ void draw_hexline(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, f
     cr->stroke();
 }
 
+// OLD VERSION OF MOUNTAINS
+/*
 void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
     const float hex_radius=30;
     cr->set_line_width(3);
@@ -67,7 +69,58 @@ void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x,
     cr->rel_move_to(-hex_radius*0.1f, hex_radius*0.2f); // go back a little more
     cr->rel_line_to(-hex_radius*0.2f, -hex_radius*0.4f); // mtn 3 up (in reverse)
     cr->rel_line_to(-hex_radius*0.2f, hex_radius*0.4f); // mtn 3 down (in reverse)
-    cr->stroke();
+    cr->stroke_preserve();
+
+    cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0);
+    cr->fill();
+}*/
+
+void draw_one_mtn(const Cairo::RefPtr<Cairo::Context>& cr, float start_x, float start_y, float height){
+    cr->set_source_rgba(103.0f/256, 95.0f/256, 82.0f/256, 1.0); // Brown
+    cr->move_to(start_x, start_y); // Start at lower left
+    cr->rel_line_to(height/2, -height);
+    cr->rel_line_to(height/2, height);
+    cr->stroke_preserve();
+    cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0);
+    cr->fill();
+}
+
+void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y, Model& model, int itile){
+    const float hex_radius=30;
+    cr->set_line_width(3);
+
+    // Border linking mountains
+    int neighbor_tile = model.nature.neighbor(itile,NW);
+    int neighbor_tile2 = model.nature.neighbor(itile,NE);
+
+    // N mountain
+    if (neighbor_tile>=0 && neighbor_tile2>=0)
+        if (model.nature.map[neighbor_tile].terrain==MOUNTAIN && model.nature.map[neighbor_tile2].terrain==MOUNTAIN)
+            draw_one_mtn(cr,hex_center_x - hex_radius*0.35, hex_center_y - hex_radius*0.4, hex_radius*0.8f);
+
+    // NW mountain
+    if (neighbor_tile>=0)
+        if (model.nature.map[neighbor_tile].terrain==MOUNTAIN)
+            draw_one_mtn(cr,hex_center_x - hex_radius*0.85, hex_center_y - hex_radius*0.2, hex_radius*0.8f);
+
+    // NE mountain
+    if (neighbor_tile2>=0)
+        if (model.nature.map[neighbor_tile2].terrain==MOUNTAIN){
+            draw_one_mtn(cr,hex_center_x + hex_radius*0.3, hex_center_y - hex_radius*0.5, hex_radius*0.8f);
+            draw_one_mtn(cr,hex_center_x + hex_radius*0.05, hex_center_y - hex_radius*0.2, hex_radius*0.8f);
+        }
+
+    // W mountain
+    neighbor_tile = model.nature.neighbor(itile,W);
+    if (neighbor_tile>=0)
+        if (model.nature.map[neighbor_tile].terrain==MOUNTAIN)
+            draw_one_mtn(cr,hex_center_x - hex_radius*1.00, hex_center_y + hex_radius*0.35, hex_radius*0.8f);
+
+    // 3 mountains, from back to front
+    draw_one_mtn(cr,hex_center_x - hex_radius*0.4, hex_center_y + hex_radius*0.3, hex_radius*0.8f);
+    draw_one_mtn(cr,hex_center_x - hex_radius*0.1, hex_center_y + hex_radius*0.4, hex_radius*0.8f);
+    draw_one_mtn(cr,hex_center_x - hex_radius*0.7, hex_center_y + hex_radius*0.5, hex_radius*0.8f);
+    
 }
 
 void draw_waves(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
@@ -110,11 +163,12 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
             // Fill with correct background color
             if(model.nature.map[itile].terrain==GRASS) cr->set_source_rgba(167.0f/256, 206.0f/256, 164.0f/256, 1.0); // Green
             if(model.nature.map[itile].terrain==WATER) cr->set_source_rgba(177.0f/256, 219.0f/256, 238.0f/256, 1.0); // Blue
-            if(model.nature.map[itile].terrain==MOUNTAIN) cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0); // Brown
+            if(model.nature.map[itile].terrain==MOUNTAIN) cr->set_source_rgba(167.0f/256, 206.0f/256, 164.0f/256, 1.0); // Green
+            //if(model.nature.map[itile].terrain==MOUNTAIN) cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0); // Brown
             cr->fill();
 
             // Draw mountains or waves
-            if(model.nature.map[itile].terrain==MOUNTAIN) draw_mountains(cr,tile_center_x, tile_center_y);
+            if(model.nature.map[itile].terrain==MOUNTAIN) draw_mountains(cr,tile_center_x, tile_center_y, model, itile);
             if(model.nature.map[itile].terrain==WATER) draw_waves(cr,tile_center_x, tile_center_y);
 
             // Write population
