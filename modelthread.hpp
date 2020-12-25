@@ -12,7 +12,7 @@ class ModelThread
 {
 public:
 
-  ModelThread(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth);
+  ModelThread(SetupParameters& setup_params_in);
 
   // Thread function.
   void do_work(CivWindow* caller);

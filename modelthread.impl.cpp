@@ -1,13 +1,13 @@
 #include <sstream>
 #include <chrono>
 
-ModelThread::ModelThread(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth) :
+ModelThread::ModelThread(SetupParameters& setup_params_in) :
   m_Mutex(),
   m_shall_stop(false),
   m_has_stopped(false),
   m_fraction_done(0.0),
   m_message(),
-  model(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth)
+  model(setup_params_in)
 {
 }
 

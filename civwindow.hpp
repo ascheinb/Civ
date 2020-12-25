@@ -6,15 +6,22 @@
 #include "hexmap.hpp"
 #include "yearview.hpp"
 #include "plotview.hpp"
+#include "setup_params.hpp"
+#include "setup.hpp"
 
 class CivWindow : public Gtk::Window
 {
 public:
 
-  CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth);
+  CivWindow(SetupParameters& setup_params_in);
 
   // Called from the worker thread.
   void notify();
+
+protected:
+  void setupWinClose();
+
+  SetupParameters setup_params;
 
 private:
   // Signal handlers.
@@ -48,6 +55,8 @@ private:
   Glib::Dispatcher m_Dispatcher;
   ModelThread m_Worker;
   std::thread* m_WorkerThread;
+
+  SetupWindow* setupw_;
 };
 
 #include "modelthread.impl.cpp"

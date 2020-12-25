@@ -7,6 +7,7 @@
 #include "nature.hpp"
 #include "graphics.hpp"
 #include "interface.hpp"
+#include "setup_params.hpp"
 
 struct Model{
     Nature nature;
@@ -32,14 +33,14 @@ struct Model{
 
     int i_turn;
 
-    Model(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth)
-        : nkids(n_years*4),nstarved(n_years*4),ndied(n_years*4),nppl(n_years*4),
-          nature(min_food_gen,max_food_gen,climate_type,mapsize,mapwidth),
-          p(initial_n_ppl,mapsize),
+    Model(SetupParameters& mp)
+        : nkids(mp.n_years*4),nstarved(mp.n_years*4),ndied(mp.n_years*4),nppl(mp.n_years*4),
+          nature(mp.min_food_gen,mp.max_food_gen,mp.climate_type,mp.mapsize,mp.mapwidth),
+          p(mp.initial_n_ppl,mp.mapsize),
           plot_fracs(33)
     {
-        carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
-        n_turns = n_years*4; // A turn is one season
+        carrying_capacity = (mp.max_food_gen+mp.min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
+        n_turns = mp.n_years*4; // A turn is one season
         i_turn = 1;
         watch = false;
         watch_start_year=500;

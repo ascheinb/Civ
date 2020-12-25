@@ -1,6 +1,6 @@
 #include <iostream>
 
-CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth) :
+CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_VBox(Gtk::ORIENTATION_VERTICAL, 5),
   m_HBox(Gtk::ORIENTATION_HORIZONTAL),
   m_SideVBox(Gtk::ORIENTATION_VERTICAL),
@@ -13,7 +13,7 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_ScrolledWindow(),
   m_TextView(),
   m_Dispatcher(),
-  m_Worker(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth),
+  m_Worker(setup_params_in),
   m_YearView(m_Worker.model),
   m_HexMap(m_Worker.model),
   m_PlotView(m_Worker.model),
@@ -80,10 +80,16 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
 
   update_start_stop_buttons();
 
-  show_all_children();
+//  show_all_children();
 
   m_SideVBox.pack_start(m_PlotView, Gtk::PACK_EXPAND_WIDGET);
   m_PlotView.show();
+
+  setupw_ = new SetupWindow(setup_params, m_Worker.model);
+  //setupw_->signal_hide().connect(sigc::mem_fun(*this, &CivWindow::setupWinClose));
+  setupw_->show();
+
+  show_all_children();
 }
 
 void CivWindow::on_next_button_clicked()
@@ -201,4 +207,9 @@ void CivWindow::on_notification_from_worker_thread()
     update_start_stop_buttons();
   }
   update_widgets();
+}
+
+void CivWindow::setupWinClose()
+{
+    setupw_ = 0;
 }
