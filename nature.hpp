@@ -73,7 +73,53 @@ class Nature{
         ncol=mapwidth;
         nrow=mapsize/mapwidth;
         if(nrow*ncol!=mapsize) printf("ERROR: mapsize must be divisible by mapwidth");
-
+if (mapsize==15*18){
+    char myword01[] = "   ...    ........";
+    char myword02[] = "x..... . .........";
+    char myword03[] = "x.....   .........";
+    char myword04[] = ".....  ...........";
+    char myword05[] = ".....      .......";
+    char myword06[] = "....   .... .xx...";
+    char myword07[] = " .. .  ..... .....";
+    char myword08[] = " .    ...... . ...";
+    char myword09[] = " ..    ......   ..";
+    char myword10[] = "....    ....   .. ";
+    char myword11[] = " ....    ...    . ";
+    char myword12[] = " ...    ...       ";
+    char myword13[] = "  ..     ...    ..";
+    char myword14[] = "  .      ..    ...";
+    char myword15[] = "  .               ";
+    for (int i = 0; i<ncol; i++) map[ncol*0 + i].terrain = (myword01[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*1 + i].terrain = (myword02[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*2 + i].terrain = (myword03[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*3 + i].terrain = (myword04[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*4 + i].terrain = (myword05[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*5 + i].terrain = (myword06[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*6 + i].terrain = (myword07[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*7 + i].terrain = (myword08[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*8 + i].terrain = (myword09[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*9 + i].terrain = (myword10[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*10 + i].terrain = (myword11[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*11 + i].terrain = (myword12[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*12 + i].terrain = (myword13[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*13 + i].terrain = (myword14[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) map[ncol*14 + i].terrain = (myword15[i]=='.') ? GRASS : WATER;
+    for (int i = 0; i<ncol; i++) if(myword01[i]=='x') map[ncol*0 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword02[i]=='x') map[ncol*1 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword03[i]=='x') map[ncol*2 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword04[i]=='x') map[ncol*3 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword05[i]=='x') map[ncol*4 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword06[i]=='x') map[ncol*5 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword07[i]=='x') map[ncol*6 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword08[i]=='x') map[ncol*7 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword09[i]=='x') map[ncol*8 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword10[i]=='x') map[ncol*9 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword11[i]=='x') map[ncol*10 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword12[i]=='x') map[ncol*11 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword13[i]=='x') map[ncol*12 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword14[i]=='x') map[ncol*13 + i].terrain = MOUNTAIN;
+    for (int i = 0; i<ncol; i++) if(myword15[i]=='x') map[ncol*14 + i].terrain = MOUNTAIN;
+}else{
         // Add water
         int nwater=map.size()/5;
         int iwater=0;
@@ -101,7 +147,7 @@ class Nature{
                 cand = map[mtile].neighbor(ncol,nrow,random_dir());
             mtile = cand;
         }
-
+}
 
         // "CLIMATE": Available food distribution
         // OPTION 1: Evenly distribute food among tiles
