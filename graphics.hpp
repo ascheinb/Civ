@@ -396,6 +396,7 @@ void determine_owners(Population &p, Nature &n){
         } else if (gid==-2){ // If no people
             if (n.map[itile].terrain==GRASS){
                 abbrev="  '";
+                gid = n.map[itile].owner; // Keep old ownership
             }else if (n.map[itile].terrain==WATER){ // water
                 abbrev=" ~~";
                 gid=-4;

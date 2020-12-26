@@ -211,35 +211,35 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
                 bool ul = true;
                 int neighbor_tile = model.nature.neighbor(itile,W);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,W);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,W);}
                     else ul = false;
                 } else draw_hexline(cr,tile_center_x, tile_center_y,W);
                 
                 neighbor_tile = model.nature.neighbor(itile,NW);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,NW);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,NW);}
                     else ul = false;
                 } else draw_hexline(cr,tile_center_x, tile_center_y,NW);
                 
                 neighbor_tile = model.nature.neighbor(itile,NE);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,NE);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,NE);}
                     else ul = false;
                 } else draw_hexline(cr,tile_center_x, tile_center_y,NE);
                 
                 neighbor_tile = model.nature.neighbor(itile,E);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,E);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,E);}
                 } else draw_hexline(cr,tile_center_x, tile_center_y,E);
                 
                 neighbor_tile = model.nature.neighbor(itile,SE);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,SE);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,SE);}
                 } else draw_hexline(cr,tile_center_x, tile_center_y,SE);
                 
                 neighbor_tile = model.nature.neighbor(itile,SW);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,SW);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,SW);}
                 } else draw_hexline(cr,tile_center_x, tile_center_y,SW);
 
                 if (ul){ // Quick way to clean up names - only put name in upper left corner tile
