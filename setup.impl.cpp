@@ -14,10 +14,10 @@ SetupWindow::SetupWindow(SetupParameters& setup_params_in, Model& model_in)
   // Note that the page_size value only makes a difference for
   // scrollbar widgets, and the highest value you'll get is actually
   // (upper - page_size).
-  m_hadjustment( Gtk::Adjustment::create(0.0, 0.0, 19, 1.0, 1.0, 1.0) ),
+  m_hadjustment( Gtk::Adjustment::create(8, 1, 19, 1.0, 1.0, 1.0) ),
   m_hadjustment_digits( Gtk::Adjustment::create(1.0, 0.0, 5.0, 1.0, 2.0) ),
   m_hadjustment_pagesize( Gtk::Adjustment::create(1.0, 1.0, 101.0) ),
-  m_vadjustment( Gtk::Adjustment::create(0.0, 0.0, 16, 1.0, 1.0, 1.0) ),
+  m_vadjustment( Gtk::Adjustment::create(8, 1, 16, 1.0, 1.0, 1.0) ),
   m_vadjustment_digits( Gtk::Adjustment::create(1.0, 0.0, 5.0, 1.0, 2.0) ),
   m_vadjustment_pagesize( Gtk::Adjustment::create(1.0, 1.0, 101.0) ),
 
@@ -191,6 +191,8 @@ void SetupWindow::on_adjustment2_value_changed()
 
 void SetupWindow::on_button_quit()
 {
+  setup_params->mapwidth = m_hadjustment->get_value();
+  setup_params->mapsize = m_hadjustment->get_value()*m_vadjustment->get_value();
   *model = Model(*setup_params);
   hide();
 }

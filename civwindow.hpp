@@ -29,6 +29,11 @@ private:
   void on_start_button_clicked();
   void on_stop_button_clicked();
   void on_quit_button_clicked();
+  void on_rb0_clicked();
+  void on_rb1_clicked();
+  void on_rb2_clicked();
+  void on_rb3_clicked();
+  void on_rb4_clicked();
 
   void update_start_stop_buttons();
   void update_widgets();
@@ -51,6 +56,7 @@ private:
   HexMap m_HexMap;
   YearView m_YearView;
   PlotView m_PlotView;
+  Gtk::RadioButton m_rb0, m_rb1, m_rb2, m_rb3, m_rb4;
 
   Glib::Dispatcher m_Dispatcher;
   ModelThread m_Worker;

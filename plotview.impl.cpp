@@ -96,7 +96,7 @@ void draw_plot(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
     //cr->get_text_extents("Extroversion", extents);
     //cr->move_to(265 - extents.width/2, plot_height + 20);
     cr->move_to(10, plot_height + top_padding + 20);
-    cr->show_text("Extroversion");
+    cr->show_text(trait_names[model.plot_trait]);
 }
 
 bool PlotView::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)

@@ -17,6 +17,11 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_YearView(m_Worker.model),
   m_HexMap(m_Worker.model),
   m_PlotView(m_Worker.model),
+  m_rb0(trait_names[Extroversion]),
+  m_rb1(trait_names[Agreeableness]),
+  m_rb2(trait_names[Conscientiousness]),
+  m_rb3(trait_names[Neuroticism]),
+  m_rb4(trait_names[Openness]),
   m_WorkerThread(nullptr)
 {
   set_title("HomoSapiens");
@@ -84,6 +89,26 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
 
   m_SideVBox.pack_start(m_PlotView, Gtk::PACK_EXPAND_WIDGET);
   m_PlotView.show();
+
+  m_rb1.join_group(m_rb0);
+  m_rb2.join_group(m_rb0);
+  m_rb3.join_group(m_rb0);
+  m_rb4.join_group(m_rb0);
+  m_SideVBox.pack_start(m_rb0, Gtk::PACK_SHRINK);
+  m_SideVBox.pack_start(m_rb1, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_SideVBox.pack_start(m_rb2, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_SideVBox.pack_start(m_rb3, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_SideVBox.pack_start(m_rb4, Gtk::PACK_SHRINK);
+  m_rb0.set_active();
+
+  m_rb0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb0_clicked));
+  m_rb1.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb1_clicked));
+  m_rb2.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb2_clicked));
+  m_rb3.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb3_clicked));
+  m_rb4.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb4_clicked));
+
+  //m_trait_button.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_trait_button_clicked));
+  //m_trait_button.show();
 
   setupw_ = new SetupWindow(setup_params, m_Worker.model);
   //setupw_->signal_hide().connect(sigc::mem_fun(*this, &CivWindow::setupWinClose));
@@ -185,6 +210,36 @@ void CivWindow::on_quit_button_clicked()
       m_WorkerThread->join();
   }
   hide();
+}
+
+void CivWindow::on_rb0_clicked()
+{
+    m_Worker.model.plot_trait = Extroversion;
+    m_Worker.model.set_fracs(m_Worker.model.plot_fracs, m_Worker.model.plot_avg);
+}
+
+void CivWindow::on_rb1_clicked()
+{
+    m_Worker.model.plot_trait = Agreeableness;
+    m_Worker.model.set_fracs(m_Worker.model.plot_fracs, m_Worker.model.plot_avg);
+}
+
+void CivWindow::on_rb2_clicked()
+{
+    m_Worker.model.plot_trait = Conscientiousness;
+    m_Worker.model.set_fracs(m_Worker.model.plot_fracs, m_Worker.model.plot_avg);
+}
+
+void CivWindow::on_rb3_clicked()
+{
+    m_Worker.model.plot_trait = Neuroticism;
+    m_Worker.model.set_fracs(m_Worker.model.plot_fracs, m_Worker.model.plot_avg);
+}
+
+void CivWindow::on_rb4_clicked()
+{
+    m_Worker.model.plot_trait = Openness;
+    m_Worker.model.set_fracs(m_Worker.model.plot_fracs, m_Worker.model.plot_avg);
 }
 
 // notify() is called from ModelThread::do_work(). It is executed in the worker

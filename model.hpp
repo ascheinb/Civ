@@ -18,6 +18,7 @@ struct Model{
     SimVar<int> nppl;
     vector<float> plot_fracs;
     float plot_avg;
+    PersonalityTrait plot_trait;
 
     // Group-checking diagnostics
     int ncreated;
@@ -37,7 +38,8 @@ struct Model{
         : nkids(mp.n_years*4),nstarved(mp.n_years*4),ndied(mp.n_years*4),nppl(mp.n_years*4),
           nature(mp.min_food_gen,mp.max_food_gen,mp.climate_type,mp.mapsize,mp.mapwidth),
           p(mp.initial_n_ppl,mp.mapsize),
-          plot_fracs(33)
+          plot_fracs(33),
+          plot_trait(Extroversion)
     {
         carrying_capacity = (mp.max_food_gen+mp.min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
         n_turns = mp.n_years*4; // A turn is one season
@@ -53,11 +55,38 @@ struct Model{
     }
 
     void set_fracs(vector<float>& fracs, float& avg){
-        // Extroversion
-        for (int i=0;i<fracs.size();i++){
-            fracs[i] = p.frac(i,[](int i,Person& h){return h.extroversion==i;});
+        switch(plot_trait){
+            case Extroversion:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.extroversion==i;});
+                }
+                avg = p.avg([](Person& h){return h.extroversion;});
+                break;
+            case Agreeableness:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.agreeableness==i;});
+                }
+                avg = p.avg([](Person& h){return h.agreeableness;});
+                break;
+            case Conscientiousness:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.conscientiousness==i;});
+                }
+                avg = p.avg([](Person& h){return h.conscientiousness;});
+                break;
+            case Neuroticism:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.neuroticism==i;});
+                }
+                avg = p.avg([](Person& h){return h.neuroticism;});
+                break;
+            case Openness:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.openness==i;});
+                }
+                avg = p.avg([](Person& h){return h.openness;});
+                break;
         }
-        avg = p.avg([](Person& h){return h.extroversion;});
     }
 
     void advance(){
