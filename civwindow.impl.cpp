@@ -15,6 +15,7 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_Dispatcher(),
   m_Worker(setup_params_in),
   m_YearView(m_Worker.model),
+  m_MapBox(),
   m_HexMap(m_Worker.model),
   m_PlotView(m_Worker.model),
   m_rb0(trait_names[Extroversion]),
@@ -40,7 +41,13 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_VBox.pack_start(m_HBox);
 
   // Add the HexMap
-  m_HBox.pack_start(m_HexMap, Gtk::PACK_EXPAND_WIDGET);
+  m_HBox.pack_start(m_MapBox, Gtk::PACK_EXPAND_WIDGET);
+  m_MapBox.add(m_HexMap);//, Gtk::PACK_EXPAND_WIDGET);
+  //g_signal_connect(drawing_area, "button-press-event", G_CALLBACK(clicked), NULL)0;
+  //m_MapBox.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_map_clicked));
+  m_MapBox.set_events(Gdk::BUTTON_PRESS_MASK);
+  m_MapBox.signal_button_press_event().connect(sigc::mem_fun(*this, &CivWindow::on_map_clicked));
+  m_MapBox.show();
   m_HexMap.show();
 
   m_HBox.pack_start(m_SideVBox, Gtk::PACK_SHRINK);
@@ -240,6 +247,58 @@ void CivWindow::on_rb4_clicked()
 {
     m_Worker.model.plot_trait = Openness;
     m_Worker.model.set_fracs(m_Worker.model.plot_fracs, m_Worker.model.plot_avg);
+}
+
+bool CivWindow::on_map_clicked(GdkEventButton* event)
+{
+    const float hex_radius=HEXRADIUS;
+    const float sin60 = 0.8660254;
+
+    // Check if the event is a left button click.
+	if (event->button == 1)
+	{
+        int ncol = m_Worker.model.nature.ncol;
+        float half_width = hex_radius*sin60;
+
+		// Memorize pointer position
+		int mouseX=event->x - 50.0f + half_width; // aligns with left edge of first col
+		int mouseY=event->y - 50.0f + hex_radius; // aligns with top point of first row
+
+        int xrnd = mouseX/half_width;
+        int yrnd = mouseY/(hex_radius/2);
+        int xhu = xrnd%2;
+        int yhu = yrnd%3;
+        if(yhu>1) yhu=1;
+        int Left=0,Right=1;
+        int Diag=0,Mid=1;
+
+        int col = mouseX/(half_width*2);
+        int row = mouseY/(hex_radius*1.5);
+        if (yhu==Mid && xhu==Left){
+            col -= row%2;
+        }else if (yhu==Diag){
+            if (row%2==1) xhu = (xhu+1)%2;
+            if (xhu==Left && (mouseY-yrnd*(hex_radius/2))<hex_radius/2-sin60/2*(mouseX-xrnd*half_width)){
+                row--;
+                col -= row%2;
+            }
+            if (xhu==Right && (mouseY-yrnd*(hex_radius/2))>sin60/2*(mouseX-xrnd*half_width)){
+                col -= row%2;
+            }else if (xhu==Right){
+                row--;
+            }
+        }
+
+
+        // ID which tile
+        //int col = mouseX/(half_width*2);
+        //int row = mouseY/(hex_radius*1.5);
+        //printf("\ncol: %d, row: %d", col, row);
+        int new_highlighted = row*ncol + col;
+        if (col>=0 && col<ncol && row>=0 && row<m_Worker.model.nature.nrow)
+            m_HexMap.highlighted = (m_HexMap.highlighted==new_highlighted) ? -1 : new_highlighted;
+	}
+    return true;
 }
 
 // notify() is called from ModelThread::do_work(). It is executed in the worker

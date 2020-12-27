@@ -34,6 +34,7 @@ private:
   void on_rb2_clicked();
   void on_rb3_clicked();
   void on_rb4_clicked();
+  bool on_map_clicked(GdkEventButton*);
 
   void update_start_stop_buttons();
   void update_widgets();
@@ -44,6 +45,7 @@ private:
   // Member data.
   Gtk::Box m_VBox;
   Gtk::Box m_HBox;
+  Gtk::EventBox m_MapBox;
   Gtk::Box m_SideVBox;
   Gtk::ButtonBox m_ButtonBox;
   Gtk::Button m_ButtonNext;

@@ -11,6 +11,8 @@ public:
   HexMap(Model& model_in);
   virtual ~HexMap();
 
+  int highlighted;
+
 protected:
   //Override default signal handler:
   bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;

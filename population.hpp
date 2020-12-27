@@ -47,7 +47,7 @@ class Population{
 
         // Initialize individuals
         for(int i = 0; i<initial_n_ppl;i++)
-            person.push_back(Person(i,(i*lifespan)/initial_n_ppl,lifespan,i%map_size));
+            person.push_back(Person(i,(i*lifespan)/initial_n_ppl,lifespan,i%map_size)); // 54*22+33
 
         // Initialize id to index mapping
         for(int i = 0; i<initial_n_ppl;i++)

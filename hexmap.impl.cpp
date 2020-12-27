@@ -3,8 +3,10 @@
 #include <cairomm/context.h>
 #include <glibmm/main.h>
 
+#define HEXRADIUS 30
+
 HexMap::HexMap(Model& model_in)
-: m_radius(100), m_line_width(3)
+: m_radius(100), m_line_width(3), highlighted(-1)
 {
   model = &(model_in); // Point the hexmap to the model
   Glib::signal_timeout().connect( sigc::mem_fun(*this, &HexMap::on_timeout), 100 );
@@ -15,7 +17,7 @@ HexMap::~HexMap()
 }
 
 void draw_hexagon(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
-    const float hex_radius=30;
+    const float hex_radius=HEXRADIUS;
     const float sin60 = 0.8660254;
 
     cr->set_line_width(1);
@@ -31,7 +33,7 @@ void draw_hexagon(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, f
 }
 
 void draw_hexline(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y, Direction direction){
-    const float hex_radius=29;
+    const float hex_radius=HEXRADIUS-1;
     const float sin60 = 0.8660254;
     const int linewidth = 2;
 
@@ -53,28 +55,6 @@ void draw_hexline(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, f
     cr->stroke();
 }
 
-// OLD VERSION OF MOUNTAINS
-/*
-void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
-    const float hex_radius=30;
-    cr->set_line_width(3);
-    cr->set_source_rgba(103.0f/256, 95.0f/256, 82.0f/256, 1.0); // Brown
-    cr->move_to(hex_center_x - hex_radius*0.7, hex_center_y + hex_radius*0.5); // Start at lower left
-    cr->rel_line_to(hex_radius*0.4f, -hex_radius*0.8f); // mtn 1 up
-    cr->rel_line_to(hex_radius*0.4f, hex_radius*0.8f); // mtn 1 down
-    cr->rel_move_to(-hex_radius*0.1f, -hex_radius*0.2f); // go back a little bit
-    cr->rel_line_to(hex_radius*0.3f, -hex_radius*0.6f); // mtn 2 up
-    cr->rel_line_to(hex_radius*0.35f, hex_radius*0.7f); // mtn 2 down
-    cr->rel_move_to(-hex_radius*0.35f, -hex_radius*0.7f); // go back to peak
-    cr->rel_move_to(-hex_radius*0.1f, hex_radius*0.2f); // go back a little more
-    cr->rel_line_to(-hex_radius*0.2f, -hex_radius*0.4f); // mtn 3 up (in reverse)
-    cr->rel_line_to(-hex_radius*0.2f, hex_radius*0.4f); // mtn 3 down (in reverse)
-    cr->stroke_preserve();
-
-    cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0);
-    cr->fill();
-}*/
-
 void draw_one_mtn(const Cairo::RefPtr<Cairo::Context>& cr, float start_x, float start_y, float height){
     cr->set_source_rgba(103.0f/256, 95.0f/256, 82.0f/256, 1.0); // Brown
     cr->move_to(start_x, start_y); // Start at lower left
@@ -86,7 +66,7 @@ void draw_one_mtn(const Cairo::RefPtr<Cairo::Context>& cr, float start_x, float 
 }
 
 void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y, Model& model, int itile){
-    const float hex_radius=30;
+    const float hex_radius=HEXRADIUS;
     cr->set_line_width(3);
 
     // Border linking mountains
@@ -124,7 +104,7 @@ void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x,
 }
 
 void draw_waves(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
-    const float hex_radius=30;
+    const float hex_radius=HEXRADIUS;
     cr->set_line_width(3);
     cr->set_source_rgba(88.0f/256, 110.0f/256, 119.0f/256, 0.3); // Blue
     cr->move_to(hex_center_x - hex_radius*0.5, hex_center_y + hex_radius*0.5); // Start at lower left
@@ -135,8 +115,8 @@ void draw_waves(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, flo
     cr->stroke();
 }
 
-void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
-    const float hex_radius=30;
+void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model, int highlighted){
+    const float hex_radius=HEXRADIUS;
     const float sin60 = 0.8660254;
     const float hex_width = hex_radius*sin60*2;
 
@@ -253,6 +233,16 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
             }
         }
     }
+    if(highlighted>=0){
+        int i = highlighted%model.nature.ncol;
+        int j = highlighted/model.nature.ncol;
+        float offset = (j%2==0 ? 0 : hex_width/2);
+        float tile_center_x = 50.0f + hex_width*i + offset;
+        float tile_center_y = 50.0f + 1.5*hex_radius*j;
+        draw_hexagon(cr, tile_center_x, tile_center_y);
+        cr->set_source_rgba(0.3,0.0,0.0,0.2);//167.0f/256, 206.0f/256, 0.0f/256, 1.0);
+        cr->fill();
+    }
 }
 
 bool HexMap::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
@@ -272,7 +262,7 @@ bool HexMap::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 //  cr->clip();
 
 
-  draw_hexmap(cr, *model);
+  draw_hexmap(cr, *model, highlighted);
 
   return true;
 }
