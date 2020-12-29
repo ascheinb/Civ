@@ -15,7 +15,8 @@ public:
 
 private:
         void add_entry( const int id, const int dice_id, const char* filename, const char* name );
-        void add_entry_r( const int id, const int dice_id, const char* filename, const char* name );
+        void add_entry_r( const char* name, const char* reltype, const int f_to, const int f_of );
+        void add_entry_m( const int id, const int dice_id, const char* filename, const char* name );
 
         void fill_buffers();
 
@@ -43,6 +44,19 @@ private:
                 Gtk::TreeModelColumn<Glib::ustring>   		m_col_name;
         };
 
+        class ModelColumns_r : public Gtk::TreeModel::ColumnRecord
+        {
+                public:
+
+                ModelColumns_r()
+                { add(m_col_name); add(m_type); add(m_f_to); add(m_f_of); }
+
+                Gtk::TreeModelColumn<Glib::ustring>     m_col_name;
+                Gtk::TreeModelColumn<Glib::ustring>     m_type;
+                Gtk::TreeModelColumn<int>               m_f_to;
+                Gtk::TreeModelColumn<int>               m_f_of;
+        };
+
         // Private members
         ModelColumns                            m_Columns;
 
@@ -68,7 +82,7 @@ private:
         Gtk::Box m_ButtonBox2;
         Gtk::Button m_Button_Buffer1, m_Button_Buffer2;
         // Relationships
-        ModelColumns                            m_Columns_r;
+        ModelColumns_r                          m_Columns_r;
         Gtk::ScrolledWindow                     m_ScrolledWindow_r;
         Gtk::TreeView                           m_TreeView_r;
         Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_r;

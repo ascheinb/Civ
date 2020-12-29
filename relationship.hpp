@@ -9,6 +9,9 @@ using std::vector;
 
 enum RelType { Parent, Child, Sibling, Friend };
 
+std::vector<std::string> rel_names{"Parent", "Child", "Sibling", "Friend"};
+
+
 class Relationship{
     public:
     int person_id;
