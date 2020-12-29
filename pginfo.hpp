@@ -15,6 +15,7 @@ public:
 
 private:
         void add_entry( const int id, const int dice_id, const char* filename, const char* name );
+        void add_entry_r( const int id, const int dice_id, const char* filename, const char* name );
 
         void fill_buffers();
 
@@ -66,6 +67,18 @@ private:
 
         Gtk::Box m_ButtonBox2;
         Gtk::Button m_Button_Buffer1, m_Button_Buffer2;
+        // Relationships
+        ModelColumns                            m_Columns_r;
+        Gtk::ScrolledWindow                     m_ScrolledWindow_r;
+        Gtk::TreeView                           m_TreeView_r;
+        Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_r;
+        Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_r;
+        // Memberships
+        ModelColumns                            m_Columns_m;
+        Gtk::ScrolledWindow                     m_ScrolledWindow_m;
+        Gtk::TreeView                           m_TreeView_m;
+        Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_m;
+        Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_m;
 
         Model* model;
         int tile_ind;
