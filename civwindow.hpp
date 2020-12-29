@@ -8,6 +8,7 @@
 #include "plotview.hpp"
 #include "setup_params.hpp"
 #include "setup.hpp"
+#include "pginfo.hpp"
 
 class CivWindow : public Gtk::Window
 {
@@ -65,6 +66,7 @@ private:
   std::thread* m_WorkerThread;
 
   SetupWindow* setupw_;
+  PGInfoWindow* pginfow_;
 };
 
 #include "modelthread.impl.cpp"

@@ -295,8 +295,18 @@ bool CivWindow::on_map_clicked(GdkEventButton* event)
         //int row = mouseY/(hex_radius*1.5);
         //printf("\ncol: %d, row: %d", col, row);
         int new_highlighted = row*ncol + col;
-        if (col>=0 && col<ncol && row>=0 && row<m_Worker.model.nature.nrow)
-            m_HexMap.highlighted = (m_HexMap.highlighted==new_highlighted) ? -1 : new_highlighted;
+        if (col>=0 && col<ncol && row>=0 && row<m_Worker.model.nature.nrow){
+            if (m_HexMap.highlighted==new_highlighted){
+                m_HexMap.highlighted = -1; // if already selected, deselect
+            } else {
+                m_HexMap.highlighted = new_highlighted;
+
+                // Open info window
+                pginfow_ = new PGInfoWindow(m_Worker.model, new_highlighted);
+                //setupw_->signal_hide().connect(sigc::mem_fun(*this, &CivWindow::setupWinClose));
+                pginfow_->show();
+            }
+        }
 	}
     return true;
 }
