@@ -33,8 +33,6 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_Button_Delete("Delete"),
         m_VBox2(Gtk::ORIENTATION_VERTICAL),
         m_HBox(Gtk::ORIENTATION_HORIZONTAL),
-        m_Button_Buffer1("Use buffer 1"),
-        m_Button_Buffer2("Use buffer 2"),
         model(&model_in),
         tile_ind(tile_ind_in)
 {
@@ -80,7 +78,6 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
 
         //Add the TreeView's view columns:
         m_TreeView.append_column("Name", m_Columns.m_col_name);
-        m_refTreeModel->set_sort_column( m_Columns.m_col_name, Gtk::SORT_ASCENDING );   // Initial sorting column
 
         // Set sorting for each column added
         Gtk::TreeView::Column* pColumn = m_TreeView.get_column(0);
@@ -105,7 +102,6 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_ScrolledWindow2.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
         m_VBox2.pack_start(m_TextView);
-        //m_VBox2.pack_start(m_ScrolledWindow2);
         m_refTextBuffer1 = Gtk::TextBuffer::create();
         m_refTextBuffer1->set_text("\n\n\tSelect a person or a group.");
 
@@ -134,7 +130,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_TreeView_r.append_column("Fondness for", m_Columns_r.m_f_to);
         m_TreeView_r.append_column("Fondness by", m_Columns_r.m_f_of);
         //m_TreeView_r.append_column("Image", m_Columns_r.m_pixbuf);
-        m_refTreeModel_r->set_sort_column( m_Columns_r.m_col_name, Gtk::SORT_ASCENDING );   // Initial sorting column
+        m_refTreeModel_r->set_sort_column( m_Columns_r.m_f_to, Gtk::SORT_DESCENDING );   // Initial sorting column
 
         // Set sorting for each column added
         Gtk::TreeView::Column* pColumn_r = m_TreeView_r.get_column(0);
@@ -172,7 +168,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         //Add the TreeView's view columns:
         m_TreeView_m.append_column("Name", m_Columns_m.m_col_name);
         m_TreeView_m.append_column("Loyalty to", m_Columns_m.m_l_to);
-        m_refTreeModel_m->set_sort_column( m_Columns_m.m_col_name, Gtk::SORT_ASCENDING );   // Initial sorting column
+        m_refTreeModel_m->set_sort_column( m_Columns_m.m_l_to, Gtk::SORT_DESCENDING );   // Initial sorting column
 
         // Set sorting for each column added
         Gtk::TreeView::Column* pColumn_m = m_TreeView_m.get_column(0);
@@ -180,15 +176,6 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
 
         pColumn_m = m_TreeView_m.get_column(1);
         pColumn_m->set_sort_column( m_Columns_m.m_l_to );
-
-        m_Button_Buffer1.set_hexpand(true);
-        //m_Button_Buffer1.set_halign(Gtk::Align::END);
-        m_ButtonBox2.pack_start(m_Button_Buffer1);
-        m_ButtonBox2.pack_start(m_Button_Buffer2);
-
-        //Connect signals:
-        m_Button_Buffer1.signal_clicked().connect(sigc::mem_fun(*this, &PGInfoWindow::on_button_buffer1) );
-        m_Button_Buffer2.signal_clicked().connect(sigc::mem_fun(*this, &PGInfoWindow::on_button_buffer2) );
 
         // Populate with initial data
         Gtk::TreeModel::iterator iter = m_refTreeSelection->get_selected();
@@ -198,7 +185,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         if (model->nature.map[tile_ind].residents.size() > 0)
             fill_buffers(res_id);
 
-        on_button_buffer1();
+        m_TextView.set_buffer(m_refTextBuffer1);
 
         show_all_children();
 }
@@ -258,7 +245,7 @@ void PGInfoWindow::on_selection_changed()
     m_refTreeModel_m->clear();
 
     fill_buffers(res_id);
-    on_button_buffer1();
+    m_TextView.set_buffer(m_refTextBuffer1);
 
 }
 
@@ -267,14 +254,14 @@ void PGInfoWindow::fill_buffers(int pid)
     std::string display_text("Basic info:");
     display_text += "\n\n\tName: " + names[model->p.person[pid].name];
     display_text += "\n\tAge: " + std::to_string(model->p.person[pid].age/4);
-    std::string gender("male");
-    if (model->p.person[pid].female) gender = "female";
+    std::string gender("Male");
+    if (model->p.person[pid].female) gender = "Female";
     display_text += "\n\tSex: " + gender;
 
     display_text += "\n\nLifestyle:";
     display_text += "\n\n\tHome: Tile " + std::to_string(model->p.person[pid].home);
     display_text += "\n\tContentedness: " + std::to_string(int(model->p.person[pid].contentedness*100));
-    display_text += "\n\tWork: " + std::to_string(model->p.person[pid].worktype);
+    display_text += "\n\tWork: " + work_names[model->p.person[pid].worktype];
     display_text += "\n\tWork Rate: " + std::to_string(int(model->p.person[pid].workrate*100)) + "%";
     display_text += "\n\tWealth: " + std::to_string(int(model->p.person[pid].wealth));
     display_text += "\n\tLux Rate: " + std::to_string(int(model->p.person[pid].luxrate*100));
@@ -290,9 +277,6 @@ void PGInfoWindow::fill_buffers(int pid)
 
     m_refTextBuffer1->set_text(display_text.c_str());
 
-    //m_refTextBuffer2 = Gtk::TextBuffer::create();
-    //m_refTextBuffer2->set_text(
-    //      "This is some alternative text, from TextBuffer #2.");
 
     // Relationships
     for( int irship = 0; irship < model->p.person[pid].rships.size(); irship++ )
@@ -314,14 +298,4 @@ void PGInfoWindow::fill_buffers(int pid)
         int i_name = model->p.groups[group_id].name;
         add_entry_m( gnames[i_name].c_str(), loyalty_to );
     }
-}
-
-void PGInfoWindow::on_button_buffer1()
-{
-  m_TextView.set_buffer(m_refTextBuffer1);
-}
-
-void PGInfoWindow::on_button_buffer2()
-{
-  m_TextView.set_buffer(m_refTextBuffer2);
 }

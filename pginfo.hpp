@@ -25,9 +25,6 @@ private:
         virtual void on_button_delete();
         virtual void on_selection_changed();
 
-        virtual void on_button_buffer1();
-        virtual void on_button_buffer2();
-
         // Types and classes
         typedef Glib::RefPtr<Gdk::Pixbuf> PixbufPtr;
 
@@ -91,13 +88,14 @@ private:
         Glib::RefPtr<Gtk::TextBuffer> m_refTextBuffer1, m_refTextBuffer2;
 
         Gtk::Box m_ButtonBox2;
-        Gtk::Button m_Button_Buffer1, m_Button_Buffer2;
+
         // Relationships
         ModelColumns_r                          m_Columns_r;
         Gtk::ScrolledWindow                     m_ScrolledWindow_r;
         Gtk::TreeView                           m_TreeView_r;
         Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_r;
         Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_r;
+
         // Memberships
         ModelColumns_m                          m_Columns_m;
         Gtk::ScrolledWindow                     m_ScrolledWindow_m;
