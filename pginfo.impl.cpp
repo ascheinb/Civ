@@ -5,6 +5,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_Button_Delete("Delete"),
         m_HBox(Gtk::ORIENTATION_HORIZONTAL),
         m_PersonWindow(model_in),
+        m_GroupWindow(model_in),
         model(&model_in),
         tile_ind(tile_ind_in)
 {
@@ -29,6 +30,8 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_HBox.pack_start(m_Notebook);
         m_Notebook.append_page(m_ScrolledWindow, "Residents");
         m_Notebook.append_page(m_ScrolledWindow_g, "Groups");
+        m_Notebook.signal_switch_page().connect(sigc::mem_fun(*this, &PGInfoWindow::on_notebook_switch_page) );
+
         m_VBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
 
         m_ButtonBox.pack_start(m_Button_Quit, Gtk::PACK_SHRINK);
@@ -126,7 +129,17 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         if (model->nature.map[tile_ind].residents.size() > 0)
             m_PersonWindow.fill_buffers(res_id);
 
+        m_HBox.pack_start(m_GroupWindow);
+        // Populate with initial data
+        //Gtk::TreeModel::iterator iter = m_refTreeSelection_g->get_selected();
+        //int g_id = (*iter)[m_Columns_g.m_col_id];
+
+        // Show initially selected group if there is one
+        //if (model->nature.map[tile_ind].residents.size() > 0)
+        //    m_GroupWindow.fill_buffers(res_id);
+
         show_all_children();
+        m_GroupWindow.hide();
 }
 
 
@@ -163,6 +176,22 @@ void PGInfoWindow::on_button_delete()
         m_refTreeModel->erase( store_iter );
 }
 
+void PGInfoWindow::on_notebook_switch_page(Gtk::Widget* /* page */, guint page_num)
+{
+  std::cout << "Switched to tab with index " << page_num << std::endl;
+
+  switch (page_num){
+      case 1:
+          m_PersonWindow.hide();
+          m_GroupWindow.show();
+          break;
+      case 0:
+          m_GroupWindow.hide();
+          m_PersonWindow.show();
+          break;
+  }
+  //You can also use m_Notebook.get_current_page() to get this index.
+}
 
 void PGInfoWindow::on_selection_changed()
 {
@@ -177,7 +206,7 @@ void PGInfoWindow::on_selection_changed_g()
 {
     //m_Button_Delete.set_sensitive( m_refTreeSelection->count_selected_rows() > 0 );
     Gtk::TreeModel::iterator iter = m_refTreeSelection_g->get_selected();
-    int res_id = (*iter)[m_Columns_g.m_col_id];
+    int group_id = (*iter)[m_Columns_g.m_col_id];
 
-    //m_PersonWindow.fill_buffers(res_id);
+    m_GroupWindow.fill_buffers(group_id);
 }

@@ -7,6 +7,7 @@
 
 #include "model.hpp"
 #include "personwindow.hpp"
+#include "groupwindow.hpp"
 
 class PGInfoWindow : public Gtk::Window
 {
@@ -21,6 +22,9 @@ private:
         // Signal handlers
         virtual void on_button_quit();
         virtual void on_button_delete();
+
+        virtual void on_notebook_switch_page(Gtk::Widget* page, guint page_num);
+
         virtual void on_selection_changed();
         virtual void on_selection_changed_g();
 
@@ -56,29 +60,30 @@ private:
         };
 
         // Private members
-        ModelColumns                            m_Columns;
-        ModelColumns_g                          m_Columns_g;
 
         Gtk::VBox                               m_VBox;
         Gtk::Box                                m_HBox;
 
+        // For residents list
+        ModelColumns                            m_Columns;
         Gtk::ScrolledWindow                     m_ScrolledWindow;
         Gtk::TreeView                           m_TreeView;
         Glib::RefPtr<Gtk::ListStore>            m_refTreeModel;
         Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection;
+        PersonWindow m_PersonWindow;
 
         // For group list
+        ModelColumns_g                          m_Columns_g;
         Gtk::ScrolledWindow                     m_ScrolledWindow_g;
         Gtk::TreeView                           m_TreeView_g;
         Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_g;
         Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_g;
+        GroupWindow m_GroupWindow;
 
         Gtk::HButtonBox                         m_ButtonBox;
         Gtk::Button                             m_Button_Quit;
         Gtk::Button                             m_Button_Delete;
 
-
-        PersonWindow m_PersonWindow;
 
         Gtk::Box m_ButtonBox2;
 
