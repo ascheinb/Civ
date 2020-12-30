@@ -23,6 +23,8 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_rb2(trait_names[Conscientiousness]),
   m_rb3(trait_names[Neuroticism]),
   m_rb4(trait_names[Openness]),
+  m_Play0("Yes/Max"),
+  m_Play1("No/Min"),
   m_WorkerThread(nullptr)
 {
   set_title("HomoSapiens");
@@ -113,6 +115,19 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_rb2.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb2_clicked));
   m_rb3.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb3_clicked));
   m_rb4.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb4_clicked));
+
+  // PLAY INTERFACE
+  m_SideVBox.pack_start(m_PlayText, Gtk::PACK_SHRINK);
+  m_PlayTextBuffer = Gtk::TextBuffer::create();
+  m_PlayTextBuffer->set_text("Questions will appear here.");
+  m_PlayText.set_buffer(m_PlayTextBuffer);
+  Glib::signal_timeout().connect( sigc::mem_fun(*this, &CivWindow::on_play_timeout), 100 );
+  m_Play1.join_group(m_Play0);
+  m_SideVBox.pack_start(m_Play0, Gtk::PACK_SHRINK);
+  m_SideVBox.pack_start(m_Play1, Gtk::PACK_SHRINK);
+
+  m_Play0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_Play0_clicked));
+  m_Play1.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_Play1_clicked));
 
   //m_trait_button.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_trait_button_clicked));
   //m_trait_button.show();
@@ -249,6 +264,40 @@ void CivWindow::on_rb4_clicked()
     m_Worker.model.set_fracs(m_Worker.model.plot_fracs, m_Worker.model.plot_avg);
 }
 
+void CivWindow::on_Play0_clicked()
+{
+    // Max
+    if (ctrl.needs_float){
+        ctrl.input_float = 1.0f;//get_answer<float>(*model);
+        ctrl.needs_float=false;
+    }
+    if (ctrl.needs_int){
+        ctrl.input_int = 1;//get_answer<int>(*model);
+        ctrl.needs_int=false;
+    }
+    if (ctrl.needs_bool){
+        ctrl.input_bool = true;//get_answer<bool>(*model);
+        ctrl.needs_bool=false;
+    }
+}
+
+void CivWindow::on_Play1_clicked()
+{
+    // Min
+    if (ctrl.needs_float){ 
+        ctrl.input_float = 0.0f;//get_answer<float>(*model);
+        ctrl.needs_float=false;
+    }
+    if (ctrl.needs_int){ 
+        ctrl.input_int = 0;//get_answer<int>(*model);
+        ctrl.needs_int=false;
+    }
+    if (ctrl.needs_bool){ 
+        ctrl.input_bool = false;//get_answer<bool>(*model);
+        ctrl.needs_bool=false;
+    }
+}
+
 bool CivWindow::on_map_clicked(GdkEventButton* event)
 {
     const float hex_radius=HEXRADIUS;
@@ -336,4 +385,20 @@ void CivWindow::on_notification_from_worker_thread()
 void CivWindow::setupWinClose()
 {
     setupw_ = 0;
+}
+
+bool CivWindow::on_play_timeout()
+{
+    m_PlayTextBuffer->set_text("\n" + ctrl.question + "\n");
+    m_PlayText.set_buffer(m_PlayTextBuffer);
+
+    // force our program to redraw the entire clock.
+    auto win = get_window();
+    if (win)
+    {
+        Gdk::Rectangle r(0, 0, get_allocation().get_width(),
+                get_allocation().get_height());
+        win->invalidate_rect(r, false);
+    }
+    return true;
 }

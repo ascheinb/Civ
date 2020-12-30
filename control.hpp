@@ -1,4 +1,5 @@
 struct Control{
+    std::string question = "\n\n\n";
     bool active=true;
     bool needs_float=false;
     float input_float=0.0f;

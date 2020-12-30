@@ -61,10 +61,10 @@ int Person::random_local_friend(vector<Person>& people, vector<int>& id2ind){
 // Ask question and wait for UI thread to get answer
 template<typename T>
 T Person::decision(const char* question){
-    printf("\n%s ",question);
+    ctrl.question = question;
 
     T num;
-/*    ctrl.info_id = id; // Localize on this person
+    ctrl.info_id = id; // Localize on this person
     if (is_same<T, float>::value){
         ctrl.needs_float=true;
         while (ctrl.needs_float){
@@ -86,17 +86,16 @@ T Person::decision(const char* question){
         }
         return ctrl.input_bool;
     }
-*/
     return num;
 }
 
 // UI with acceptable range
 template<typename T>
 T Person::decision(const char* question, T tmin, T tmax){
-    printf("\n%s ",question);
+    ctrl.question = question;
 
     T num;
-/*    ctrl.info_id = id; // Localize on this person
+    ctrl.info_id = id; // Localize on this person
     if (is_same<T, float>::value){
         ctrl.floatmin=tmin;
         ctrl.floatmax=tmax;
@@ -119,7 +118,6 @@ T Person::decision(const char* question, T tmin, T tmax){
         ctrl.range=false;
         return ctrl.input_int;
     }
-    */
     return num;
 }
 

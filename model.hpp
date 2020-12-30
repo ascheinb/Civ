@@ -3,6 +3,7 @@
 
 #include "names.hpp"
 #include "random.hpp"
+#include "control.hpp"
 #include "population.hpp"
 #include "nature.hpp"
 #include "graphics.hpp"
@@ -44,8 +45,8 @@ struct Model{
         carrying_capacity = (mp.max_food_gen+mp.min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
         n_turns = mp.n_years*4; // A turn is one season
         i_turn = 1;
-        watch = false;
-        watch_start_year=500;
+        watch = true;
+        watch_start_year=100;
 
         // Group checking diagnostics
         ncreated=0; nextant=0; nmerged=0;
@@ -126,7 +127,6 @@ struct Model{
                 for (int i=0;i<p.person.size();i++)
                     if (p.person[i].watch) printf(" -%s %s (%d)", names[p.person[i].name].c_str(), gnames[p.groups[p.person[i].mships[0].id].name].c_str(), p.person[i].age/4);
             }
-            printf("\n      (%.0f food this season)",nature.food_available);
         }
     timer.stop(); timer.start("eval_choices");
         p.evaluate_choices();

@@ -35,6 +35,9 @@ private:
   void on_rb2_clicked();
   void on_rb3_clicked();
   void on_rb4_clicked();
+  bool on_play_timeout();
+  void on_Play0_clicked();
+  void on_Play1_clicked();
   bool on_map_clicked(GdkEventButton*);
 
   void update_start_stop_buttons();
@@ -60,6 +63,11 @@ private:
   YearView m_YearView;
   PlotView m_PlotView;
   Gtk::RadioButton m_rb0, m_rb1, m_rb2, m_rb3, m_rb4;
+
+  // Play interface
+  Gtk::TextView m_PlayText;
+  Glib::RefPtr<Gtk::TextBuffer> m_PlayTextBuffer;
+  Gtk::RadioButton m_Play0, m_Play1;
 
   Glib::Dispatcher m_Dispatcher;
   ModelThread m_Worker;
