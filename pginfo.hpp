@@ -14,11 +14,11 @@ public:
         virtual ~PGInfoWindow();
 
 private:
-        void add_entry( const int id, const int dice_id, const char* filename, const char* name );
+        void add_entry( const int res_id, const char* name );
         void add_entry_r( const char* name, const char* reltype, const int f_to, const int f_of );
-        void add_entry_m( const int id, const int dice_id, const char* filename, const char* name );
+        void add_entry_m( const char* name, const int l_to );
 
-        void fill_buffers();
+        void fill_buffers(int pid);
 
         // Signal handlers
         virtual void on_button_quit();
@@ -57,6 +57,17 @@ private:
                 Gtk::TreeModelColumn<int>               m_f_of;
         };
 
+        class ModelColumns_m : public Gtk::TreeModel::ColumnRecord
+        {
+                public:
+
+                ModelColumns_m()
+                { add(m_col_name); add(m_l_to); }
+
+                Gtk::TreeModelColumn<Glib::ustring>     m_col_name;
+                Gtk::TreeModelColumn<int>               m_l_to;
+        };
+
         // Private members
         ModelColumns                            m_Columns;
 
@@ -88,7 +99,7 @@ private:
         Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_r;
         Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_r;
         // Memberships
-        ModelColumns                            m_Columns_m;
+        ModelColumns_m                          m_Columns_m;
         Gtk::ScrolledWindow                     m_ScrolledWindow_m;
         Gtk::TreeView                           m_TreeView_m;
         Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_m;

@@ -75,24 +75,15 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_TreeView.set_headers_visible(true);
 
         // Handle tree selections
-        //
         m_refTreeSelection = m_TreeView.get_selection();
         m_refTreeSelection->signal_changed().connect( sigc::mem_fun(*this, &PGInfoWindow::on_selection_changed) );
 
         //Add the TreeView's view columns:
-        m_TreeView.append_column("ID", m_Columns.m_col_id);
-        m_TreeView.append_column("Image", m_Columns.m_pixbuf);
         m_TreeView.append_column("Name", m_Columns.m_col_name);
         m_refTreeModel->set_sort_column( m_Columns.m_col_name, Gtk::SORT_ASCENDING );   // Initial sorting column
 
         // Set sorting for each column added
         Gtk::TreeView::Column* pColumn = m_TreeView.get_column(0);
-        pColumn->set_sort_column( m_Columns.m_col_id );
-
-        pColumn = m_TreeView.get_column(1);
-        pColumn->set_sort_column( m_Columns.m_dice_id );
-
-        pColumn = m_TreeView.get_column(2);
         pColumn->set_sort_column( m_Columns.m_col_name );
 
         // Fill the TreeView's model
@@ -100,7 +91,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         {
             int res_id = model->nature.map[tile_ind].residents[ires];
             int i_name = model->p.person[res_id].name;
-            add_entry( 0, 1, "hello", names[i_name].c_str() );
+            add_entry( res_id, names[i_name].c_str() );
         }
 
 
@@ -115,6 +106,8 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
 
         m_VBox2.pack_start(m_TextView);
         //m_VBox2.pack_start(m_ScrolledWindow2);
+        m_refTextBuffer1 = Gtk::TextBuffer::create();
+        m_refTextBuffer1->set_text("\n\n\tSelect a person or a group.");
 
         // Relationships
 
@@ -139,7 +132,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_TreeView_r.append_column("Name", m_Columns_r.m_col_name);
         m_TreeView_r.append_column("Type", m_Columns_r.m_type);
         m_TreeView_r.append_column("Fondness for", m_Columns_r.m_f_to);
-        m_TreeView_r.append_column("Fondness from", m_Columns_r.m_f_of);
+        m_TreeView_r.append_column("Fondness by", m_Columns_r.m_f_of);
         //m_TreeView_r.append_column("Image", m_Columns_r.m_pixbuf);
         m_refTreeModel_r->set_sort_column( m_Columns_r.m_col_name, Gtk::SORT_ASCENDING );   // Initial sorting column
 
@@ -156,19 +149,6 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         pColumn_r = m_TreeView_r.get_column(3);
         pColumn_r->set_sort_column( m_Columns_r.m_f_of );
 
-        // Fill the TreeView's model
-        if (model->nature.map[tile_ind].residents.size()>0){
-            int res_id = model->nature.map[tile_ind].residents[0];
-            for( int irship = 0; irship < model->p.person[res_id].rships.size(); irship++ )
-            {
-                int person_ind = model->p.id2ind[model->p.person[res_id].rships[irship].person_id];
-                int fondness_to = model->p.person[res_id].rships[irship].fondness_to;
-                int fondness_of = model->p.person[res_id].rships[irship].fondness_of;
-                RelType reltype = model->p.person[res_id].rships[irship].reltype;
-                int i_name = model->p.person[person_ind].name;
-                add_entry_r( names[i_name].c_str(), rel_names[reltype].c_str(), fondness_to, fondness_of );
-            }
-        }
 
         // Memberships
 
@@ -190,49 +170,34 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_refTreeSelection_m->signal_changed().connect( sigc::mem_fun(*this, &PGInfoWindow::on_selection_changed) );
 
         //Add the TreeView's view columns:
-        m_TreeView_m.append_column("ID", m_Columns_m.m_col_id);
-        m_TreeView_m.append_column("Image", m_Columns_m.m_pixbuf);
         m_TreeView_m.append_column("Name", m_Columns_m.m_col_name);
+        m_TreeView_m.append_column("Loyalty to", m_Columns_m.m_l_to);
         m_refTreeModel_m->set_sort_column( m_Columns_m.m_col_name, Gtk::SORT_ASCENDING );   // Initial sorting column
 
         // Set sorting for each column added
         Gtk::TreeView::Column* pColumn_m = m_TreeView_m.get_column(0);
-        pColumn_m->set_sort_column( m_Columns_m.m_col_id );
-
-        pColumn_m = m_TreeView_m.get_column(1);
-        pColumn_m->set_sort_column( m_Columns_m.m_dice_id );
-
-        pColumn_m = m_TreeView_m.get_column(2);
         pColumn_m->set_sort_column( m_Columns_m.m_col_name );
 
-        // Fill the TreeView's model
-        if (model->nature.map[tile_ind].residents.size()>0){
-            int res_id = model->nature.map[tile_ind].residents[0];
-            for( int imship = 0; imship < model->p.person[res_id].mships.size(); imship++ )
-            {
-                int group_id = model->p.person[res_id].mships[imship].id;
-                int loyalty_to = model->p.person[res_id].mships[imship].loyalty_to;
-                
-                int i_name = model->p.groups[group_id].name;
-                add_entry_m( loyalty_to, 1, "hello", gnames[i_name].c_str() );
-            }
-        }
-
-        //append buttons:
-        //m_VBox2.pack_start(m_ButtonBox2);
+        pColumn_m = m_TreeView_m.get_column(1);
+        pColumn_m->set_sort_column( m_Columns_m.m_l_to );
 
         m_Button_Buffer1.set_hexpand(true);
         //m_Button_Buffer1.set_halign(Gtk::Align::END);
         m_ButtonBox2.pack_start(m_Button_Buffer1);
         m_ButtonBox2.pack_start(m_Button_Buffer2);
-        //m_ButtonBox.set_margin(5);
-        //m_ButtonBox.set_spacing(5);
 
         //Connect signals:
         m_Button_Buffer1.signal_clicked().connect(sigc::mem_fun(*this, &PGInfoWindow::on_button_buffer1) );
         m_Button_Buffer2.signal_clicked().connect(sigc::mem_fun(*this, &PGInfoWindow::on_button_buffer2) );
 
-        fill_buffers();
+        // Populate with initial data
+        Gtk::TreeModel::iterator iter = m_refTreeSelection->get_selected();
+        int res_id = (*iter)[m_Columns.m_col_id];
+
+        // Show initially selected person if there is anyone
+        if (model->nature.map[tile_ind].residents.size() > 0)
+            fill_buffers(res_id);
+
         on_button_buffer1();
 
         show_all_children();
@@ -244,12 +209,11 @@ PGInfoWindow::~PGInfoWindow()
 }
 
 
-void PGInfoWindow::add_entry( const int id, const int dice_id, const char* filename, const char* name )
+void PGInfoWindow::add_entry(const int res_id, const char* name )
 {
         Gtk::TreeModel::Row row         = *(m_refTreeModel->append());
-        row[m_Columns.m_col_id]         = id;
-        row[m_Columns.m_dice_id]        = dice_id;
 //        row[m_Columns.m_pixbuf]         = Gdk::Pixbuf::create_from_file( filename );
+        row[m_Columns.m_col_id] = res_id;
         row[m_Columns.m_col_name]       = name;
 }
 
@@ -262,13 +226,11 @@ void PGInfoWindow::add_entry_r( const char* name, const char* reltype, const int
         row[m_Columns_r.m_f_of ]        = f_of;
 }
 
-void PGInfoWindow::add_entry_m( const int id, const int dice_id, const char* filename, const char* name )
+void PGInfoWindow::add_entry_m( const char* name, const int l_to)
 {
         Gtk::TreeModel::Row row         = *(m_refTreeModel_m->append());
-        row[m_Columns_m.m_col_id]         = id;
-        row[m_Columns_m.m_dice_id]        = dice_id;
-//        row[m_Columns.m_pixbuf]         = Gdk::Pixbuf::create_from_file( filename );
         row[m_Columns_m.m_col_name]       = name;
+        row[m_Columns_m.m_l_to ]        = l_to;
 }
 
 
@@ -287,13 +249,21 @@ void PGInfoWindow::on_button_delete()
 
 void PGInfoWindow::on_selection_changed()
 {
-        m_Button_Delete.set_sensitive(
-		m_refTreeSelection->count_selected_rows() > 0 );
+    //m_Button_Delete.set_sensitive( m_refTreeSelection->count_selected_rows() > 0 );
+    Gtk::TreeModel::iterator iter = m_refTreeSelection->get_selected();
+    int res_id = (*iter)[m_Columns.m_col_id];
+
+    // Clear buffers before filling
+    m_refTreeModel_r->clear();
+    m_refTreeModel_m->clear();
+
+    fill_buffers(res_id);
+    on_button_buffer1();
+
 }
 
-void PGInfoWindow::fill_buffers()
+void PGInfoWindow::fill_buffers(int pid)
 {
-    int pid = 0;
     std::string display_text("Basic info:");
     display_text += "\n\n\tName: " + names[model->p.person[pid].name];
     display_text += "\n\tAge: " + std::to_string(model->p.person[pid].age/4);
@@ -318,13 +288,32 @@ void PGInfoWindow::fill_buffers()
 
     display_text += "\n\nRelationships and Memberships:\n";
 
-    m_refTextBuffer1 = Gtk::TextBuffer::create();
     m_refTextBuffer1->set_text(display_text.c_str());
 
     //m_refTextBuffer2 = Gtk::TextBuffer::create();
     //m_refTextBuffer2->set_text(
     //      "This is some alternative text, from TextBuffer #2.");
 
+    // Relationships
+    for( int irship = 0; irship < model->p.person[pid].rships.size(); irship++ )
+    {
+        int person_ind = model->p.id2ind[model->p.person[pid].rships[irship].person_id];
+        int fondness_to = model->p.person[pid].rships[irship].fondness_to;
+        int fondness_of = model->p.person[pid].rships[irship].fondness_of;
+        RelType reltype = model->p.person[pid].rships[irship].reltype;
+        int i_name = model->p.person[person_ind].name;
+        add_entry_r( names[i_name].c_str(), rel_names[reltype].c_str(), fondness_to, fondness_of );
+    }
+
+    // Memberships
+    for( int imship = 0; imship < model->p.person[pid].mships.size(); imship++ )
+    {
+        int group_id = model->p.person[pid].mships[imship].id;
+        int loyalty_to = model->p.person[pid].mships[imship].loyalty_to;
+
+        int i_name = model->p.groups[group_id].name;
+        add_entry_m( gnames[i_name].c_str(), loyalty_to );
+    }
 }
 
 void PGInfoWindow::on_button_buffer1()
