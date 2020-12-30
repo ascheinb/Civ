@@ -4,7 +4,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_Button_Quit("Quit"),
         m_Button_Delete("Delete"),
         m_HBox(Gtk::ORIENTATION_HORIZONTAL),
-        m_ScrolledWindow2(model_in),
+        m_PersonWindow(model_in),
         model(&model_in),
         tile_ind(tile_ind_in)
 {
@@ -20,10 +20,15 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         //Add the TreeView, inside a ScrolledWindow, with the button underneath:
         m_ScrolledWindow.add(m_TreeView);
 
+        m_ScrolledWindow_g.add(m_TreeView_g);
+
         //Only show the scrollbars when they are necessary:
         m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+        m_ScrolledWindow_g.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
-        m_HBox.pack_start(m_ScrolledWindow);
+        m_HBox.pack_start(m_Notebook);
+        m_Notebook.append_page(m_ScrolledWindow, "Residents");
+        m_Notebook.append_page(m_ScrolledWindow_g, "Groups");
         m_VBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
 
         m_ButtonBox.pack_start(m_Button_Quit, Gtk::PACK_SHRINK);
@@ -34,7 +39,9 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         m_Button_Delete.signal_clicked().connect( sigc::mem_fun(*this, &PGInfoWindow::on_button_delete) );
         m_Button_Delete.set_sensitive( false ); // Only activate if row selected
 
-        //Create the Tree model:
+
+        /*** Resident list  ***/
+
         m_refTreeModel     = Gtk::ListStore::create(m_Columns);
         m_TreeView.set_model(m_refTreeModel);
 
@@ -63,9 +70,53 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
             add_entry( res_id, names[i_name].c_str() );
         }
 
+        /*** Group list  ***/
+
+        m_refTreeModel_g     = Gtk::ListStore::create(m_Columns_g);
+        m_TreeView_g.set_model(m_refTreeModel_g);
+
+        //All the items to be reordered with drag-and-drop:
+        m_TreeView_g.set_reorderable();
+        m_TreeView_g.set_rules_hint();
+        m_TreeView_g.set_headers_clickable(true);
+        m_TreeView_g.set_headers_visible(true);
+
+        // Handle tree selections
+        m_refTreeSelection_g = m_TreeView_g.get_selection();
+        m_refTreeSelection_g->signal_changed().connect( sigc::mem_fun(*this, &PGInfoWindow::on_selection_changed_g) );
+
+        //Add the TreeView's view columns:
+        m_TreeView_g.append_column("Name", m_Columns_g.m_col_name);
+
+        // Set sorting for each column added
+        Gtk::TreeView::Column* pColumn_g = m_TreeView_g.get_column(0);
+        pColumn_g->set_sort_column( m_Columns_g.m_col_name );
+
+        // Fill the TreeView's model
+        std::vector<int> gids;
+        for( int ires = 0; ires < model->nature.map[tile_ind].residents.size(); ires++ )
+        {
+            int res_id = model->nature.map[tile_ind].residents[ires];
+            // Loop through memberships of each resident
+            for( int imship = 0; imship < model->p.person[res_id].mships.size(); imship++ )
+            {
+                int group_id = model->p.person[res_id].mships[imship].id;
+
+                // Check no duplicate groups
+                // todo: fix bad scaling ALS
+                for (int eid = 0; eid<gids.size(); eid++)
+                    if (group_id==gids[eid]) group_id=-1;
+                if (group_id==-1) continue;
+
+                gids.push_back(group_id);
+
+                int i_name = model->p.groups[group_id].name;
+                add_entry_g( group_id, gnames[i_name].c_str() );
+            }
+        }
 
         /**** Person Window *****/
-        m_HBox.pack_start(m_ScrolledWindow2);
+        m_HBox.pack_start(m_PersonWindow);
 
         // Populate with initial data
         Gtk::TreeModel::iterator iter = m_refTreeSelection->get_selected();
@@ -73,7 +124,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
 
         // Show initially selected person if there is anyone
         if (model->nature.map[tile_ind].residents.size() > 0)
-            m_ScrolledWindow2.fill_buffers(res_id);
+            m_PersonWindow.fill_buffers(res_id);
 
         show_all_children();
 }
@@ -92,6 +143,13 @@ void PGInfoWindow::add_entry(const int res_id, const char* name )
         row[m_Columns.m_col_name]       = name;
 }
 
+void PGInfoWindow::add_entry_g(const int res_id, const char* name )
+{
+        Gtk::TreeModel::Row row         = *(m_refTreeModel_g->append());
+//        row[m_Columns.m_pixbuf]         = Gdk::Pixbuf::create_from_file( filename );
+        row[m_Columns_g.m_col_id] = res_id;
+        row[m_Columns_g.m_col_name]       = name;
+}
 
 void PGInfoWindow::on_button_quit()
 {
@@ -112,5 +170,14 @@ void PGInfoWindow::on_selection_changed()
     Gtk::TreeModel::iterator iter = m_refTreeSelection->get_selected();
     int res_id = (*iter)[m_Columns.m_col_id];
 
-    m_ScrolledWindow2.fill_buffers(res_id);
+    m_PersonWindow.fill_buffers(res_id);
+}
+
+void PGInfoWindow::on_selection_changed_g()
+{
+    //m_Button_Delete.set_sensitive( m_refTreeSelection->count_selected_rows() > 0 );
+    Gtk::TreeModel::iterator iter = m_refTreeSelection_g->get_selected();
+    int res_id = (*iter)[m_Columns_g.m_col_id];
+
+    //m_PersonWindow.fill_buffers(res_id);
 }

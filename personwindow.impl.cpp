@@ -119,7 +119,7 @@ void PersonWindow::fill_buffers(int pid)
     m_refTreeModel_m->clear();
 
     // Fill text
-    std::string display_text("Basic info:");
+    std::string display_text("\n\nBasic info:");
     display_text += "\n\n\tName: " + names[model->p.person[pid].name];
     display_text += "\n\tAge: " + std::to_string(model->p.person[pid].age/4);
     std::string gender("Male");
