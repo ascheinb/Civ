@@ -267,35 +267,31 @@ void CivWindow::on_rb4_clicked()
 void CivWindow::on_Play0_clicked()
 {
     // Max
-    if (ctrl.needs_float){
+    if (ctrl.input_type == FloatInput){
         ctrl.input_float = 1.0f;//get_answer<float>(*model);
-        ctrl.needs_float=false;
     }
-    if (ctrl.needs_int){
+    if (ctrl.input_type == IntInput){
         ctrl.input_int = 1;//get_answer<int>(*model);
-        ctrl.needs_int=false;
     }
-    if (ctrl.needs_bool){
+    if (ctrl.input_type == BoolInput){
         ctrl.input_bool = true;//get_answer<bool>(*model);
-        ctrl.needs_bool=false;
     }
+    ctrl.input_type = NoInput;
 }
 
 void CivWindow::on_Play1_clicked()
 {
     // Min
-    if (ctrl.needs_float){ 
+    if (ctrl.input_type == FloatInput){ 
         ctrl.input_float = 0.0f;//get_answer<float>(*model);
-        ctrl.needs_float=false;
     }
-    if (ctrl.needs_int){ 
+    if (ctrl.input_type == IntInput){ 
         ctrl.input_int = 0;//get_answer<int>(*model);
-        ctrl.needs_int=false;
     }
-    if (ctrl.needs_bool){ 
+    if (ctrl.input_type == BoolInput){ 
         ctrl.input_bool = false;//get_answer<bool>(*model);
-        ctrl.needs_bool=false;
     }
+    ctrl.input_type = NoInput;
 }
 
 bool CivWindow::on_map_clicked(GdkEventButton* event)

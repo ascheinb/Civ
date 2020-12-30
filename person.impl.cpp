@@ -65,27 +65,22 @@ T Person::decision(const char* question){
 
     T num;
     ctrl.info_id = id; // Localize on this person
-    if (is_same<T, float>::value){
-        ctrl.needs_float=true;
-        while (ctrl.needs_float){
-            usleep(50); // Check for updates every 50 ms
-        }
-        return ctrl.input_float;
+
+    // Specify required input
+    if (is_same<T, float>::value) ctrl.input_type = FloatInput;
+    if (is_same<T, int>::value) ctrl.input_type = IntInput;
+    if (is_same<T, bool>::value) ctrl.input_type = BoolInput;
+
+    // Wait for input to arrive
+    while (ctrl.input_type != NoInput){
+        usleep(50); // Check for updates every 50 ms
     }
-    if (is_same<T, int>::value){
-        ctrl.needs_int=true;
-        while (ctrl.needs_int){
-            usleep(50); // Check for updates every 50 ms
-        }
-        return ctrl.input_int;
-    }
-    if (is_same<T, bool>::value){
-        ctrl.needs_bool=true;
-        while (ctrl.needs_bool){
-            usleep(50); // Check for updates every 50 ms
-        }
-        return ctrl.input_bool;
-    }
+
+    // Return the input
+    if (is_same<T, float>::value) return ctrl.input_float;
+    if (is_same<T, int>::value) return ctrl.input_int;
+    if (is_same<T, bool>::value) return ctrl.input_bool;
+
     return num;
 }
 
@@ -96,28 +91,33 @@ T Person::decision(const char* question, T tmin, T tmax){
 
     T num;
     ctrl.info_id = id; // Localize on this person
+
+    ctrl.range=true;
+
+    // Specify required input and range
     if (is_same<T, float>::value){
         ctrl.floatmin=tmin;
         ctrl.floatmax=tmax;
-        ctrl.range=true;
-        ctrl.needs_float=true;
-        while (ctrl.needs_float){
-            usleep(50); // Check for updates every 50 ms
-        }
-        ctrl.range=false;
-        return ctrl.input_float;
+        ctrl.input_type = FloatInput;
     }
     if (is_same<T, int>::value){
         ctrl.intmin=tmin;
         ctrl.intmax=tmax;
-        ctrl.range=true;
-        ctrl.needs_int=true;
-        while (ctrl.needs_int){
-            usleep(50); // Check for updates every 50 ms
-        }
-        ctrl.range=false;
-        return ctrl.input_int;
+        ctrl.input_type = IntInput;
     }
+
+    // Wait for input to arrive
+    while (ctrl.input_type != NoInput){
+        usleep(50); // Check for updates every 50 ms
+    }
+
+    // Turn off range
+    ctrl.range=false;
+
+    // Return the input
+    if (is_same<T, float>::value) return ctrl.input_float;
+    if (is_same<T, int>::value) return ctrl.input_int;
+
     return num;
 }
 
