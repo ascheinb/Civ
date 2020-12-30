@@ -6,6 +6,7 @@
 #include <gtkmm.h>
 
 #include "model.hpp"
+#include "personwindow.hpp"
 
 class PGInfoWindow : public Gtk::Window
 {
@@ -15,10 +16,6 @@ public:
 
 private:
         void add_entry( const int res_id, const char* name );
-        void add_entry_r( const char* name, const char* reltype, const int f_to, const int f_of );
-        void add_entry_m( const char* name, const int l_to );
-
-        void fill_buffers(int pid);
 
         // Signal handlers
         virtual void on_button_quit();
@@ -41,30 +38,6 @@ private:
                 Gtk::TreeModelColumn<Glib::ustring>   		m_col_name;
         };
 
-        class ModelColumns_r : public Gtk::TreeModel::ColumnRecord
-        {
-                public:
-
-                ModelColumns_r()
-                { add(m_col_name); add(m_type); add(m_f_to); add(m_f_of); }
-
-                Gtk::TreeModelColumn<Glib::ustring>     m_col_name;
-                Gtk::TreeModelColumn<Glib::ustring>     m_type;
-                Gtk::TreeModelColumn<int>               m_f_to;
-                Gtk::TreeModelColumn<int>               m_f_of;
-        };
-
-        class ModelColumns_m : public Gtk::TreeModel::ColumnRecord
-        {
-                public:
-
-                ModelColumns_m()
-                { add(m_col_name); add(m_l_to); }
-
-                Gtk::TreeModelColumn<Glib::ustring>     m_col_name;
-                Gtk::TreeModelColumn<int>               m_l_to;
-        };
-
         // Private members
         ModelColumns                            m_Columns;
 
@@ -80,28 +53,10 @@ private:
         Gtk::Button                             m_Button_Quit;
         Gtk::Button                             m_Button_Delete;
 
-        Gtk::Box m_VBox2;
 
-        Gtk::ScrolledWindow m_ScrolledWindow2;
-        Gtk::TextView m_TextView;
-
-        Glib::RefPtr<Gtk::TextBuffer> m_refTextBuffer1, m_refTextBuffer2;
+        PersonWindow m_ScrolledWindow2;
 
         Gtk::Box m_ButtonBox2;
-
-        // Relationships
-        ModelColumns_r                          m_Columns_r;
-        Gtk::ScrolledWindow                     m_ScrolledWindow_r;
-        Gtk::TreeView                           m_TreeView_r;
-        Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_r;
-        Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_r;
-
-        // Memberships
-        ModelColumns_m                          m_Columns_m;
-        Gtk::ScrolledWindow                     m_ScrolledWindow_m;
-        Gtk::TreeView                           m_TreeView_m;
-        Glib::RefPtr<Gtk::ListStore>            m_refTreeModel_m;
-        Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_m;
 
         Model* model;
         int tile_ind;
