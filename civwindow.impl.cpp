@@ -4,6 +4,8 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_VBox(Gtk::ORIENTATION_VERTICAL, 5),
   m_HBox(Gtk::ORIENTATION_HORIZONTAL),
   m_SideVBox(Gtk::ORIENTATION_VERTICAL),
+  m_StatsBox(Gtk::ORIENTATION_VERTICAL),
+  m_PlayBox(Gtk::ORIENTATION_VERTICAL),
   m_ButtonBox(Gtk::ORIENTATION_HORIZONTAL),
   m_ButtonNext("Next turn"),
   m_ButtonStart("Run"),
@@ -96,18 +98,25 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
 
 //  show_all_children();
 
-  m_SideVBox.pack_start(m_PlotView, Gtk::PACK_EXPAND_WIDGET);
+  //m_SideVBox.pack_start(m_Notebook);
+  //m_Notebook.append_page(m_ScrolledWindow, "Residents");
+  //m_Notebook.append_page(m_ScrolledWindow_g, "Groups");
+  //m_Notebook.signal_switch_page().connect(sigc::mem_fun(*this, &PGInfoWindow::on_notebook_switch_page) );
+
+  m_SideVBox.pack_start(m_Notebook, Gtk::PACK_EXPAND_WIDGET);
+  m_Notebook.append_page(m_StatsBox, "Stats");
+  m_StatsBox.pack_start(m_PlotView, Gtk::PACK_EXPAND_WIDGET);
   m_PlotView.show();
 
   m_rb1.join_group(m_rb0);
   m_rb2.join_group(m_rb0);
   m_rb3.join_group(m_rb0);
   m_rb4.join_group(m_rb0);
-  m_SideVBox.pack_start(m_rb0, Gtk::PACK_SHRINK);
-  m_SideVBox.pack_start(m_rb1, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
-  m_SideVBox.pack_start(m_rb2, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
-  m_SideVBox.pack_start(m_rb3, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
-  m_SideVBox.pack_start(m_rb4, Gtk::PACK_SHRINK);
+  m_StatsBox.pack_start(m_rb0, Gtk::PACK_SHRINK);
+  m_StatsBox.pack_start(m_rb1, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_StatsBox.pack_start(m_rb2, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_StatsBox.pack_start(m_rb3, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_StatsBox.pack_start(m_rb4, Gtk::PACK_SHRINK);
   m_rb0.set_active();
 
   m_rb0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb0_clicked));
@@ -117,14 +126,15 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_rb4.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb4_clicked));
 
   // PLAY INTERFACE
-  m_SideVBox.pack_start(m_PlayText, Gtk::PACK_SHRINK);
+  m_Notebook.append_page(m_PlayBox, "Story");
+  m_PlayBox.pack_start(m_PlayText, Gtk::PACK_SHRINK);
   m_PlayTextBuffer = Gtk::TextBuffer::create();
   m_PlayTextBuffer->set_text("Questions will appear here.");
   m_PlayText.set_buffer(m_PlayTextBuffer);
   Glib::signal_timeout().connect( sigc::mem_fun(*this, &CivWindow::on_play_timeout), 100 );
   m_Play1.join_group(m_Play0);
-  m_SideVBox.pack_start(m_Play0, Gtk::PACK_SHRINK);
-  m_SideVBox.pack_start(m_Play1, Gtk::PACK_SHRINK);
+  m_PlayBox.pack_start(m_Play0, Gtk::PACK_SHRINK);
+  m_PlayBox.pack_start(m_Play1, Gtk::PACK_SHRINK);
 
   m_Play0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_Play0_clicked));
   m_Play1.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_Play1_clicked));

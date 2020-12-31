@@ -51,6 +51,9 @@ private:
   Gtk::Box m_HBox;
   Gtk::EventBox m_MapBox;
   Gtk::Box m_SideVBox;
+  Gtk::Notebook m_Notebook;
+  Gtk::Box m_StatsBox;
+  Gtk::Box m_PlayBox;
   Gtk::ButtonBox m_ButtonBox;
   Gtk::Button m_ButtonNext;
   Gtk::Button m_ButtonStart;
