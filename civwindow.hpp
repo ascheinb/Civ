@@ -9,7 +9,7 @@ class CivWindow : public Gtk::Window
 {
 public:
 
-  CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth);
+  CivWindow();//int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth);
 
   // Called from the worker thread.
   void notify();
@@ -28,7 +28,7 @@ private:
 
   // Member data.
   Gtk::Box m_VBox;
-  Gtk::ButtonBox m_ButtonBox;
+  Gtk::Box m_ButtonBox;
   Gtk::Button m_ButtonStart;
   Gtk::Button m_ButtonStop;
   Gtk::Button m_ButtonQuit;

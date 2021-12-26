@@ -1,8 +1,8 @@
 #include <iostream>
 
-CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth) :
-  m_VBox(Gtk::ORIENTATION_VERTICAL, 5),
-  m_ButtonBox(Gtk::ORIENTATION_HORIZONTAL),
+CivWindow::CivWindow() : //int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth) :
+  m_VBox(Gtk::Orientation::VERTICAL, 5),
+  m_ButtonBox(Gtk::Orientation::HORIZONTAL, 5),
   m_ButtonStart("Start work"),
   m_ButtonStop("Stop work"),
   m_ButtonQuit("_Quit", /* mnemonic= */ true),
@@ -10,24 +10,31 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   m_ScrolledWindow(),
   m_TextView(),
   m_Dispatcher(),
-  m_Worker(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth),
+  m_Worker(
+2000, //initial_n_ppl,
+2000, // n_years,
+5000, // min_food_gen,
+5000, // max_food_gen,
+1, // climate_type, // 0 is uniform; 1 has cold poles
+216, // mapsize, // Must be divisible by mapwidth
+18), // mapwidth), // Keep even for map_by_groups to work
   m_HexMap(m_Worker.model),
   m_WorkerThread(nullptr)
 {
   set_title("HomoSapiens");
-  set_border_width(5);
+  //set_border_width(5);
   set_default_size(1400, 750);
 
-  add(m_VBox);
+  set_child(m_VBox);
 
   // Add the ProgressBar.
-  m_VBox.pack_start(m_ProgressBar, Gtk::PACK_SHRINK);
+  m_VBox.append(m_ProgressBar);//, Gtk::PACK_SHRINK);
 
   m_ProgressBar.set_text("Fraction done");
   m_ProgressBar.set_show_text();
 
   // Add the HexMap
-  m_VBox.pack_start(m_HexMap);
+  m_VBox.append(m_HexMap);
   m_HexMap.show();
 
   // Add the TextView, inside a ScrolledWindow.
@@ -36,19 +43,19 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
   // Only show the scrollbars when they are necessary.
 //  m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
-//  m_VBox.pack_start(m_ScrolledWindow);
+//  m_VBox.append(m_ScrolledWindow);
 
 //  m_TextView.set_editable(false);
 
   // Add the buttons to the ButtonBox.
-  m_VBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
+  m_VBox.append(m_ButtonBox);//, Gtk::PACK_SHRINK);
 
-  m_ButtonBox.pack_start(m_ButtonStart, Gtk::PACK_SHRINK);
-  m_ButtonBox.pack_start(m_ButtonStop, Gtk::PACK_SHRINK);
-  m_ButtonBox.pack_start(m_ButtonQuit, Gtk::PACK_SHRINK);
-  m_ButtonBox.set_border_width(5);
+  m_ButtonBox.append(m_ButtonStart);//, Gtk::PACK_SHRINK);
+  m_ButtonBox.append(m_ButtonStop);//, Gtk::PACK_SHRINK);
+  m_ButtonBox.append(m_ButtonQuit);//, Gtk::PACK_SHRINK);
+  //m_ButtonBox.set_border_width(5);
   m_ButtonBox.set_spacing(5);
-  m_ButtonBox.set_layout(Gtk::BUTTONBOX_END);
+  //m_ButtonBox.set_layout(Gtk::BUTTONBOX_END);
 
   // Connect the signal handlers to the buttons.
   m_ButtonStart.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_start_button_clicked));
@@ -64,7 +71,7 @@ CivWindow::CivWindow(int initial_n_ppl, int n_years, float min_food_gen, float m
 
   update_start_stop_buttons();
 
-  show_all_children();
+  //show_all_children();
 }
 
 void CivWindow::on_start_button_clicked()
