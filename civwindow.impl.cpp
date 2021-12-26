@@ -27,6 +27,11 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_rb4(trait_names[Openness]),
   m_Play0("Yes/Max"),
   m_Play1("No/Min"),
+  m_hadjustment( Gtk::Adjustment::create(8, 1, 19, 1.0, 1.0, 1.0) ),
+  m_hadjustment_digits( Gtk::Adjustment::create(1.0, 0.0, 5.0, 1.0, 2.0) ),
+  m_hadjustment_pagesize( Gtk::Adjustment::create(1.0, 1.0, 101.0) ),
+  m_HScale(m_hadjustment, Gtk::ORIENTATION_HORIZONTAL),
+  m_Scrollbar(m_hadjustment),
   m_WorkerThread(nullptr)
 {
   set_title("HomoSapiens");
@@ -141,6 +146,13 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
 
   //m_trait_button.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_trait_button_clicked));
   //m_trait_button.show();
+
+  //HScale:
+  m_HScale.set_digits(0);
+  m_HScale.set_value_pos(Gtk::POS_LEFT);
+  m_HScale.set_draw_value();
+  m_PlayBox.pack_start(m_HScale, Gtk::PACK_EXPAND_WIDGET);
+  //m_PlayBox.show();
 
   setupw_ = new SetupWindow(setup_params, m_Worker.model);
   //setupw_->signal_hide().connect(sigc::mem_fun(*this, &CivWindow::setupWinClose));
@@ -397,6 +409,20 @@ bool CivWindow::on_play_timeout()
 {
     m_PlayTextBuffer->set_text("\n" + ctrl.question + "\n");
     m_PlayText.set_buffer(m_PlayTextBuffer);
+
+
+    if (ctrl.input_type == FloatInput){
+        m_HScale.show();
+        m_Play0.hide(); m_Play1.hide();
+    }
+    if (ctrl.input_type == IntInput){
+        m_HScale.show();
+        m_Play0.hide(); m_Play1.hide();
+    }
+    if (ctrl.input_type == BoolInput){
+        m_HScale.hide();
+        m_Play0.show(); m_Play1.show();
+    }
 
     // force our program to redraw the entire clock.
     auto win = get_window();

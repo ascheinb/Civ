@@ -72,6 +72,11 @@ private:
   Glib::RefPtr<Gtk::TextBuffer> m_PlayTextBuffer;
   Gtk::RadioButton m_Play0, m_Play1;
 
+  // Slider
+  Glib::RefPtr<Gtk::Adjustment> m_hadjustment, m_hadjustment_digits, m_hadjustment_pagesize;
+  Gtk::Scale m_HScale, m_Scale_Digits, m_Scale_PageSize;
+  Gtk::Scrollbar m_Scrollbar;
+
   Glib::Dispatcher m_Dispatcher;
   ModelThread m_Worker;
   std::thread* m_WorkerThread;
