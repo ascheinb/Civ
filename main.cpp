@@ -11,7 +11,7 @@
 
 #include "civwindow.hpp"
 
-int main(){
+int main(int argc, char *argv[]){
     // Initialize random seed
     srand (time(NULL));
     //srand(5);
@@ -23,7 +23,7 @@ int main(){
     SetupParameters setup_params;
 
     // Launch window
-    auto app = Gtk::Application::create();
-    CivWindow window(setup_params);
-    return app->run(window);
+    auto app = Gtk::Application::create("MY_XAMPLE");
+
+    return app->make_window_and_run<CivWindow>(argc, argv, setup_params);
 }

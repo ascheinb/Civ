@@ -78,7 +78,7 @@ void draw_plot(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
     cr->stroke();
 
     Cairo::TextExtents extents; // for centering text
-    //cr->select_font_face("Purisa", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_BOLD);
+    //cr->select_font_face("Purisa", Cairo::ToyFontFace::Slant::NORMAL, Cairo::ToyFontFace::Weight::BOLD);
     cr->set_font_size(13);
     string pop_str = std::to_string(model.plot_avg);
     pop_str = pop_str.substr(0,4);
@@ -125,13 +125,14 @@ bool PlotView::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 bool PlotView::on_timeout()
 {
     // force our program to redraw the entire clock.
-    auto win = get_window();
+    queue_draw();
+    /*auto win = get_window();
     if (win)
     {
         Gdk::Rectangle r(0, 0, get_allocation().get_width(),
                 get_allocation().get_height());
         win->invalidate_rect(r, false);
-    }
+    }*/
     return true;
 }
 

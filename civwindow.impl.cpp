@@ -1,12 +1,12 @@
 #include <iostream>
 
 CivWindow::CivWindow(SetupParameters& setup_params_in) :
-  m_VBox(Gtk::ORIENTATION_VERTICAL, 5),
-  m_HBox(Gtk::ORIENTATION_HORIZONTAL),
-  m_SideVBox(Gtk::ORIENTATION_VERTICAL),
-  m_StatsBox(Gtk::ORIENTATION_VERTICAL),
-  m_PlayBox(Gtk::ORIENTATION_VERTICAL),
-  m_ButtonBox(Gtk::ORIENTATION_HORIZONTAL),
+  m_VBox(Gtk::Orientation::VERTICAL, 5),
+  m_HBox(Gtk::Orientation::HORIZONTAL),
+  m_SideVBox(Gtk::Orientation::VERTICAL),
+  m_StatsBox(Gtk::Orientation::VERTICAL),
+  m_PlayBox(Gtk::Orientation::VERTICAL),
+  m_ButtonBox(Gtk::Orientation::HORIZONTAL, 5),
   m_ButtonNext("Next turn"),
   m_ButtonStart("Run"),
   m_ButtonStop("Pause"),
@@ -30,61 +30,61 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
   m_hadjustment( Gtk::Adjustment::create(8, 1, 19, 1.0, 1.0, 1.0) ),
   m_hadjustment_digits( Gtk::Adjustment::create(1.0, 0.0, 5.0, 1.0, 2.0) ),
   m_hadjustment_pagesize( Gtk::Adjustment::create(1.0, 1.0, 101.0) ),
-  m_HScale(m_hadjustment, Gtk::ORIENTATION_HORIZONTAL),
+  m_HScale(m_hadjustment, Gtk::Orientation::HORIZONTAL),
   m_Scrollbar(m_hadjustment),
   m_WorkerThread(nullptr)
 {
   set_title("HomoSapiens");
-  set_border_width(5);
+  //set_border_width(5);
   set_default_size(1400, 750);
 
-  add(m_VBox);
+  set_child(m_VBox);
 
   // Add the ProgressBar.
-  m_VBox.pack_start(m_ProgressBar, Gtk::PACK_SHRINK);
+  m_VBox.append(m_ProgressBar);//, Gtk::PACK_SHRINK);
 
   m_ProgressBar.set_text("Fraction done");
   m_ProgressBar.set_show_text();
 
   // Add the horizontal box
-  m_VBox.pack_start(m_HBox);
+  m_VBox.append(m_HBox);
 
   // Add the HexMap
-  m_HBox.pack_start(m_MapBox, Gtk::PACK_EXPAND_WIDGET);
-  m_MapBox.add(m_HexMap);//, Gtk::PACK_EXPAND_WIDGET);
+  m_HBox.append(m_MapBox);//, Gtk::PACK_EXPAND_WIDGET);
+  m_MapBox.append(m_HexMap);//, Gtk::PACK_EXPAND_WIDGET);
   //g_signal_connect(drawing_area, "button-press-event", G_CALLBACK(clicked), NULL)0;
   //m_MapBox.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_map_clicked));
-  m_MapBox.set_events(Gdk::BUTTON_PRESS_MASK);
-  m_MapBox.signal_button_press_event().connect(sigc::mem_fun(*this, &CivWindow::on_map_clicked));
+  //m_MapBox.set_events(Gdk::BUTTON_PRESS_MASK);
+  //m_MapBox.signal_button_press_event().connect(sigc::mem_fun(*this, &CivWindow::on_map_clicked));
   m_MapBox.show();
   m_HexMap.show();
 
-  m_HBox.pack_start(m_SideVBox, Gtk::PACK_SHRINK);
+  m_HBox.append(m_SideVBox);//, Gtk::PACK_SHRINK);
 
   m_SideVBox.set_size_request(350,-1);
   // Add the TextView, inside a ScrolledWindow.
 //  m_ScrolledWindow.add(m_TextView);
 
   // Only show the scrollbars when they are necessary.
-//  m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  m_ScrolledWindow.set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
 
-//  m_VBox.pack_start(m_ScrolledWindow);
+//  m_VBox.append(m_ScrolledWindow);
 
 //  m_TextView.set_editable(false);
 
-  m_SideVBox.pack_start(m_YearView);
+  m_SideVBox.append(m_YearView);
   m_YearView.show();
 
   // Add the buttons to the ButtonBox.
-  m_SideVBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
+  m_SideVBox.append(m_ButtonBox);//, Gtk::PACK_SHRINK);
 
-  m_ButtonBox.pack_start(m_ButtonNext, Gtk::PACK_SHRINK);
-  m_ButtonBox.pack_start(m_ButtonStart, Gtk::PACK_SHRINK);
-  m_ButtonBox.pack_start(m_ButtonStop, Gtk::PACK_SHRINK);
-  m_ButtonBox.pack_start(m_ButtonQuit, Gtk::PACK_SHRINK);
-  m_ButtonBox.set_border_width(5);
+  m_ButtonBox.append(m_ButtonNext);//, Gtk::PACK_SHRINK);
+  m_ButtonBox.append(m_ButtonStart);//, Gtk::PACK_SHRINK);
+  m_ButtonBox.append(m_ButtonStop);//, Gtk::PACK_SHRINK);
+  m_ButtonBox.append(m_ButtonQuit);//, Gtk::PACK_SHRINK);
+  //m_ButtonBox.set_border_width(5);
   m_ButtonBox.set_spacing(5);
-  m_ButtonBox.set_layout(Gtk::BUTTONBOX_END);
+  //m_ButtonBox.set_layout(Gtk::BUTTONBOX_END);
 
   // Connect the signal handlers to the buttons.
   m_ButtonNext.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_next_button_clicked));
@@ -103,62 +103,62 @@ CivWindow::CivWindow(SetupParameters& setup_params_in) :
 
 //  show_all_children();
 
-  //m_SideVBox.pack_start(m_Notebook);
+  //m_SideVBox.append(m_Notebook);
   //m_Notebook.append_page(m_ScrolledWindow, "Residents");
   //m_Notebook.append_page(m_ScrolledWindow_g, "Groups");
   //m_Notebook.signal_switch_page().connect(sigc::mem_fun(*this, &PGInfoWindow::on_notebook_switch_page) );
 
-  m_SideVBox.pack_start(m_Notebook, Gtk::PACK_EXPAND_WIDGET);
+  m_SideVBox.append(m_Notebook);//, Gtk::PACK_EXPAND_WIDGET);
   m_Notebook.append_page(m_StatsBox, "Stats");
-  m_StatsBox.pack_start(m_PlotView, Gtk::PACK_EXPAND_WIDGET);
+  m_StatsBox.append(m_PlotView);//, Gtk::PACK_EXPAND_WIDGET);
   m_PlotView.show();
 
-  m_rb1.join_group(m_rb0);
-  m_rb2.join_group(m_rb0);
-  m_rb3.join_group(m_rb0);
-  m_rb4.join_group(m_rb0);
-  m_StatsBox.pack_start(m_rb0, Gtk::PACK_SHRINK);
-  m_StatsBox.pack_start(m_rb1, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
-  m_StatsBox.pack_start(m_rb2, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
-  m_StatsBox.pack_start(m_rb3, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
-  m_StatsBox.pack_start(m_rb4, Gtk::PACK_SHRINK);
+  m_rb1.set_group(m_rb0);
+  m_rb2.set_group(m_rb0);
+  m_rb3.set_group(m_rb0);
+  m_rb4.set_group(m_rb0);
+  m_StatsBox.append(m_rb0);//, Gtk::PACK_SHRINK);
+  m_StatsBox.append(m_rb1);//, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_StatsBox.append(m_rb2);//, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_StatsBox.append(m_rb3);//, Gtk::PACK_SHRINK);//, Gtk::PACK_EXPAND_WIDGET);
+  m_StatsBox.append(m_rb4);//, Gtk::PACK_SHRINK);
   m_rb0.set_active();
 
-  m_rb0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb0_clicked));
+  /*m_rb0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb0_clicked));
   m_rb1.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb1_clicked));
   m_rb2.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb2_clicked));
   m_rb3.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb3_clicked));
   m_rb4.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_rb4_clicked));
-
+*/
   // PLAY INTERFACE
   m_Notebook.append_page(m_PlayBox, "Story");
-  m_PlayBox.pack_start(m_PlayText, Gtk::PACK_SHRINK);
+  m_PlayBox.append(m_PlayText);//, Gtk::PACK_SHRINK);
   m_PlayTextBuffer = Gtk::TextBuffer::create();
   m_PlayTextBuffer->set_text("Questions will appear here.");
   m_PlayText.set_buffer(m_PlayTextBuffer);
   Glib::signal_timeout().connect( sigc::mem_fun(*this, &CivWindow::on_play_timeout), 100 );
-  m_Play1.join_group(m_Play0);
-  m_PlayBox.pack_start(m_Play0, Gtk::PACK_SHRINK);
-  m_PlayBox.pack_start(m_Play1, Gtk::PACK_SHRINK);
+  m_Play1.set_group(m_Play0);
+  m_PlayBox.append(m_Play0);//, Gtk::PACK_SHRINK);
+  m_PlayBox.append(m_Play1);//, Gtk::PACK_SHRINK);
 
-  m_Play0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_Play0_clicked));
+/*  m_Play0.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_Play0_clicked));
   m_Play1.signal_clicked().connect(sigc::mem_fun(*this,&CivWindow::on_Play1_clicked));
-
+*/
   //m_trait_button.signal_clicked().connect(sigc::mem_fun(*this, &CivWindow::on_trait_button_clicked));
   //m_trait_button.show();
 
   //HScale:
   m_HScale.set_digits(0);
-  m_HScale.set_value_pos(Gtk::POS_LEFT);
+  m_HScale.set_value_pos(Gtk::PositionType::LEFT);
   m_HScale.set_draw_value();
-  m_PlayBox.pack_start(m_HScale, Gtk::PACK_EXPAND_WIDGET);
+  m_PlayBox.append(m_HScale);//, Gtk::PACK_EXPAND_WIDGET);
   //m_PlayBox.show();
 
   setupw_ = new SetupWindow(setup_params, m_Worker.model);
   //setupw_->signal_hide().connect(sigc::mem_fun(*this, &CivWindow::setupWinClose));
   setupw_->show();
 
-  show_all_children();
+  //show_all_children();
 }
 
 void CivWindow::on_next_button_clicked()
@@ -316,20 +316,20 @@ void CivWindow::on_Play1_clicked()
     ctrl.input_type = NoInput;
 }
 
-bool CivWindow::on_map_clicked(GdkEventButton* event)
+bool CivWindow::on_map_clicked()//GdkEventButton* event)
 {
     const float hex_radius=HEXRADIUS;
     const float sin60 = 0.8660254;
 
     // Check if the event is a left button click.
-	if (event->button == 1)
-	{
+    if (false) //event->button == 1)
+    {
         int ncol = m_Worker.model.nature.ncol;
         float half_width = hex_radius*sin60;
 
-		// Memorize pointer position
-		int mouseX=event->x - 50.0f + half_width; // aligns with left edge of first col
-		int mouseY=event->y - 50.0f + hex_radius; // aligns with top point of first row
+	// Memorize pointer position
+        int mouseX=1;//event->x - 50.0f + half_width; // aligns with left edge of first col
+        int mouseY=1;//event->y - 50.0f + hex_radius; // aligns with top point of first row
 
         int xrnd = mouseX/half_width;
         int yrnd = mouseY/(hex_radius/2);
@@ -374,7 +374,7 @@ bool CivWindow::on_map_clicked(GdkEventButton* event)
                 pginfow_->show();
             }
         }
-	}
+    }
     return true;
 }
 
@@ -425,12 +425,13 @@ bool CivWindow::on_play_timeout()
     }
 
     // force our program to redraw the entire clock.
-    auto win = get_window();
+    queue_draw();
+    /*auto win = get_window();
     if (win)
     {
         Gdk::Rectangle r(0, 0, get_allocation().get_width(),
                 get_allocation().get_height());
         win->invalidate_rect(r, false);
-    }
+    }*/
     return true;
 }

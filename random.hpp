@@ -2,6 +2,7 @@
 #define RANDOM_HPP
 
 #include <algorithm>
+#include <random>
 #include <vector>
 #include <cstdlib>
 
@@ -25,7 +26,10 @@ struct RandPerm{
 
     RandPerm(int n) : x(n) {
         for (int i=0; i<n; i++) x[i]=i;
-        std::random_shuffle ( x.begin(), x.end() );
+        //std::random_shuffle ( x.begin(), x.end() );
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(x.begin(), x.end(), g);
     }
 };
 #endif

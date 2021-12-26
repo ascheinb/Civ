@@ -61,7 +61,7 @@ private:
 
         // Private members
 
-        Gtk::VBox                               m_VBox;
+        Gtk::Box                               m_VBox;
         Gtk::Box                                m_HBox;
 
         // For residents list
@@ -80,7 +80,7 @@ private:
         Glib::RefPtr<Gtk::TreeSelection>        m_refTreeSelection_g;
         GroupWindow m_GroupWindow;
 
-        Gtk::HButtonBox                         m_ButtonBox;
+        Gtk::Box                         m_ButtonBox;
         Gtk::Button                             m_Button_Quit;
         Gtk::Button                             m_Button_Delete;
 

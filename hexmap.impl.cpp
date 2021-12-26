@@ -271,13 +271,15 @@ bool HexMap::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 bool HexMap::on_timeout()
 {
     // force our program to redraw the entire clock.
-    auto win = get_window();
+    queue_draw();
+/*    auto win = get_window();
     if (win)
     {
         Gdk::Rectangle r(0, 0, get_allocation().get_width(),
                 get_allocation().get_height());
         win->invalidate_rect(r, false);
     }
+*/
     return true;
 }
 

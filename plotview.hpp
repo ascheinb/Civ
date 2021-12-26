@@ -13,7 +13,7 @@ public:
 
 protected:
   //Override default signal handler:
-  bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
+  bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
 
   bool on_timeout();
 
