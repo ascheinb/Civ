@@ -10,34 +10,34 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         tile_ind(tile_ind_in)
 {
         set_title("Tile Residents and Groups");
-        set_border_width(5);
+        //set_border_width(5);
         set_default_size(800, 600);
 
-        add(m_VBox);
+        set_child(m_VBox);
 
         // Add the horizontal box
-        m_VBox.pack_start(m_HBox);
+        m_VBox.append(m_HBox);
 
         //Add the TreeView, inside a ScrolledWindow, with the button underneath:
-        m_ScrolledWindow.add(m_TreeView);
+        m_ScrolledWindow.set_child(m_TreeView);
 
-        m_ScrolledWindow_g.add(m_TreeView_g);
+        m_ScrolledWindow_g.set_child(m_TreeView_g);
 
         //Only show the scrollbars when they are necessary:
-        m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-        m_ScrolledWindow_g.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+        m_ScrolledWindow.set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
+        m_ScrolledWindow_g.set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
 
-        m_HBox.pack_start(m_Notebook);
+        m_HBox.append(m_Notebook);
         m_Notebook.append_page(m_ScrolledWindow, "Residents");
         m_Notebook.append_page(m_ScrolledWindow_g, "Groups");
         m_Notebook.signal_switch_page().connect(sigc::mem_fun(*this, &PGInfoWindow::on_notebook_switch_page) );
 
-        m_VBox.pack_start(m_ButtonBox, Gtk::PACK_SHRINK);
+        m_VBox.append(m_ButtonBox);//, Gtk::PACK_SHRINK);
 
-        m_ButtonBox.pack_start(m_Button_Quit, Gtk::PACK_SHRINK);
-        m_ButtonBox.pack_start(m_Button_Delete, Gtk::PACK_SHRINK);
-        m_ButtonBox.set_border_width(5);
-        m_ButtonBox.set_layout(Gtk::BUTTONBOX_END);
+        m_ButtonBox.append(m_Button_Quit);//, Gtk::PACK_SHRINK);
+        m_ButtonBox.append(m_Button_Delete);//, Gtk::PACK_SHRINK);
+        //m_ButtonBox.set_border_width(5);
+        //m_ButtonBox.set_layout(Gtk::BUTTONBOX_END);
         m_Button_Quit.signal_clicked().connect( sigc::mem_fun(*this, &PGInfoWindow::on_button_quit) );
         m_Button_Delete.signal_clicked().connect( sigc::mem_fun(*this, &PGInfoWindow::on_button_delete) );
         m_Button_Delete.set_sensitive( false ); // Only activate if row selected
@@ -50,7 +50,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
 
         //All the items to be reordered with drag-and-drop:
         m_TreeView.set_reorderable();
-        m_TreeView.set_rules_hint();
+        //m_TreeView.set_rules_hint();
         m_TreeView.set_headers_clickable(true);
         m_TreeView.set_headers_visible(true);
 
@@ -80,7 +80,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
 
         //All the items to be reordered with drag-and-drop:
         m_TreeView_g.set_reorderable();
-        m_TreeView_g.set_rules_hint();
+        //m_TreeView_g.set_rules_hint();
         m_TreeView_g.set_headers_clickable(true);
         m_TreeView_g.set_headers_visible(true);
 
@@ -119,7 +119,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         }
 
         /**** Person Window *****/
-        m_HBox.pack_start(m_PersonWindow);
+        m_HBox.append(m_PersonWindow);
 
         // Populate with initial data
         Gtk::TreeModel::iterator iter = m_refTreeSelection->get_selected();
@@ -129,7 +129,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         if (model->nature.map[tile_ind].residents.size() > 0)
             m_PersonWindow.fill_buffers(res_id);
 
-        m_HBox.pack_start(m_GroupWindow);
+        m_HBox.append(m_GroupWindow);
         // Populate with initial data
         //Gtk::TreeModel::iterator iter = m_refTreeSelection_g->get_selected();
         //int g_id = (*iter)[m_Columns_g.m_col_id];
@@ -138,7 +138,7 @@ PGInfoWindow::PGInfoWindow(Model& model_in, int tile_ind_in) :
         //if (model->nature.map[tile_ind].residents.size() > 0)
         //    m_GroupWindow.fill_buffers(res_id);
 
-        show_all_children();
+        //show_all_children();
         m_GroupWindow.hide();
 }
 
@@ -166,7 +166,7 @@ void PGInfoWindow::add_entry_g(const int res_id, const char* name )
 
 void PGInfoWindow::on_button_quit()
 {
-        hide();
+        //hide();
 }
 
 

@@ -11,7 +11,7 @@
 
 #include "civwindow.hpp"
 
-int main(){
+int main(int argc, char *argv[]){
     // Initialize random seed
     srand (time(NULL));
     //srand(5);

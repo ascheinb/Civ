@@ -5,12 +5,12 @@ PersonWindow::PersonWindow(Model& model_in) :
         model(&model_in)
 {
         //Add the TreeView, inside a ScrolledWindow, with the button underneath:
-        add(m_VBox2);
+        set_child(m_VBox2);
 
         //Only show the scrollbars when they are necessary:
-        set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+        set_policy(Gtk::PolicyType::AUTOMATIC, Gtk::PolicyType::AUTOMATIC);
 
-        m_VBox2.pack_start(m_TextView);
+        m_VBox2.append(m_TextView);
         m_refTextBuffer1 = Gtk::TextBuffer::create();
         m_refTextBuffer1->set_text("\n\n\tSelect a person or a group.");
         m_TextView.set_buffer(m_refTextBuffer1);
@@ -18,7 +18,7 @@ PersonWindow::PersonWindow(Model& model_in) :
         // Relationships
 
         //Add the TreeView, inside a ScrolledWindow, with the button underneath:
-        m_VBox2.pack_start(m_TreeView_r);
+        m_VBox2.append(m_TreeView_r);
 
         //Create the Tree model:
         m_refTreeModel_r     = Gtk::ListStore::create(m_Columns_r);
@@ -26,7 +26,7 @@ PersonWindow::PersonWindow(Model& model_in) :
 
         //All the items to be reordered with drag-and-drop:
         m_TreeView_r.set_reorderable();
-        m_TreeView_r.set_rules_hint();
+        //m_TreeView_r.set_rules_hint();
         m_TreeView_r.set_headers_clickable(true);
         m_TreeView_r.set_headers_visible(true);
 
@@ -40,7 +40,7 @@ PersonWindow::PersonWindow(Model& model_in) :
         m_TreeView_r.append_column("Fondness for", m_Columns_r.m_f_to);
         m_TreeView_r.append_column("Fondness by", m_Columns_r.m_f_of);
         //m_TreeView_r.append_column("Image", m_Columns_r.m_pixbuf);
-        m_refTreeModel_r->set_sort_column( m_Columns_r.m_f_to, Gtk::SORT_DESCENDING );   // Initial sorting column
+        m_refTreeModel_r->set_sort_column( m_Columns_r.m_f_to, Gtk::SortType::DESCENDING );   // Initial sorting column
 
         // Set sorting for each column added
         Gtk::TreeView::Column* pColumn_r = m_TreeView_r.get_column(0);
@@ -59,7 +59,7 @@ PersonWindow::PersonWindow(Model& model_in) :
         // Memberships
 
         //Add the TreeView, inside a ScrolledWindow, with the button underneath:
-        m_VBox2.pack_start(m_TreeView_m);
+        m_VBox2.append(m_TreeView_m);
 
         //Create the Tree model:
         m_refTreeModel_m     = Gtk::ListStore::create(m_Columns_m);
@@ -67,7 +67,7 @@ PersonWindow::PersonWindow(Model& model_in) :
 
         //All the items to be reordered with drag-and-drop:
         m_TreeView_m.set_reorderable();
-        m_TreeView_m.set_rules_hint();
+        //m_TreeView_m.set_rules_hint();
         m_TreeView_m.set_headers_clickable(true);
         m_TreeView_m.set_headers_visible(true);
 
@@ -78,7 +78,7 @@ PersonWindow::PersonWindow(Model& model_in) :
         //Add the TreeView's view columns:
         m_TreeView_m.append_column("Name", m_Columns_m.m_col_name);
         m_TreeView_m.append_column("Loyalty to", m_Columns_m.m_l_to);
-        m_refTreeModel_m->set_sort_column( m_Columns_m.m_l_to, Gtk::SORT_DESCENDING );   // Initial sorting column
+        m_refTreeModel_m->set_sort_column( m_Columns_m.m_l_to, Gtk::SortType::DESCENDING );   // Initial sorting column
 
         // Set sorting for each column added
         Gtk::TreeView::Column* pColumn_m = m_TreeView_m.get_column(0);
