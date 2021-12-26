@@ -1,13 +1,13 @@
 #include <sstream>
 #include <chrono>
 
-ModelThread::ModelThread(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth) :
+ModelThread::ModelThread(SetupParameters& setup_params_in) :
   m_Mutex(),
   m_shall_stop(false),
   m_has_stopped(false),
   m_fraction_done(0.0),
   m_message(),
-  model(initial_n_ppl, n_years, min_food_gen, max_food_gen, climate_type, mapsize, mapwidth)
+  model(setup_params_in)
 {
 }
 
@@ -35,6 +35,39 @@ bool ModelThread::has_stopped() const
 {
   std::lock_guard<std::mutex> lock(m_Mutex);
   return m_has_stopped;
+}
+
+void ModelThread::do_one_turn(CivWindow* caller)
+{
+  {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    m_has_stopped = false;
+    m_message = "";
+  } // The mutex is unlocked here by lock's destructor.
+
+      model.advance();
+      model.i_turn++;
+      if (model.p.person.size()==0) {printf("\nEnding simulation early...");}
+
+    {
+      std::lock_guard<std::mutex> lock(m_Mutex);
+
+      m_fraction_done = float(model.i_turn)/float(model.n_turns);
+
+    }
+
+    caller->notify();
+
+  // Finished
+  if (model.i_turn > model.n_turns) model.conclusions();
+
+  {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    m_shall_stop = false;
+    m_has_stopped = true;
+  }
+
+  caller->notify();
 }
 
 void ModelThread::do_work(CivWindow* caller)

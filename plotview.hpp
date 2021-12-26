@@ -1,17 +1,15 @@
-#ifndef HEXMAP_HPP
-#define HEXMAP_HPP
+#ifndef PLOTVIEW_HPP
+#define PLOTVIEW_HPP
 
 #include <gtkmm/drawingarea.h>
 
 #include "model.hpp"
 
-class HexMap : public Gtk::DrawingArea
+class PlotView : public Gtk::DrawingArea
 {
 public:
-  HexMap(Model& model_in);
-  virtual ~HexMap();
-
-  int highlighted;
+  PlotView(Model& model_in);
+  virtual ~PlotView();
 
 protected:
   //Override default signal handler:
@@ -26,7 +24,7 @@ protected:
 
 };
 
-#include "hexmap.impl.cpp"
+#include "plotview.impl.cpp"
 
 #endif
 

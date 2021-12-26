@@ -3,8 +3,10 @@
 #include <cairomm/context.h>
 #include <glibmm/main.h>
 
+#define HEXRADIUS 30
+
 HexMap::HexMap(Model& model_in)
-: m_radius(100), m_line_width(3)
+: m_radius(100), m_line_width(3), highlighted(-1)
 {
   model = &(model_in); // Point the hexmap to the model
   Glib::signal_timeout().connect( sigc::mem_fun(*this, &HexMap::on_timeout), 100 );
@@ -15,7 +17,7 @@ HexMap::~HexMap()
 }
 
 void draw_hexagon(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
-    const float hex_radius=30;
+    const float hex_radius=HEXRADIUS;
     const float sin60 = 0.8660254;
 
     cr->set_line_width(1);
@@ -31,7 +33,7 @@ void draw_hexagon(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, f
 }
 
 void draw_hexline(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y, Direction direction){
-    const float hex_radius=29;
+    const float hex_radius=HEXRADIUS-1;
     const float sin60 = 0.8660254;
     const int linewidth = 2;
 
@@ -53,25 +55,56 @@ void draw_hexline(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, f
     cr->stroke();
 }
 
-void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
-    const float hex_radius=30;
-    cr->set_line_width(3);
+void draw_one_mtn(const Cairo::RefPtr<Cairo::Context>& cr, float start_x, float start_y, float height){
     cr->set_source_rgba(103.0f/256, 95.0f/256, 82.0f/256, 1.0); // Brown
-    cr->move_to(hex_center_x - hex_radius*0.7, hex_center_y + hex_radius*0.5); // Start at lower left
-    cr->rel_line_to(hex_radius*0.4f, -hex_radius*0.8f); // mtn 1 up
-    cr->rel_line_to(hex_radius*0.4f, hex_radius*0.8f); // mtn 1 down
-    cr->rel_move_to(-hex_radius*0.1f, -hex_radius*0.2f); // go back a little bit
-    cr->rel_line_to(hex_radius*0.3f, -hex_radius*0.6f); // mtn 2 up
-    cr->rel_line_to(hex_radius*0.35f, hex_radius*0.7f); // mtn 2 down
-    cr->rel_move_to(-hex_radius*0.35f, -hex_radius*0.7f); // go back to peak
-    cr->rel_move_to(-hex_radius*0.1f, hex_radius*0.2f); // go back a little more
-    cr->rel_line_to(-hex_radius*0.2f, -hex_radius*0.4f); // mtn 3 up (in reverse)
-    cr->rel_line_to(-hex_radius*0.2f, hex_radius*0.4f); // mtn 3 down (in reverse)
-    cr->stroke();
+    cr->move_to(start_x, start_y); // Start at lower left
+    cr->rel_line_to(height/2, -height);
+    cr->rel_line_to(height/2, height);
+    cr->stroke_preserve();
+    cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0);
+    cr->fill();
+}
+
+void draw_mountains(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y, Model& model, int itile){
+    const float hex_radius=HEXRADIUS;
+    cr->set_line_width(3);
+
+    // Border linking mountains
+    int neighbor_tile = model.nature.neighbor(itile,NW);
+    int neighbor_tile2 = model.nature.neighbor(itile,NE);
+
+    // N mountain
+    if (neighbor_tile>=0 && neighbor_tile2>=0)
+        if (model.nature.map[neighbor_tile].terrain==MOUNTAIN && model.nature.map[neighbor_tile2].terrain==MOUNTAIN)
+            draw_one_mtn(cr,hex_center_x - hex_radius*0.35, hex_center_y - hex_radius*0.4, hex_radius*0.8f);
+
+    // NW mountain
+    if (neighbor_tile>=0)
+        if (model.nature.map[neighbor_tile].terrain==MOUNTAIN)
+            draw_one_mtn(cr,hex_center_x - hex_radius*0.85, hex_center_y - hex_radius*0.2, hex_radius*0.8f);
+
+    // NE mountain
+    if (neighbor_tile2>=0)
+        if (model.nature.map[neighbor_tile2].terrain==MOUNTAIN){
+            draw_one_mtn(cr,hex_center_x + hex_radius*0.3, hex_center_y - hex_radius*0.5, hex_radius*0.8f);
+            draw_one_mtn(cr,hex_center_x + hex_radius*0.05, hex_center_y - hex_radius*0.2, hex_radius*0.8f);
+        }
+
+    // W mountain
+    neighbor_tile = model.nature.neighbor(itile,W);
+    if (neighbor_tile>=0)
+        if (model.nature.map[neighbor_tile].terrain==MOUNTAIN)
+            draw_one_mtn(cr,hex_center_x - hex_radius*1.00, hex_center_y + hex_radius*0.35, hex_radius*0.8f);
+
+    // 3 mountains, from back to front
+    draw_one_mtn(cr,hex_center_x - hex_radius*0.4, hex_center_y + hex_radius*0.3, hex_radius*0.8f);
+    draw_one_mtn(cr,hex_center_x - hex_radius*0.1, hex_center_y + hex_radius*0.4, hex_radius*0.8f);
+    draw_one_mtn(cr,hex_center_x - hex_radius*0.7, hex_center_y + hex_radius*0.5, hex_radius*0.8f);
+    
 }
 
 void draw_waves(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, float hex_center_y){
-    const float hex_radius=30;
+    const float hex_radius=HEXRADIUS;
     cr->set_line_width(3);
     cr->set_source_rgba(88.0f/256, 110.0f/256, 119.0f/256, 0.3); // Blue
     cr->move_to(hex_center_x - hex_radius*0.5, hex_center_y + hex_radius*0.5); // Start at lower left
@@ -82,8 +115,8 @@ void draw_waves(const Cairo::RefPtr<Cairo::Context>& cr, float hex_center_x, flo
     cr->stroke();
 }
 
-void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
-    const float hex_radius=30;
+void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model, int highlighted){
+    const float hex_radius=HEXRADIUS;
     const float sin60 = 0.8660254;
     const float hex_width = hex_radius*sin60*2;
 
@@ -110,11 +143,12 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
             // Fill with correct background color
             if(model.nature.map[itile].terrain==GRASS) cr->set_source_rgba(167.0f/256, 206.0f/256, 164.0f/256, 1.0); // Green
             if(model.nature.map[itile].terrain==WATER) cr->set_source_rgba(177.0f/256, 219.0f/256, 238.0f/256, 1.0); // Blue
-            if(model.nature.map[itile].terrain==MOUNTAIN) cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0); // Brown
+            if(model.nature.map[itile].terrain==MOUNTAIN) cr->set_source_rgba(167.0f/256, 206.0f/256, 164.0f/256, 1.0); // Green
+            //if(model.nature.map[itile].terrain==MOUNTAIN) cr->set_source_rgba(206.0f/256, 191.0f/256, 164.0f/256, 1.0); // Brown
             cr->fill();
 
             // Draw mountains or waves
-            if(model.nature.map[itile].terrain==MOUNTAIN) draw_mountains(cr,tile_center_x, tile_center_y);
+            if(model.nature.map[itile].terrain==MOUNTAIN) draw_mountains(cr,tile_center_x, tile_center_y, model, itile);
             if(model.nature.map[itile].terrain==WATER) draw_waves(cr,tile_center_x, tile_center_y);
 
             // Write population
@@ -157,35 +191,35 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
                 bool ul = true;
                 int neighbor_tile = model.nature.neighbor(itile,W);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,W);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,W);}
                     else ul = false;
                 } else draw_hexline(cr,tile_center_x, tile_center_y,W);
                 
                 neighbor_tile = model.nature.neighbor(itile,NW);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,NW);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,NW);}
                     else ul = false;
                 } else draw_hexline(cr,tile_center_x, tile_center_y,NW);
                 
                 neighbor_tile = model.nature.neighbor(itile,NE);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,NE);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,NE);}
                     else ul = false;
                 } else draw_hexline(cr,tile_center_x, tile_center_y,NE);
                 
                 neighbor_tile = model.nature.neighbor(itile,E);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,E);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,E);}
                 } else draw_hexline(cr,tile_center_x, tile_center_y,E);
                 
                 neighbor_tile = model.nature.neighbor(itile,SE);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,SE);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,SE);}
                 } else draw_hexline(cr,tile_center_x, tile_center_y,SE);
                 
                 neighbor_tile = model.nature.neighbor(itile,SW);
                 if (neighbor_tile>=0){
-                    if (model.nature.map[neighbor_tile].owner!=gid) draw_hexline(cr,tile_center_x, tile_center_y,SW);
+                    if (model.nature.map[neighbor_tile].owner!=gid) {if(model.nature.map[neighbor_tile].terrain==GRASS) draw_hexline(cr,tile_center_x, tile_center_y,SW);}
                 } else draw_hexline(cr,tile_center_x, tile_center_y,SW);
 
                 if (ul){ // Quick way to clean up names - only put name in upper left corner tile
@@ -198,6 +232,16 @@ void draw_hexmap(const Cairo::RefPtr<Cairo::Context>& cr, Model& model){
                 }
             }
         }
+    }
+    if(highlighted>=0){
+        int i = highlighted%model.nature.ncol;
+        int j = highlighted/model.nature.ncol;
+        float offset = (j%2==0 ? 0 : hex_width/2);
+        float tile_center_x = 50.0f + hex_width*i + offset;
+        float tile_center_y = 50.0f + 1.5*hex_radius*j;
+        draw_hexagon(cr, tile_center_x, tile_center_y);
+        cr->set_source_rgba(0.3,0.0,0.0,0.2);//167.0f/256, 206.0f/256, 0.0f/256, 1.0);
+        cr->fill();
     }
 }
 
@@ -218,7 +262,7 @@ bool HexMap::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 //  cr->clip();
 
 
-  draw_hexmap(cr, *model);
+  draw_hexmap(cr, *model, highlighted);
 
   return true;
 }

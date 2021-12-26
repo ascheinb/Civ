@@ -1,17 +1,15 @@
-#ifndef HEXMAP_HPP
-#define HEXMAP_HPP
+#ifndef YEARVIEW_HPP
+#define YEARVIEW_HPP
 
 #include <gtkmm/drawingarea.h>
 
 #include "model.hpp"
 
-class HexMap : public Gtk::DrawingArea
+class YearView : public Gtk::DrawingArea
 {
 public:
-  HexMap(Model& model_in);
-  virtual ~HexMap();
-
-  int highlighted;
+  YearView(Model& model_in);
+  virtual ~YearView();
 
 protected:
   //Override default signal handler:
@@ -26,7 +24,7 @@ protected:
 
 };
 
-#include "hexmap.impl.cpp"
+#include "yearview.impl.cpp"
 
 #endif
 

@@ -42,7 +42,7 @@ class Group{
     vector<int> memberlist;
 
     // Tentative: leader
-    int leader; // index in memberlist
+    int leader = 0; // index in memberlist
 
     // Guard list
     vector<Guard> guards;

@@ -3,10 +3,12 @@
 
 #include "names.hpp"
 #include "random.hpp"
+#include "control.hpp"
 #include "population.hpp"
 #include "nature.hpp"
 #include "graphics.hpp"
 #include "interface.hpp"
+#include "setup_params.hpp"
 
 struct Model{
     Nature nature;
@@ -15,6 +17,9 @@ struct Model{
     SimVar<int> nstarved;
     SimVar<int> ndied;
     SimVar<int> nppl;
+    vector<float> plot_fracs;
+    float plot_avg;
+    PersonalityTrait plot_trait;
 
     // Group-checking diagnostics
     int ncreated;
@@ -30,22 +35,59 @@ struct Model{
 
     int i_turn;
 
-    Model(int initial_n_ppl, int n_years, float min_food_gen, float max_food_gen, int climate_type, int mapsize, int mapwidth)
-        : nkids(n_years*4),nstarved(n_years*4),ndied(n_years*4),nppl(n_years*4),
-          nature(min_food_gen,max_food_gen,climate_type,mapsize,mapwidth),
-          p(initial_n_ppl,mapsize)
+    Model(SetupParameters& mp)
+        : nkids(mp.n_years*4),nstarved(mp.n_years*4),ndied(mp.n_years*4),nppl(mp.n_years*4),
+          nature(mp.min_food_gen,mp.max_food_gen,mp.climate_type,mp.mapsize,mp.mapwidth),
+          p(mp.initial_n_ppl,mp.mapsize),
+          plot_fracs(33),
+          plot_trait(Extroversion)
     {
-        carrying_capacity = (max_food_gen+min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
-        n_turns = n_years*4; // A turn is one season
+        carrying_capacity = (mp.max_food_gen+mp.min_food_gen)/2/FOOD_TO_SURVIVE; // Assuming avg is avg of min and max
+        n_turns = mp.n_years*4; // A turn is one season
         i_turn = 1;
-        watch = false;
-        watch_start_year=500;
+        watch = true;
+        watch_start_year=100;
 
         // Group checking diagnostics
         ncreated=0; nextant=0; nmerged=0;
         p.sum_nage=0; p.sum_dage=0;
 
         printf("\n ******** SIMULATION BEGINS ******* \n");
+    }
+
+    void set_fracs(vector<float>& fracs, float& avg){
+        switch(plot_trait){
+            case Extroversion:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.extroversion==i;});
+                }
+                avg = p.avg([](Person& h){return h.extroversion;});
+                break;
+            case Agreeableness:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.agreeableness==i;});
+                }
+                avg = p.avg([](Person& h){return h.agreeableness;});
+                break;
+            case Conscientiousness:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.conscientiousness==i;});
+                }
+                avg = p.avg([](Person& h){return h.conscientiousness;});
+                break;
+            case Neuroticism:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.neuroticism==i;});
+                }
+                avg = p.avg([](Person& h){return h.neuroticism;});
+                break;
+            case Openness:
+                for (int i=0;i<fracs.size();i++){
+                    fracs[i] = p.frac(i,[](int i,Person& h){return h.openness==i;});
+                }
+                avg = p.avg([](Person& h){return h.openness;});
+                break;
+        }
     }
 
     void advance(){
@@ -85,7 +127,6 @@ struct Model{
                 for (int i=0;i<p.person.size();i++)
                     if (p.person[i].watch) printf(" -%s %s (%d)", names[p.person[i].name].c_str(), gnames[p.groups[p.person[i].mships[0].id].name].c_str(), p.person[i].age/4);
             }
-            printf("\n      (%.0f food this season)",nature.food_available);
         }
     timer.stop(); timer.start("eval_choices");
         p.evaluate_choices();
@@ -154,6 +195,8 @@ struct Model{
     timer.stop(); timer.start("tile ownership");
         // Determine tile ownership (for map viewing - rate could be less)
         determine_owners(p,nature);
+    timer.stop(); timer.start("plotting");
+        set_fracs(plot_fracs, plot_avg);
     timer.stop();
         int n_ppl = p.person.size();
         nppl.add(i_turn,n_ppl);

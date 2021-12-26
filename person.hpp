@@ -54,6 +54,18 @@ using std::min;
 
 class Population;
 
+enum PersonalityTrait{
+    Extroversion=0,
+    Agreeableness,
+    Conscientiousness,
+    Neuroticism,
+    Openness
+};
+
+std::vector<std::string> trait_names{ "Extroversion","Agreeableness", "Conscientiousness", "Neuroticism", "Openness"};
+
+std::vector<std::string> work_names{ "Kid", "Forager", "Guard" };
+
 class Person{
     public:
     // fixed

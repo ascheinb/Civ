@@ -5,7 +5,7 @@
 #include "random.hpp"
 
 using std::vector;
-
+#include "read_bmp.hpp"
 #define GRASS 0
 #define WATER 1
 #define MOUNTAIN 2
@@ -73,7 +73,29 @@ class Nature{
         ncol=mapwidth;
         nrow=mapsize/mapwidth;
         if(nrow*ncol!=mapsize) printf("ERROR: mapsize must be divisible by mapwidth");
-
+if (mapsize==45*54){
+    unsigned char* data = ReadBMP("wmap.bmp");
+    int wd=840;
+    int ht=453;
+    for (int i = 0; i<nrow; i++)
+        for (int j = 0; j<ncol; j++){
+            int centrow = 30;
+            int rbuf=0;//  + (1.0-pow(i-centrow,2)/(centrow*centrow))*100;
+            int lbuf=50;// + (1.0-pow(i-centrow,2)/(centrow*centrow))*100; //50
+            printf("\nij: %d, %d, rbuf %d, lbuf %d", i, j, rbuf, lbuf);
+            int tbuf=50;// + (1.0-pow(i-centrow,2)/(centrow*centrow))*100; //50
+            int bbuf=20;// + (1.0-pow(i-centrow,2)/(centrow*centrow))*100; //20
+            int bht = ht - (tbuf + bbuf);
+            int bwd = wd - (lbuf + rbuf);
+            int pix_row = bbuf + (bht*(nrow-i-1))/nrow;
+            int pix_col = lbuf + (bwd*j)/ncol + 0.5*(i%2)*bwd/ncol;
+            int data_shift = pix_row*wd+pix_col;
+            if(data[data_shift*3]<200)
+                map[ncol*i + j].terrain = GRASS;
+            else
+                map[ncol*i + j].terrain = WATER;
+        }
+}else{
         // Add water
         int nwater=map.size()/5;
         int iwater=0;
@@ -101,7 +123,7 @@ class Nature{
                 cand = map[mtile].neighbor(ncol,nrow,random_dir());
             mtile = cand;
         }
-
+}
 
         // "CLIMATE": Available food distribution
         // OPTION 1: Evenly distribute food among tiles
